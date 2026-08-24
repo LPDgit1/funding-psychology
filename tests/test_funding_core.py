@@ -21,6 +21,7 @@ from funding_core.adapters import (
 )
 from funding_core.classifier import classify
 from funding_core.pipeline import anomaly_warnings, process
+from funding_core.snapshot import public_opportunity
 
 
 class FundingCoreTests(unittest.TestCase):
@@ -159,6 +160,15 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(len(children), 1)
         self.assertEqual(len(digital), 1)
         self.assertEqual(digital[0].funder, "Fondo per la Repubblica Digitale")
+
+    def test_public_snapshot_mapping_is_not_demo_data(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "eu_funding_tenders.json"
+        item = process("eu-funding-tenders", EuFundingTendersAdapter().parse(path.read_text(encoding="utf-8")), date(2026, 8, 24))[0]
+        public = public_opportunity(item, date(2026, 8, 24))
+        self.assertFalse(public["demo"])
+        self.assertEqual(public["territory"], "Unione Europea")
+        self.assertEqual(public["deadline"], "2027-02-18")
+        self.assertTrue(public["officialUrl"].startswith("https://"))
 
 
 if __name__ == "__main__":

@@ -18,7 +18,8 @@ export type Opportunity = {
   relevanceWhy: string;
   officialUrl: string;
   lastVerified: string;
-  demo: true;
+  demo: boolean;
+  sourceId?: string;
 };
 
 const SYNONYMS: Record<string, string[]> = {

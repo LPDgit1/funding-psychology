@@ -5,16 +5,12 @@ Prima iterazione separata e prudente di un motore di ricerca per finanziamenti d
 ## Stato reale
 
 - UI Sites responsive con ricerca, macroaree multi-select, filtri, dettaglio, opportunità in arrivo e preferiti locali.
-- I record visibili sono **scenari dimostrativi** e sono dichiarati tali nell'interfaccia.
+- Lo snapshot pubblico `public/data/opportunities.json` contiene il primo popolamento reale: 6.012 opportunità normalizzate da 12 adapter live, con date/importi mancanti lasciati nulli e fallback dimostrativo se il file non è raggiungibile.
 - Core Python senza dipendenze esterne per normalizzazione, classificazione multi-label, deduplicazione e anomaly warning.
-- Adapter EU Funding & Tenders con chiamata live verificata, parser e fixture; il risultato non è ancora persistito nello snapshot pubblico.
-- Adapter Incentivi.gov.it sull'export Solr ufficiale: chiamata live verificata con 5.773 record, parser e fixture; il risultato non è ancora persistito nello snapshot pubblico.
-- Adapter Erasmus+ INDIRE sulla tabella ufficiale delle scadenze: 10 righe INDIRE parseabili verificate live, parser e fixture.
-- Adapter AIG sulla REST API ufficiale delle opportunità: 32 post parseabili verificati live, parser e fixture.
-- Adapter Interreg Italy–Croatia sulla pagina ufficiale della 4th Call: calendario e budget estratti live, parser e fixture.
-- Adapter Regione Veneto bandi sulla sezione statica `IN SCADENZA` della homepage: 10 card correnti parseabili verificate sul markup live, parser e fixture; la fetch Python resta soggetta alla TLS policy locale.
-- Adapter Dipartimento Famiglia: 22 avvisi/bandi correnti parseabili dalla lista ufficiale; adapter Dipartimento Disabilità: 9 voci parseabili dalla sezione ufficiale.
-- Adapter Fondazione Cariparo (9 link), Fondazione Cariverona (6 link), Con i Bambini (33 voci dall'embedded JSON ufficiale) e Fondo per la Repubblica Digitale (7 link): markup/JSON live verificati, parser e fixture; deadline/importi restano nulli quando l'elenco non li espone.
+- Adapter EU Funding & Tenders con chiamata live verificata e 100 schede pubblicate nello snapshot iniziale.
+- Adapter Incentivi.gov.it sull'export Solr ufficiale: chiamata live verificata con 5.773 record pubblicati nello snapshot iniziale.
+- Adapter Erasmus+ INDIRE (10 righe), AIG (32 post), Interreg Italy–Croatia (1 call) e Regione Veneto bandi (10 card): trasporto/parsing live verificati e record pubblicati nello snapshot.
+- Adapter Dipartimento Famiglia (22), Dipartimento Disabilità (9), Fondazione Cariparo (9), Fondazione Cariverona (6), Con i Bambini (33) e Fondo per la Repubblica Digitale (7): liste ufficiali live verificate e pubblicate nello snapshot; deadline/importi restano nulli quando l'elenco non li espone.
 - Parser fixture-verificato per il calendario FSE+ Veneto; la verifica live resta bloccata dalla catena TLS locale.
 - Parser fixture-verificato per il calendario FESR+ Veneto; la pagina corrente rimanda al cronoprogramma regionale HTML e non espone ancora un CSV stabile.
 - Nessuna API AI, autenticazione, coda, cache complessa o servizio aggiuntivo.
@@ -26,7 +22,7 @@ python -m unittest discover -s tests -p "test_*.py"
 pnpm test
 ```
 
-Validazione manuale live dell'adapter UE:
+Validazione manuale degli adapter e rigenerazione dello snapshot:
 
 ```powershell
 python -m funding_core.cli validate-source eu-funding-tenders
@@ -53,6 +49,9 @@ python -m funding_core.cli validate-source con-i-bambini
 python -m funding_core.cli sync con-i-bambini
 python -m funding_core.cli validate-source fondo-repubblica-digitale
 python -m funding_core.cli sync fondo-repubblica-digitale
+python -m funding_core.cli validate-source veneto-fse-calendar
+python -m funding_core.cli validate-source veneto-fesr-calendar
+python -m funding_core.cli populate-snapshot --output public/data/opportunities.json
 ```
 
 Vedi `docs/SOURCES.md` per lo stato puntuale delle fonti.
