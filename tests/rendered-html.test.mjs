@@ -18,6 +18,7 @@ test("home explains the task and discloses prototype data", async () => {
   assert.match(html, /Che progetto hai in mente/);
   assert.match(html, /Prototipo UX verificabile/);
   assert.match(html, /Le schede sono scenari dimostrativi, non bandi reali/);
+  assert.match(html, /L’adapter UE è stato verificato live/);
   assert.match(html, /Minori e adolescenti/);
   assert.match(html, /In arrivo/);
   assert.match(html, /fonte ufficiale/i);

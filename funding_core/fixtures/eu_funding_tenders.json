@@ -1,0 +1,33 @@
+{
+  "apiVersion": "2.151",
+  "totalResults": 2,
+  "pageNumber": 1,
+  "pageSize": 2,
+  "results": [
+    {
+      "reference": "fixture-topic-en",
+      "url": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/FIXTURE-PSY-2026",
+      "summary": "Psychological wellbeing in school communities",
+      "metadata": {
+        "identifier": ["FIXTURE-PSY-2026"],
+        "title": ["Psychological wellbeing in school communities"],
+        "url": ["https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/FIXTURE-PSY-2026"],
+        "startDate": ["2026-10-01T00:00:00.000+0000"],
+        "deadlineDate": ["2027-02-18T00:00:00.000+0000"],
+        "status": ["31094501"],
+        "frameworkProgramme": ["Horizon Europe"],
+        "participantTypes": ["Universities", "Non-profit organisations"],
+        "budget": ["1500000"]
+      }
+    },
+    {
+      "reference": "fixture-partial-en",
+      "summary": "A partial record without dates",
+      "metadata": {
+        "identifier": ["FIXTURE-PARTIAL-2026"],
+        "title": ["A partial record without dates"],
+        "status": ["31094502"]
+      }
+    }
+  ]
+}

@@ -1,8 +1,9 @@
 from datetime import date
+import json
 from pathlib import Path
 import unittest
 
-from funding_core.adapters import VenetoFseCalendarAdapter
+from funding_core.adapters import EuFundingTendersAdapter, VenetoFseCalendarAdapter
 from funding_core.classifier import classify
 from funding_core.pipeline import anomaly_warnings, process
 
@@ -41,6 +42,25 @@ class FundingCoreTests(unittest.TestCase):
         warnings = anomaly_warnings(0, [18], [], [])
         self.assertIn("zero records after a previously populated run", warnings)
         self.assertIn("record count dropped by more than half", warnings)
+
+    def test_eu_fixture_parse_and_missing_fields(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "eu_funding_tenders.json"
+        records = EuFundingTendersAdapter().parse(path.read_text(encoding="utf-8"))
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].external_id, "FIXTURE-PSY-2026")
+        self.assertEqual(records[0].source_status, "UPCOMING")
+        self.assertEqual(records[0].opening_date, date(2026, 10, 1))
+        self.assertEqual(records[0].deadline, date(2027, 2, 18))
+        self.assertEqual(records[0].total_budget, 1_500_000)
+        self.assertEqual(records[1].deadline, None)
+        self.assertTrue(records[1].official_url.startswith("https://"))
+
+    def test_eu_query_contract(self):
+        query = EuFundingTendersAdapter().build_query()
+        encoded = json.dumps(query)
+        self.assertIn("programmePeriod", encoded)
+        self.assertIn("31094502", encoded)
+        self.assertIn("2021 - 2027", encoded)
 
 
 if __name__ == "__main__":
