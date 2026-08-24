@@ -265,6 +265,8 @@ def build_snapshot_set(
                 archive_opportunities.extend(item for item in previous_items if item.get("status") == "CLOSED")
                 source_status = "STALE"
                 published_count = previous_count
+                source_current_count = sum(1 for item in previous_items if item.get("status") != "CLOSED")
+                source_archive_count = sum(1 for item in previous_items if item.get("status") == "CLOSED")
                 new_count = updated_count = unchanged_count = 0
             else:
                 mapped = [
@@ -277,10 +279,18 @@ def build_snapshot_set(
                     )
                     for item in normalized
                 ]
+                mapped_ids = {_record_id(item) for item in mapped}
+                retained_archive = [
+                    item for item in previous_items
+                    if item.get("status") == "CLOSED" and _record_id(item) not in mapped_ids
+                ]
                 current_opportunities.extend(item for item in mapped if item.get("status") != "CLOSED")
                 archive_opportunities.extend(item for item in mapped if item.get("status") == "CLOSED")
+                archive_opportunities.extend(retained_archive)
                 source_status = "LIVE"
-                published_count = len(mapped)
+                published_count = len(mapped) + len(retained_archive)
+                source_current_count = sum(1 for item in mapped if item.get("status") != "CLOSED")
+                source_archive_count = sum(1 for item in mapped if item.get("status") == "CLOSED") + len(retained_archive)
                 old_ids = {_record_id(item) for item in previous_items}
                 new_count = sum(1 for item in mapped if _record_id(item) not in old_ids)
                 updated_count = sum(1 for item in mapped if _record_id(item) in old_ids and item.get("contentHash") != next((old.get("contentHash") for old in previous_items if _record_id(old) == _record_id(item)), None))
@@ -294,8 +304,8 @@ def build_snapshot_set(
                 "status": source_status,
                 "fetchedRecords": len(records),
                 "publishedRecords": published_count,
-                "currentRecords": sum(1 for item in (current_opportunities if suspicious else mapped) if item.get("sourceId") == spec.source_id and item.get("status") != "CLOSED"),
-                "archiveRecords": sum(1 for item in (archive_opportunities if suspicious else mapped) if item.get("sourceId") == spec.source_id and item.get("status") == "CLOSED"),
+                "currentRecords": source_current_count,
+                "archiveRecords": source_archive_count,
                 "new": new_count,
                 "updated": updated_count,
                 "unchanged": unchanged_count,
