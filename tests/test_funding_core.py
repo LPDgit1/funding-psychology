@@ -3,7 +3,12 @@ import json
 from pathlib import Path
 import unittest
 
-from funding_core.adapters import EuFundingTendersAdapter, VenetoFseCalendarAdapter
+from funding_core.adapters import (
+    IncentiviGovAdapter,
+    EuFundingTendersAdapter,
+    VenetoFesrCalendarAdapter,
+    VenetoFseCalendarAdapter,
+)
 from funding_core.classifier import classify
 from funding_core.pipeline import anomaly_warnings, process
 
@@ -61,6 +66,31 @@ class FundingCoreTests(unittest.TestCase):
         self.assertIn("programmePeriod", encoded)
         self.assertIn("31094502", encoded)
         self.assertIn("2021 - 2027", encoded)
+
+    def test_incentivi_fixture_parse_and_contract(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "incentivi_gov.json"
+        adapter = IncentiviGovAdapter()
+        records = adapter.parse(path.read_text(encoding="utf-8"))
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].external_id, "FIXTURE-1423")
+        self.assertEqual(records[0].opening_date, date(2026, 9, 8))
+        self.assertEqual(records[0].deadline, date(2026, 12, 23))
+        self.assertEqual(records[0].total_budget, 1_500_000)
+        self.assertTrue(records[0].official_url.startswith("https://www.incentivi.gov.it/"))
+        self.assertIn("Contributo per servizi", records[0].description)
+        self.assertEqual(records[1].deadline, None)
+        query = adapter.build_query()
+        self.assertEqual(query["rows"], "8000")
+        self.assertIn("index_id:incentivi", query["q"])
+        self.assertIn("Titolo:zs_title", query["fl"])
+
+    def test_fesr_fixture_uses_programme_specific_identity(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "veneto_fesr_calendar.csv"
+        records = VenetoFesrCalendarAdapter().parse(path.read_bytes())
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].external_id, "FESR-2026-01")
+        self.assertEqual(records[0].programme, "PR Veneto FESR+ 2021-2027")
+        self.assertTrue(records[0].official_url.startswith("https://programmazione-ue-2021-2027.regione.veneto.it/fesr/"))
 
 
 if __name__ == "__main__":

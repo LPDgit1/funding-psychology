@@ -1,0 +1,27 @@
+{
+  "response": {
+    "numFound": 2,
+    "start": 0,
+    "docs": [
+      {
+        "ID_Incentivo": "FIXTURE-1423",
+        "Titolo": "Sostegno a servizi psicologici per comunità vulnerabili",
+        "Descrizione": "<p>Contributo per servizi di prevenzione e benessere.</p>",
+        "Obiettivo_Finalita": ["Inclusione sociale"],
+        "Data_apertura": "2026-09-08T00:00:00",
+        "Data_chiusura": "2026-12-23T00:00:00",
+        "Tipologia_Soggetto": ["Ente del Terzo settore"],
+        "Soggetto_Concedente": "Amministrazione di prova",
+        "Stanziamento_incentivo": "1500000",
+        "URL": "/it/catalogo/sostegno-servizi-psicologici",
+        "Link_istituzionale": "https://example.gov.it/bando-psicologia"
+      },
+      {
+        "ID_Incentivo": "FIXTURE-1424",
+        "Titolo": "Avviso senza date",
+        "Descrizione": "Nessuna data disponibile.",
+        "URL": "https://www.incentivi.gov.it/it/catalogo/avviso-senza-date"
+      }
+    ]
+  }
+}

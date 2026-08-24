@@ -8,7 +8,9 @@ Prima iterazione separata e prudente di un motore di ricerca per finanziamenti d
 - I record visibili sono **scenari dimostrativi** e sono dichiarati tali nell'interfaccia.
 - Core Python senza dipendenze esterne per normalizzazione, classificazione multi-label, deduplicazione e anomaly warning.
 - Adapter EU Funding & Tenders con chiamata live verificata, parser e fixture; il risultato non è ancora persistito nello snapshot pubblico.
+- Adapter Incentivi.gov.it sull'export Solr ufficiale: chiamata live verificata con 5.773 record, parser e fixture; il risultato non è ancora persistito nello snapshot pubblico.
 - Parser fixture-verificato per il calendario FSE+ Veneto; la verifica live resta bloccata dalla catena TLS locale.
+- Parser fixture-verificato per il calendario FESR+ Veneto; la pagina corrente rimanda al cronoprogramma regionale HTML e non espone ancora un CSV stabile.
 - Nessuna API AI, autenticazione, coda, cache complessa o servizio aggiuntivo.
 
 ## Verifica
@@ -23,6 +25,8 @@ Validazione manuale live dell'adapter UE:
 ```powershell
 python -m funding_core.cli validate-source eu-funding-tenders
 python -m funding_core.cli sync eu-funding-tenders
+python -m funding_core.cli validate-source incentivi-gov
+python -m funding_core.cli sync incentivi-gov
 ```
 
 Vedi `docs/SOURCES.md` per lo stato puntuale delle fonti.
