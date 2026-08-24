@@ -8,13 +8,14 @@ import re
 import time
 from dataclasses import dataclass, replace
 from datetime import date, datetime
-from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlsplit
 from urllib.request import Request, urlopen
 
 from .models import SourceRecord
+from .dates import parse_date
+from .territories import normalize_territory, split_regions
 
 
 @dataclass(frozen=True)
@@ -133,7 +134,11 @@ class EuFundingTendersAdapter:
     portal_url = "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/home"
     topic_url = "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-details/"
 
-    open_statuses = {"31094502", "31094501", "31094503"}
+    # SEDIA status codes: 31094501 upcoming, 31094502 open, 31094503 closed.
+    # Closed calls belong in the archive, never in the operational EU feed.
+    open_statuses = {"31094502", "31094501"}
+    page_size = 100
+    max_pages = 50
     grant_types = ("1", "8")
     display_fields = (
         "identifier", "reference", "title", "status", "startDate", "deadlineDate",
@@ -166,16 +171,17 @@ class EuFundingTendersAdapter:
         chunks.append(f"--{boundary}--\r\n".encode())
         return b"".join(chunks), f"multipart/form-data; boundary={boundary}"
 
-    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=25_000_000)) -> bytes:
-        query = json.dumps(self.build_query(), ensure_ascii=False, separators=(",", ":"))
-        languages = json.dumps(["en"])
-        display_fields = json.dumps(list(self.display_fields))
-        body, content_type = self._multipart({
-            "query": query,
-            "languages": languages,
-            "displayFields": display_fields,
-        })
-        url = f"{self.endpoint}?apiKey=SEDIA&text=*&pageSize=100&pageNumber=1"
+    def _request_page(
+        self,
+        body: bytes,
+        content_type: str,
+        page_number: int,
+        policy: FetchPolicy,
+    ) -> dict:
+        url = (
+            f"{self.endpoint}?apiKey=SEDIA&text=*&pageSize={self.page_size}"
+            f"&pageNumber={page_number}"
+        )
         request = Request(url, data=body, method="POST", headers={
             "Accept": "application/json",
             "Content-Type": content_type,
@@ -187,7 +193,12 @@ class EuFundingTendersAdapter:
                     if response.headers.get_content_type() != "application/json":
                         raise AdapterError("unexpected content type from EU Funding & Tenders API")
                     payload = response.read(policy.max_bytes + 1)
-                break
+                if len(payload) > policy.max_bytes:
+                    raise AdapterError("EU Funding & Tenders page exceeds download size limit")
+                parsed = json.loads(payload)
+                if not isinstance(parsed, dict):
+                    raise AdapterError("EU Funding & Tenders page is not a JSON object")
+                return parsed
             except HTTPError as exc:
                 if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
                     time.sleep(0.2 * (attempt + 1))
@@ -199,9 +210,44 @@ class EuFundingTendersAdapter:
                     time.sleep(0.2 * (attempt + 1))
                     continue
                 raise AdapterError(f"connection failed for EU Funding & Tenders API: {exc.reason}") from exc
-        if len(payload) > policy.max_bytes:
+            except json.JSONDecodeError as exc:
+                raise AdapterError("EU Funding & Tenders page is not valid JSON") from exc
+        raise AdapterError("EU Funding & Tenders request exhausted retries")
+
+    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=25_000_000)) -> bytes:
+        query = json.dumps(self.build_query(), ensure_ascii=False, separators=(",", ":"))
+        languages = json.dumps(["en"])
+        display_fields = json.dumps(list(self.display_fields))
+        body, content_type = self._multipart({
+            "query": query,
+            "languages": languages,
+            "displayFields": display_fields,
+        })
+        results: list[dict] = []
+        total_results: int | None = None
+        for page_number in range(1, self.max_pages + 1):
+            page = self._request_page(body, content_type, page_number, policy)
+            page_results = page.get("results")
+            if not isinstance(page_results, list):
+                raise AdapterError("EU Funding & Tenders response has no results list")
+            results.extend(item for item in page_results if isinstance(item, dict))
+            raw_total = page.get("totalResults") or page.get("total")
+            if isinstance(raw_total, int):
+                total_results = raw_total
+            if not page_results or len(page_results) < self.page_size:
+                break
+            if total_results is not None and len(results) >= total_results:
+                break
+        else:
+            raise AdapterError(f"EU Funding & Tenders pagination exceeded {self.max_pages} pages")
+        combined = json.dumps({
+            "results": results,
+            "totalResults": total_results if total_results is not None else len(results),
+            "pagesFetched": min(self.max_pages, (len(results) + self.page_size - 1) // self.page_size),
+        }, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        if len(combined) > policy.max_bytes:
             raise AdapterError("EU Funding & Tenders response exceeds download size limit")
-        return payload
+        return combined
 
     @staticmethod
     def _values(metadata: object, *keys: str) -> list[str]:
@@ -217,16 +263,7 @@ class EuFundingTendersAdapter:
 
     @staticmethod
     def _date(value: str | None) -> date | None:
-        if not value:
-            return None
-        candidate = value.strip().replace("Z", "+00:00")
-        try:
-            return datetime.fromisoformat(candidate).date()
-        except ValueError:
-            try:
-                return parsedate_to_datetime(candidate).date()
-            except (TypeError, ValueError, OverflowError):
-                return None
+        return parse_date(value)
 
     @staticmethod
     def _money(values: list[str]) -> int | None:
@@ -264,6 +301,11 @@ class EuFundingTendersAdapter:
             if not official_url.startswith("https://"):
                 official_url = self.portal_url
             description = (self._values(metadata, "description") or self._values(result, "summary", "content"))
+            source_status = self._status(self._values(metadata, "status"))
+            # The server-side query is current-only, but retain this guard for
+            # cached/manual payloads that may contain a stale closed result.
+            if source_status == "CLOSED":
+                continue
             records.append(SourceRecord(
                 external_id=identifier[0] if identifier else f"eu-result-{index}",
                 title=title,
@@ -275,7 +317,7 @@ class EuFundingTendersAdapter:
                 total_budget=self._money(self._values(metadata, "budget", "grantAmount")),
                 eligible_entities=tuple(self._values(metadata, "participantTypes")),
                 description=description[0] if description else "",
-                source_status=self._status(self._values(metadata, "status")),
+                source_status=source_status,
             ))
         return records
 
@@ -361,26 +403,7 @@ class ErasmusIndireAdapter:
 
     @staticmethod
     def _date(value: str) -> date | None:
-        months = {
-            "gennaio": 1, "febbraio": 2, "marzo": 3, "aprile": 4,
-            "maggio": 5, "giugno": 6, "luglio": 7, "agosto": 8,
-            "settembre": 9, "ottobre": 10, "novembre": 11, "dicembre": 12,
-        }
-        match = re.search(r"(\d{1,2})\s+([A-Za-zàèéìòù]+)(?:\s+(\d{4}))?", value, re.IGNORECASE)
-        if match:
-            month = months.get(match.group(2).lower())
-            if month:
-                try:
-                    return date(int(match.group(3) or "2026"), month, int(match.group(1)))
-                except ValueError:
-                    return None
-        match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", value)
-        if match:
-            try:
-                return date(int(match.group(3)), int(match.group(2)), int(match.group(1)))
-            except ValueError:
-                return None
-        return None
+        return parse_date(value, default_year=2026)
 
     @staticmethod
     def _clean(value: str) -> str:
@@ -472,26 +495,22 @@ class AigOpportunitiesAdapter:
 
     @staticmethod
     def _date(value: str) -> date | None:
-        months = {
-            "gennaio": 1, "febbraio": 2, "marzo": 3, "aprile": 4,
-            "maggio": 5, "giugno": 6, "luglio": 7, "agosto": 8,
-            "settembre": 9, "ottobre": 10, "novembre": 11, "dicembre": 12,
-        }
-        match = re.search(r"(\d{1,2})\s+([A-Za-zàèéìòù]+)(?:\s+(\d{4}))?", value, re.IGNORECASE)
-        if match:
-            month = months.get(match.group(2).lower())
-            if month:
-                try:
-                    return date(int(match.group(3) or "2026"), month, int(match.group(1)))
-                except ValueError:
-                    return None
-        match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", value)
-        if match:
-            try:
-                return date(int(match.group(3)), int(match.group(2)), int(match.group(1)))
-            except ValueError:
-                return None
-        return None
+        return parse_date(value, default_year=2026)
+
+    @staticmethod
+    def _is_fundable(title: str, content: str) -> bool:
+        text = f"{title} {content}".lower()
+        positive = (
+            "bando", "call", "candidatur", "finanziament", "progett", "scadenz",
+            "erasmus+", "european solidarity corps", "ka1", "ka2", "ka210", "ka220", "grant",
+        )
+        negative = ("seminario", "evento", "presentazione", "webinar", "consultazione", "conferenza", "news informativa", "articolo informativo")
+        has_positive = any(token in text for token in positive)
+        has_negative = any(token in text for token in negative)
+        # A news/event post is retained only when it also contains a clear
+        # call/application/funding signal.  This removes category noise while
+        # keeping Erasmus and youth calls whose title is not literally “bando”.
+        return has_positive or not has_negative
 
     def parse(self, raw: bytes | str | list[dict]) -> list[SourceRecord]:
         try:
@@ -508,6 +527,8 @@ class AigOpportunitiesAdapter:
             url = str(item.get("link") or self.page_url)
             content = self._clean(str((item.get("content") or {}).get("rendered", "")))
             if not title or not url.startswith("https://"):
+                continue
+            if not self._is_fundable(title, content):
                 continue
             deadline_match = re.search(r"(?:scadenza|entro|termine)[^.!?]{0,160}", content, re.IGNORECASE)
             deadline = self._date(deadline_match.group(0)) if deadline_match else None
@@ -561,10 +582,7 @@ class InterregItalyCroatiaAdapter:
 
     @staticmethod
     def _date(value: str) -> date | None:
-        try:
-            return datetime.strptime(value, "%d/%m/%Y").date()
-        except (TypeError, ValueError):
-            return None
+        return parse_date(value)
 
     @staticmethod
     def _money(value: str) -> int | None:
@@ -702,12 +720,7 @@ class VenetoBandiAdapter:
 
     @staticmethod
     def _date(value: str) -> date | None:
-        for pattern in ("%d/%m/%Y %H:%M", "%d/%m/%Y"):
-            try:
-                return datetime.strptime(value.strip(), pattern).date()
-            except ValueError:
-                continue
-        return None
+        return parse_date(value)
 
     def parse(self, raw: bytes | str) -> list[SourceRecord]:
         if isinstance(raw, bytes):
@@ -783,6 +796,114 @@ class _AnchorTextParser(HTMLParser):
         self._href = None
         self._label = None
         self._text = None
+
+
+class _DetailTextParser(HTMLParser):
+    """Extract readable text and a conservative title from a detail page."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._skip_depth = 0
+        self._title_depth: int | None = None
+        self._depth = 0
+        self._title: list[str] = []
+        self._text: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self._depth += 1
+        if tag in {"script", "style", "noscript", "template"}:
+            self._skip_depth += 1
+        if self._title_depth is None and tag in {"title", "h1"} and self._skip_depth == 0:
+            self._title_depth = self._depth
+        if self._skip_depth == 0 and tag in {"br", "p", "li", "div", "tr", "h1", "h2", "h3"}:
+            self._text.append(" ")
+
+    def handle_data(self, data: str) -> None:
+        if self._skip_depth:
+            return
+        self._text.append(data)
+        if self._title_depth is not None:
+            self._title.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self._title_depth == self._depth and tag in {"title", "h1"}:
+            self._title_depth = None
+        if tag in {"script", "style", "noscript", "template"} and self._skip_depth:
+            self._skip_depth -= 1
+        self._depth = max(0, self._depth - 1)
+
+    @property
+    def title(self) -> str:
+        return re.sub(r"\s+", " ", "".join(self._title)).strip()
+
+    @property
+    def text(self) -> str:
+        return re.sub(r"\s+", " ", "".join(self._text)).strip()
+
+
+def _detail_fields(raw: bytes | str) -> dict[str, object]:
+    text = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
+    if "\ufffd" in text and isinstance(raw, bytes):
+        text = raw.decode("cp1252", errors="replace")
+    parser = _DetailTextParser()
+    parser.feed(text)
+    plain = html.unescape(parser.text)
+    lowered = plain.lower()
+
+    def first_date(patterns: tuple[str, ...]) -> date | None:
+        for pattern in patterns:
+            match = re.search(pattern, plain, re.IGNORECASE)
+            if match:
+                parsed = parse_date(match.group(1))
+                if parsed:
+                    return parsed
+        return None
+
+    deadline = first_date((
+        r"(?:scadenza|scade|termine|chiusura|deadline|entro il)\s*[:\-]?\s*([^.;]{1,80})",
+        r"(?:presentare[^.;]{0,35}|domande[^.;]{0,35})\s+entro\s+([^.;]{1,80})",
+    ))
+    opening = first_date((
+        r"(?:apertura|apre|opening|dal)\s*[:\-]?\s*([^.;]{1,80})",
+    ))
+    amount: int | None = None
+    amount_match = re.search(
+        r"(?:budget|dotazione|stanziamento|finanziamento|importo)[^€$0-9]{0,40}(?:€|eur)?\s*([0-9][0-9. ,]{2,})",
+        plain,
+        re.IGNORECASE,
+    )
+    if amount_match:
+        digits = re.sub(r"[^0-9]", "", amount_match.group(1))
+        if digits:
+            amount = int(digits)
+    if amount is None:
+        bare_amount = re.search(r"(?:€|eur)\s*([0-9][0-9. ,]{2,})", plain, re.IGNORECASE)
+        if bare_amount:
+            digits = re.sub(r"[^0-9]", "", bare_amount.group(1))
+            if digits:
+                amount = int(digits)
+    eligible = ""
+    eligible_match = re.search(
+        r"(?:destinatari|beneficiari|soggetti ammissibili|chi può partecipare|a chi è rivolto)[^:]{0,20}:?\s*([^.;]{1,220})",
+        plain,
+        re.IGNORECASE,
+    )
+    if eligible_match:
+        eligible = re.sub(r"\s+", " ", eligible_match.group(1)).strip(" -")
+    status = "UNKNOWN"
+    if re.search(r"\b(?:scadut[oa]|chius[oa]|closed|expired)\b", lowered):
+        status = "CLOSED"
+    elif re.search(r"\b(?:apert[oa]|in corso|open|active)\b", lowered):
+        status = "OPEN"
+    return {
+        "title": parser.title,
+        "description": plain[:1600],
+        "deadline": deadline,
+        "opening_date": opening,
+        "total_budget": amount,
+        "eligible_entities": (eligible,) if eligible else (),
+        "source_status": status,
+    }
 
 
 class _HtmlOpportunityListAdapter:
@@ -879,6 +1000,49 @@ class _HtmlOpportunityListAdapter:
                 source_status="UNKNOWN",
             ))
         return records
+
+    def enrich(
+        self,
+        records: list[SourceRecord],
+        policy: FetchPolicy | None = None,
+        *,
+        max_details: int = 40,
+    ) -> list[SourceRecord]:
+        """Best-effort detail enrichment; listing records survive every error."""
+        policy = policy or FetchPolicy(timeout_seconds=12, max_bytes=2_000_000, retries=1)
+        enriched: list[SourceRecord] = []
+        for index, record in enumerate(records):
+            if index >= max_details:
+                enriched.append(record)
+                continue
+            request = Request(record.official_url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
+            try:
+                with urlopen(request, timeout=policy.timeout_seconds) as response:
+                    if response.headers.get_content_type() not in {"text/html", "application/xhtml+xml"}:
+                        raise AdapterError(f"unexpected detail content type from {self.source_label}")
+                    payload = response.read(policy.max_bytes + 1)
+                if len(payload) > policy.max_bytes:
+                    raise AdapterError(f"detail page exceeds size limit for {self.source_label}")
+                fields = _detail_fields(payload)
+                description = str(fields["description"] or record.description)
+                if len(description) < 40:
+                    description = record.description
+                entities = tuple(fields["eligible_entities"] or record.eligible_entities)
+                status = str(fields["source_status"])
+                if status == "UNKNOWN":
+                    status = record.source_status
+                enriched.append(replace(
+                    record,
+                    opening_date=fields["opening_date"] or record.opening_date,
+                    deadline=fields["deadline"] or record.deadline,
+                    total_budget=fields["total_budget"] or record.total_budget,
+                    eligible_entities=entities,
+                    description=description,
+                    source_status=status,
+                ))
+            except (AdapterError, OSError, ValueError):
+                enriched.append(record)
+        return enriched
 
 
 class DipartimentoFamigliaAdapter(_HtmlOpportunityListAdapter):
@@ -1093,19 +1257,7 @@ class IncentiviGovAdapter:
 
     @staticmethod
     def _date(value: str | None) -> date | None:
-        if not value:
-            return None
-        candidate = value.strip().replace("Z", "+00:00")
-        for parser in (
-            lambda item: datetime.fromisoformat(item).date(),
-            lambda item: datetime.strptime(item, "%d/%m/%Y").date(),
-            lambda item: datetime.strptime(item, "%Y-%m-%d").date(),
-        ):
-            try:
-                return parser(candidate)
-            except (TypeError, ValueError):
-                continue
-        return None
+        return parse_date(value)
 
     @staticmethod
     def _clean(value: str) -> str:
@@ -1121,13 +1273,21 @@ class IncentiviGovAdapter:
                 return int(digits)
         return None
 
-    def _official_url(self, document: dict) -> str:
+    def _catalog_url(self, document: dict) -> str:
         candidate = (self._values(document, "URL", "url") or [""])[0]
         if candidate.startswith("/"):
             candidate = self.portal_base_url + candidate
         if candidate.startswith("https://"):
             return candidate
         return self.page_url
+
+    def _official_url(self, document: dict) -> str:
+        candidate = (self._values(document, "Link_istituzionale", "institutional_url") or [""])[0]
+        if candidate.startswith("/"):
+            candidate = self.portal_base_url + candidate
+        if candidate.startswith("https://"):
+            return candidate
+        return self._catalog_url(document)
 
     def parse(self, raw: bytes | str | dict) -> list[SourceRecord]:
         try:
@@ -1155,6 +1315,9 @@ class IncentiviGovAdapter:
                 objective_text = "; ".join(self._clean(value) for value in objectives)
                 description = f"Obiettivo: {objective_text}. {description}".strip()
             entities = self._values(document, "Tipologia_Soggetto", "Dimensioni")
+            regions = split_regions(self._values(document, "Regioni"))
+            scope_values = self._values(document, "Ambito_territoriale")
+            scope = "; ".join(self._clean(value) for value in scope_values)
             records.append(SourceRecord(
                 external_id=external_id,
                 title=self._clean(title_values[0]),
@@ -1167,6 +1330,9 @@ class IncentiviGovAdapter:
                 eligible_entities=tuple(self._clean(value) for value in entities),
                 description=description,
                 source_status="UNKNOWN",
+                regions=regions,
+                territory=normalize_territory(regions, scope),
+                aggregator_url=self._catalog_url(document),
             ))
         return records
 

@@ -2,6 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from funding_core.adapters import (
     AigOpportunitiesAdapter,
@@ -20,8 +21,11 @@ from funding_core.adapters import (
     VenetoFseCalendarAdapter,
 )
 from funding_core.classifier import classify
+from funding_core.classifier import classify_with_relevance
+from funding_core.dates import parse_date
 from funding_core.pipeline import anomaly_warnings, process
 from funding_core.snapshot import public_opportunity
+from funding_core.territories import normalize_territory, split_regions
 
 
 class FundingCoreTests(unittest.TestCase):
@@ -78,6 +82,33 @@ class FundingCoreTests(unittest.TestCase):
         self.assertIn("31094502", encoded)
         self.assertIn("2021 - 2027", encoded)
 
+    def test_eu_fetch_paginates_current_pages(self):
+        adapter = EuFundingTendersAdapter()
+        adapter.page_size = 2
+        pages = []
+        for index in range(3):
+            results = [{"metadata": {"identifier": f"ID-{index}-{row}", "title": [f"Call {index}-{row}"], "status": ["31094502"]}} for row in range(2 if index < 2 else 1)]
+            pages.append({"results": results, "totalResults": 5})
+
+        class Response:
+            def __init__(self, payload):
+                self.payload = json.dumps(payload).encode()
+                self.headers = type("Headers", (), {"get_content_type": lambda self: "application/json"})()
+            def __enter__(self): return self
+            def __exit__(self, *args): return None
+            def read(self, limit): return self.payload
+
+        calls = []
+        def fake_urlopen(request, timeout):
+            calls.append(request.full_url)
+            return Response(pages[len(calls) - 1])
+
+        with patch("funding_core.adapters.urlopen", side_effect=fake_urlopen):
+            payload = adapter.fetch()
+        self.assertEqual(len(adapter.parse(payload)), 5)
+        self.assertEqual(len(calls), 3)
+        self.assertIn("pageNumber=2", calls[1])
+
     def test_incentivi_fixture_parse_and_contract(self):
         path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "incentivi_gov.json"
         adapter = IncentiviGovAdapter()
@@ -87,7 +118,9 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(records[0].opening_date, date(2026, 9, 8))
         self.assertEqual(records[0].deadline, date(2026, 12, 23))
         self.assertEqual(records[0].total_budget, 1_500_000)
-        self.assertTrue(records[0].official_url.startswith("https://www.incentivi.gov.it/"))
+        self.assertEqual(records[0].official_url, "https://example.gov.it/bando-psicologia")
+        self.assertEqual(records[0].territory, None)
+        self.assertEqual(records[0].aggregator_url, "https://www.incentivi.gov.it/it/catalogo/sostegno-servizi-psicologici")
         self.assertIn("Contributo per servizi", records[0].description)
         self.assertEqual(records[1].deadline, None)
         query = adapter.build_query()
@@ -149,6 +182,23 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(len(disability), 1)
         self.assertEqual(disability[0].external_id, "avviso-vita-opportunita")
 
+    def test_html_detail_enrichment_is_best_effort(self):
+        root = Path(__file__).parents[1] / "funding_core" / "fixtures"
+        record = DipartimentoFamigliaAdapter().parse((root / "dipartimento_famiglia.html").read_bytes())[0]
+
+        class Response:
+            headers = type("Headers", (), {"get_content_type": lambda self: "text/html"})()
+            def __enter__(self): return self
+            def __exit__(self, *args): return None
+            def read(self, limit):
+                return b"<html><title>Dettaglio bando</title><h1>Dettaglio bando</h1><p>Scadenza: 24 agosto 2026.</p><p>Budget: EUR 150.000.</p><p>Beneficiari: ETS e Comuni.</p></html>"
+
+        with patch("funding_core.adapters.urlopen", return_value=Response()):
+            enriched = DipartimentoFamigliaAdapter().enrich([record])
+        self.assertEqual(enriched[0].deadline, date(2026, 8, 24))
+        self.assertEqual(enriched[0].total_budget, 150000)
+        self.assertIn("ETS", enriched[0].eligible_entities[0])
+
     def test_foundation_and_child_digital_lists_filter_detail_links(self):
         root = Path(__file__).parents[1] / "funding_core" / "fixtures"
         cariparo = FondazioneCariparoAdapter().parse((root / "fondazione_cariparo.html").read_bytes())
@@ -169,6 +219,35 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(public["territory"], "Unione Europea")
         self.assertEqual(public["deadline"], "2027-02-18")
         self.assertTrue(public["officialUrl"].startswith("https://"))
+
+    def test_weighted_relevance_separates_topic_from_psychology(self):
+        high = classify_with_relevance("supporto psicologico per adolescenti e salute mentale")
+        low = classify_with_relevance("contributi per digitalizzazione delle PMI e macchinari")
+        self.assertEqual(high.label, "Alta")
+        self.assertGreater(high.score, low.score)
+        self.assertIn("Digitale, innovazione e AI", low.macro_areas)
+        self.assertEqual(low.label, "Bassa")
+
+    def test_date_and_territory_normalization(self):
+        self.assertEqual(parse_date("24 agosto 2026"), date(2026, 8, 24))
+        self.assertEqual(parse_date("August 24, 2026"), date(2026, 8, 24))
+        self.assertEqual(parse_date("2026-08-24T12:00:00Z"), date(2026, 8, 24))
+        regions = split_regions(("Regione Marche; Regione Veneto",))
+        self.assertEqual(regions, ("Marche", "Veneto"))
+        self.assertEqual(normalize_territory(regions, "multi-regione"), "Multi-regione")
+
+    def test_aig_filters_event_without_call_signal(self):
+        payload = [{
+            "id": 1, "link": "https://agenziagioventu.gov.it/evento/1/",
+            "title": {"rendered": "Webinar informativo"},
+            "content": {"rendered": "Presentazione di una consultazione pubblica."},
+        }, {
+            "id": 2, "link": "https://agenziagioventu.gov.it/bando/2/",
+            "title": {"rendered": "Call per candidature"},
+            "content": {"rendered": "Candidature entro il 24 agosto 2026."},
+        }]
+        records = AigOpportunitiesAdapter().parse(payload)
+        self.assertEqual([record.external_id for record in records], ["2"])
 
 
 if __name__ == "__main__":

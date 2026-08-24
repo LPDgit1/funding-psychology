@@ -1,0 +1,84 @@
+[eu-funding-tenders] exit=0
+HTTP: OK
+Items found: 1326
+Parsed: 1326
+Titles: OK
+
+[incentivi-gov] exit=0
+HTTP: OK
+Items found: 5773
+Parsed: 5773
+Titles: OK
+
+[erasmus-indire] exit=0
+HTTP: OK
+Items found: 10
+Parsed: 10
+Titles: OK
+
+[aig-opportunities] exit=0
+HTTP: OK
+Items found: 30
+Parsed: 30
+Titles: OK
+
+[interreg-italy-croatia] exit=0
+HTTP: OK
+Items found: 1
+Parsed: 1
+Titles: OK
+
+[veneto-bandi] exit=0
+HTTP: OK
+Items found: 10
+Parsed: 10
+Titles: OK
+
+[dipartimento-famiglia] exit=0
+HTTP: OK
+Items found: 22
+Parsed: 22
+Titles: OK
+
+[dipartimento-disabilita] exit=0
+HTTP: OK
+Items found: 9
+Parsed: 9
+Titles: OK
+
+[fondazione-cariparo] exit=0
+HTTP: OK
+Items found: 9
+Parsed: 9
+Titles: OK
+
+[fondazione-cariverona] exit=0
+HTTP: OK
+Items found: 6
+Parsed: 6
+Titles: OK
+
+[con-i-bambini] exit=0
+HTTP: OK
+Items found: 33
+Parsed: 33
+Titles: OK
+
+[fondo-repubblica-digitale] exit=0
+HTTP: OK
+Items found: 7
+Parsed: 7
+Titles: OK
+
+[veneto-fse-calendar] exit=0
+FIXTURE: OK
+Items found: 2
+Parsed: 2
+Titles: OK
+
+[veneto-fesr-calendar] exit=0
+FIXTURE: OK
+Items found: 1
+Parsed: 1
+Titles: OK
+

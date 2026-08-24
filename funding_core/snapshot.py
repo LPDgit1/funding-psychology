@@ -67,19 +67,6 @@ _MONTHS = (
     "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
     "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
 )
-_HIGH_RELEVANCE = {
-    "Salute mentale e benessere",
-    "Minori e adolescenti",
-    "Famiglia e genitorialità",
-    "Inclusione sociale e vulnerabilità",
-    "Disabilità e neurodiversità",
-    "Violenza, trauma e tutela",
-    "Dipendenze",
-    "Anziani, ageing e caregiver",
-    "Migrazione, integrazione e intercultura",
-}
-
-
 def _verified_label(value: date) -> str:
     return f"{value.day} {_MONTHS[value.month - 1]} {value.year}"
 
@@ -97,7 +84,9 @@ def _amount(value: int | None) -> str | None:
     return f"€{value:,.0f}".replace(",", ".")
 
 
-def _territory(source_id: str) -> str:
+def _territory(source_id: str, item_territory: str | None = None) -> str:
+    if item_territory:
+        return item_territory
     if source_id == "eu-funding-tenders":
         return "Unione Europea"
     if source_id.startswith("veneto-"):
@@ -105,31 +94,52 @@ def _territory(source_id: str) -> str:
     return "Italia"
 
 
-def _relevance(areas: tuple[str, ...]) -> tuple[str, str]:
-    if any(area in _HIGH_RELEVANCE for area in areas):
-        return "Alta", "La classificazione testuale intercetta almeno un'area direttamente collegata a interventi psicologici o psicosociali."
-    if areas:
-        return "Media", "La classificazione testuale intercetta un'area adiacente; verifica il testo ufficiale prima di candidare il progetto."
-    return "Bassa", "La scheda non contiene parole chiave sufficienti per una rilevanza psicologica automatica."
-
-
-def public_opportunity(item: Opportunity, verified_on: date) -> dict[str, Any]:
-    relevance, relevance_why = _relevance(item.macro_areas)
+def public_opportunity(
+    item: Opportunity,
+    verified_on: date,
+    *,
+    now: datetime | None = None,
+    previous: dict[str, Any] | None = None,
+    source_label: str | None = None,
+) -> dict[str, Any]:
+    """Map an internal opportunity to a compact, traceable public record."""
+    now = now or datetime.now(timezone.utc)
+    stamp = now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     stable_suffix = item.source_external_id or hashlib.sha1(item.official_url.encode("utf-8")).hexdigest()[:12]
+    stable_id = f"{item.source_id}:{stable_suffix}"
+    unchanged = bool(previous and previous.get("contentHash") == item.content_hash)
+    first_seen = (previous or {}).get("firstSeen") or stamp
+    last_changed = (previous or {}).get("lastChanged") if unchanged else stamp
     payload: dict[str, Any] = {
-        "id": f"{item.source_id}:{stable_suffix}",
+        "id": stable_id,
         "title": item.title,
         "funder": item.funder,
         "programme": item.programme,
         "status": item.status,
-        "territory": _territory(item.source_id),
+        "territory": _territory(item.source_id, item.territory),
+        "regions": list(item.regions),
         "eligibleEntities": list(item.eligible_entities),
         "macroAreas": list(item.macro_areas),
         "summary": _shorten(item.short_description or "Descrizione non esposta dalla lista ufficiale."),
-        "relevance": relevance,
-        "relevanceWhy": relevance_why,
+        "relevance": item.relevance_label,
+        "relevanceScore": item.relevance_score,
+        "positiveSignals": list(item.positive_signals),
+        "negativeSignals": list(item.negative_signals),
+        "relevanceWhy": (
+            "La classificazione testuale intercetta segnali direttamente collegati a interventi psicologici o psicosociali."
+            if item.relevance_label == "Alta" else
+            "La classificazione testuale intercetta segnali adiacenti; verifica il testo ufficiale prima di candidare il progetto."
+            if item.relevance_label == "Media" else
+            "La scheda non contiene segnali sufficienti per una rilevanza psicologica automatica."
+        ),
         "officialUrl": item.official_url,
+        "aggregatorUrl": item.aggregator_url,
+        "sourceLabel": source_label or item.source_id,
         "lastVerified": _verified_label(verified_on),
+        "firstSeen": first_seen,
+        "lastSeen": stamp,
+        "lastChanged": last_changed or stamp,
+        "contentHash": item.content_hash,
         "demo": False,
         "sourceId": item.source_id,
     }
@@ -147,43 +157,169 @@ def _source_label(adapter: object, source_id: str) -> str:
     return str(getattr(adapter, "source_label", source_id))
 
 
-def build_snapshot(*, today: date | None = None, now: datetime | None = None) -> dict[str, Any]:
+def _record_id(item: dict[str, Any]) -> str:
+    return str(item.get("id") or "")
+
+
+def _index_previous(*snapshots: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+    indexed: dict[str, dict[str, Any]] = {}
+    for snapshot in snapshots:
+        if not isinstance(snapshot, dict):
+            continue
+        for item in snapshot.get("opportunities", []):
+            if isinstance(item, dict) and _record_id(item):
+                indexed[_record_id(item)] = item
+    return indexed
+
+
+def _previous_source_items(*snapshots: dict[str, Any] | None) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for snapshot in snapshots:
+        if not isinstance(snapshot, dict):
+            continue
+        for item in snapshot.get("opportunities", []):
+            if not isinstance(item, dict):
+                continue
+            source_id = str(item.get("sourceId") or "")
+            if source_id:
+                grouped.setdefault(source_id, []).append(item)
+    return grouped
+
+
+def _sort_public(items: list[dict[str, Any]]) -> None:
+    rank = {"Alta": 0, "Media": 1, "Bassa": 2}
+    items.sort(key=lambda item: (
+        rank.get(str(item.get("relevance")), 3),
+        item.get("deadline") or "9999-12-31",
+        item.get("firstSeen") or "9999-12-31T00:00:00Z",
+        str(item.get("title", "")).lower(),
+    ))
+
+
+def _envelope(
+    *,
+    dataset: str,
+    now: datetime,
+    today: date,
+    opportunities: list[dict[str, Any]],
+    source_results: list[dict[str, Any]],
+    warnings: list[str],
+) -> dict[str, Any]:
+    _sort_public(opportunities)
+    return {
+        "schemaVersion": 2,
+        "dataset": dataset,
+        "generatedAt": now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "asOfDate": today.isoformat(),
+        "complete": not any(item.get("status") in {"ERROR", "STALE"} for item in source_results),
+        "recordCount": len(opportunities),
+        "recordCountCurrent": len(opportunities) if dataset == "current" else 0,
+        "recordCountArchive": len(opportunities) if dataset == "archive" else 0,
+        "liveSourceCount": sum(1 for item in source_results if item["kind"] == "live" and item["status"] == "LIVE"),
+        "sourceCount": len(source_results),
+        "sources": source_results,
+        "warnings": warnings,
+        "notImplemented": ["Pari Opportunità", "Dipendenze", "FAMI"],
+        "opportunities": opportunities,
+    }
+
+
+def build_snapshot_set(
+    *,
+    today: date | None = None,
+    now: datetime | None = None,
+    previous_current: dict[str, Any] | None = None,
+    previous_archive: dict[str, Any] | None = None,
+) -> dict[str, dict[str, Any]]:
     today = today or date.today()
     now = now or datetime.now(timezone.utc)
-    opportunities: list[dict[str, Any]] = []
+    previous_by_id = _index_previous(previous_current, previous_archive)
+    previous_by_source = _previous_source_items(previous_current, previous_archive)
+    current_opportunities: list[dict[str, Any]] = []
+    archive_opportunities: list[dict[str, Any]] = []
     source_results: list[dict[str, Any]] = []
-    failures: list[str] = []
+    warnings_all: list[str] = []
 
     for spec in LIVE_SOURCE_SPECS:
         adapter = spec.adapter_factory()
+        previous_items = previous_by_source.get(spec.source_id, [])
+        previous_count = len(previous_items)
         try:
             raw = adapter.fetch(FetchPolicy(timeout_seconds=25, max_bytes=spec.max_bytes, retries=2))
             records: list[SourceRecord] = adapter.parse(raw)
+            enrich = getattr(adapter, "enrich", None)
+            if callable(enrich):
+                records = enrich(records, FetchPolicy(timeout_seconds=12, max_bytes=2_000_000, retries=1), max_details=40)
             normalized = process(spec.source_id, records, today)
             warnings = anomaly_warnings(
-                len(normalized), [], [record.title for record in records], [record.deadline for record in records]
+                len(normalized), [previous_count] if previous_count else [], [record.title for record in records], [record.deadline for record in records]
             )
-            opportunities.extend(public_opportunity(item, today) for item in normalized)
+            suspicious = previous_count > 10 and (
+                len(normalized) == 0 or len(normalized) < max(1, int(previous_count * 0.2))
+            )
+            if suspicious:
+                warning = f"{spec.source_id}: parser anomaly; preserved {previous_count} previous records"
+                warnings = [*warnings, warning]
+                warnings_all.append(warning)
+                current_opportunities.extend(item for item in previous_items if item.get("status") != "CLOSED")
+                archive_opportunities.extend(item for item in previous_items if item.get("status") == "CLOSED")
+                source_status = "STALE"
+                published_count = previous_count
+                new_count = updated_count = unchanged_count = 0
+            else:
+                mapped = [
+                    public_opportunity(
+                        item,
+                        today,
+                        now=now,
+                        previous=previous_by_id.get(f"{item.source_id}:{item.source_external_id or hashlib.sha1(item.official_url.encode('utf-8')).hexdigest()[:12]}"),
+                        source_label=_source_label(adapter, spec.source_id),
+                    )
+                    for item in normalized
+                ]
+                current_opportunities.extend(item for item in mapped if item.get("status") != "CLOSED")
+                archive_opportunities.extend(item for item in mapped if item.get("status") == "CLOSED")
+                source_status = "LIVE"
+                published_count = len(mapped)
+                old_ids = {_record_id(item) for item in previous_items}
+                new_count = sum(1 for item in mapped if _record_id(item) not in old_ids)
+                updated_count = sum(1 for item in mapped if _record_id(item) in old_ids and item.get("contentHash") != next((old.get("contentHash") for old in previous_items if _record_id(old) == _record_id(item)), None))
+                unchanged_count = published_count - new_count - updated_count
+            if warnings:
+                warnings_all.extend(f"{spec.source_id}: {warning}" for warning in warnings)
             source_results.append({
                 "sourceId": spec.source_id,
                 "label": _source_label(adapter, spec.source_id),
                 "kind": "live",
-                "status": "LIVE",
+                "status": source_status,
                 "fetchedRecords": len(records),
-                "publishedRecords": len(normalized),
+                "publishedRecords": published_count,
+                "currentRecords": sum(1 for item in (current_opportunities if suspicious else mapped) if item.get("sourceId") == spec.source_id and item.get("status") != "CLOSED"),
+                "archiveRecords": sum(1 for item in (archive_opportunities if suspicious else mapped) if item.get("sourceId") == spec.source_id and item.get("status") == "CLOSED"),
+                "new": new_count,
+                "updated": updated_count,
+                "unchanged": unchanged_count,
                 "warnings": warnings,
             })
         except (AdapterError, ValueError, OSError) as exc:
             message = str(exc)
-            failures.append(f"{spec.source_id}: {message}")
+            warning = f"{spec.source_id}: {message}; preserved {previous_count} previous records"
+            warnings_all.append(warning)
+            current_opportunities.extend(item for item in previous_items if item.get("status") != "CLOSED")
+            archive_opportunities.extend(item for item in previous_items if item.get("status") == "CLOSED")
             source_results.append({
                 "sourceId": spec.source_id,
                 "label": _source_label(adapter, spec.source_id),
                 "kind": "live",
-                "status": "ERROR",
+                "status": "ERROR" if not previous_items else "STALE",
                 "fetchedRecords": 0,
-                "publishedRecords": 0,
-                "warnings": [message],
+                "publishedRecords": previous_count,
+                "currentRecords": sum(1 for item in previous_items if item.get("status") != "CLOSED"),
+                "archiveRecords": sum(1 for item in previous_items if item.get("status") == "CLOSED"),
+                "new": 0,
+                "updated": 0,
+                "unchanged": previous_count,
+                "warnings": [warning],
             })
 
     fixture_root = Path(__file__).with_name("fixtures")
@@ -211,24 +347,27 @@ def build_snapshot(*, today: date | None = None, now: datetime | None = None) ->
                 "warnings": [str(exc)],
             })
 
-    opportunities.sort(key=lambda item: (item.get("status") not in {"OPEN", "UPCOMING"}, item.get("deadline") or "9999-12-31", item["title"].lower()))
     return {
-        "schemaVersion": 1,
-        "generatedAt": now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "asOfDate": today.isoformat(),
-        "complete": not failures,
-        "recordCount": len(opportunities),
-        "liveSourceCount": sum(1 for item in source_results if item["kind"] == "live" and item["status"] == "LIVE"),
-        "sourceCount": len(source_results),
-        "sources": source_results,
-        "warnings": failures,
-        "notImplemented": ["Pari Opportunità", "Dipendenze", "FAMI"],
-        "opportunities": opportunities,
+        "current": _envelope(
+            dataset="current", now=now, today=today,
+            opportunities=current_opportunities, source_results=source_results, warnings=warnings_all,
+        ),
+        "archive": _envelope(
+            dataset="archive", now=now, today=today,
+            opportunities=archive_opportunities, source_results=source_results, warnings=warnings_all,
+        ),
     }
+
+
+def build_snapshot(*, today: date | None = None, now: datetime | None = None) -> dict[str, Any]:
+    """Compatibility wrapper returning the operational/current envelope."""
+    return build_snapshot_set(today=today, now=now)["current"]
 
 
 def write_snapshot(path: str | Path, payload: dict[str, Any]) -> Path:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    temporary = target.with_suffix(target.suffix + ".tmp")
+    temporary.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    temporary.replace(target)
     return target

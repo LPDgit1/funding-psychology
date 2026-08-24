@@ -1,0 +1,94 @@
+{
+  "current": {
+    "total": 1408,
+    "status": {
+      "OPEN": 915,
+      "UNKNOWN": 236,
+      "UPCOMING": 257
+    },
+    "sources": {
+      "aig-opportunities": 15,
+      "con-i-bambini": 3,
+      "dipartimento-disabilita": 8,
+      "dipartimento-famiglia": 15,
+      "erasmus-indire": 1,
+      "eu-funding-tenders": 539,
+      "fondazione-cariparo": 8,
+      "fondazione-cariverona": 5,
+      "fondo-repubblica-digitale": 1,
+      "incentivi-gov": 802,
+      "interreg-italy-croatia": 1,
+      "veneto-bandi": 10
+    },
+    "relevance": {
+      "Alta": 7,
+      "Bassa": 1356,
+      "Media": 45
+    },
+    "macroAreas": {
+      "Anziani, ageing e caregiver": 18,
+      "Comunità, welfare e sviluppo territoriale": 379,
+      "Digitale, innovazione e AI": 308,
+      "Dipendenze": 9,
+      "Diritti, pari opportunità e contrasto alle discriminazioni": 39,
+      "Disabilità e neurodiversità": 51,
+      "Famiglia e genitorialità": 35,
+      "Inclusione sociale e vulnerabilità": 125,
+      "Lavoro, organizzazioni e occupazione": 256,
+      "Migrazione, integrazione e intercultura": 5,
+      "Minori e adolescenti": 157,
+      "Ricerca e innovazione scientifica": 268,
+      "Salute mentale e benessere": 13,
+      "Salute pubblica e prevenzione": 20,
+      "Scuola, università e formazione": 249,
+      "Violenza, trauma e tutela": 14
+    },
+    "missingDeadline": 250,
+    "missingTerritory": 0,
+    "missingOfficialUrl": 0
+  },
+  "archive": {
+    "total": 5545,
+    "status": {
+      "CLOSED": 5545
+    },
+    "sources": {
+      "aig-opportunities": 15,
+      "con-i-bambini": 30,
+      "dipartimento-disabilita": 1,
+      "dipartimento-famiglia": 7,
+      "erasmus-indire": 9,
+      "eu-funding-tenders": 504,
+      "fondazione-cariparo": 1,
+      "fondazione-cariverona": 1,
+      "fondo-repubblica-digitale": 6,
+      "incentivi-gov": 4971
+    },
+    "relevance": {
+      "Alta": 14,
+      "Bassa": 5443,
+      "Media": 88
+    },
+    "macroAreas": {
+      "Anziani, ageing e caregiver": 43,
+      "Comunità, welfare e sviluppo territoriale": 2518,
+      "Digitale, innovazione e AI": 1521,
+      "Dipendenze": 26,
+      "Diritti, pari opportunità e contrasto alle discriminazioni": 113,
+      "Disabilità e neurodiversità": 102,
+      "Famiglia e genitorialità": 48,
+      "Inclusione sociale e vulnerabilità": 371,
+      "Lavoro, organizzazioni e occupazione": 749,
+      "Migrazione, integrazione e intercultura": 11,
+      "Minori e adolescenti": 566,
+      "Ricerca e innovazione scientifica": 979,
+      "Salute mentale e benessere": 51,
+      "Salute pubblica e prevenzione": 84,
+      "Scuola, università e formazione": 1055,
+      "Violenza, trauma e tutela": 22
+    },
+    "missingDeadline": 23,
+    "missingTerritory": 0,
+    "missingOfficialUrl": 0
+  }
+}

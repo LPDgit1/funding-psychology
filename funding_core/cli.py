@@ -23,7 +23,8 @@ from .adapters import (
     VenetoFseCalendarAdapter,
 )
 from .pipeline import anomaly_warnings, process
-from .snapshot import ALL_SOURCE_IDS, FIXTURE_SOURCE_SPECS, LIVE_SOURCE_SPECS, build_snapshot, write_snapshot
+from .audit import write_audit_reports
+from .snapshot import ALL_SOURCE_IDS, FIXTURE_SOURCE_SPECS, LIVE_SOURCE_SPECS, build_snapshot_set, write_snapshot
 
 
 ADAPTERS = {
@@ -54,18 +55,50 @@ def main(argv: list[str] | None = None) -> int:
     sync = subparsers.add_parser("sync")
     sync.add_argument("source", choices=ALL_SOURCE_IDS)
     populate = subparsers.add_parser("populate-snapshot")
-    populate.add_argument("--output", default="public/data/opportunities.json")
+    populate.add_argument("--output", default="public/data/opportunities-current.json")
+    populate.add_argument("--archive-output", default="public/data/opportunities-archive.json")
+    populate.add_argument("--previous")
+    populate.add_argument("--previous-archive")
+    populate.add_argument("--audit-dir", default="reports")
     args = parser.parse_args(argv)
 
     if args.command == "populate-snapshot":
-        payload = build_snapshot()
-        target = write_snapshot(args.output, payload)
-        print(f"Snapshot: {target}")
-        print(f"Published records: {payload['recordCount']}")
-        print(f"Live sources: {payload['liveSourceCount']}/{len(LIVE_SOURCE_SPECS)}")
-        for warning in payload["warnings"]:
+        def read_previous(path_value: str | None) -> dict | None:
+            if not path_value:
+                return None
+            path = Path(path_value)
+            if not path.exists():
+                return None
+            try:
+                import json
+                value = json.loads(path.read_text(encoding="utf-8"))
+                return value if isinstance(value, dict) else None
+            except (OSError, ValueError):
+                return None
+
+        previous_path = args.previous or args.output
+        previous_archive_path = args.previous_archive or args.archive_output
+        snapshots = build_snapshot_set(
+            previous_current=read_previous(previous_path),
+            previous_archive=read_previous(previous_archive_path),
+        )
+        current = snapshots["current"]
+        archive = snapshots["archive"]
+        target = write_snapshot(args.output, current)
+        archive_target = write_snapshot(args.archive_output, archive)
+        # Keep the original route as a compatibility alias for old deployments.
+        if Path(args.output).name != "opportunities.json":
+            write_snapshot(Path(args.output).with_name("opportunities.json"), current)
+        reports = write_audit_reports(current, archive, args.audit_dir)
+        print(f"Snapshot current: {target}")
+        print(f"Snapshot archive: {archive_target}")
+        print(f"Published current records: {current['recordCount']}")
+        print(f"Archived records: {archive['recordCount']}")
+        print(f"Live sources: {current['liveSourceCount']}/{len(LIVE_SOURCE_SPECS)}")
+        print(f"Audit: {reports['highRelevanceCsv']}")
+        for warning in current["warnings"]:
             print(f"WARNING: {warning}")
-        return 0 if payload["recordCount"] else 1
+        return 0 if current["recordCount"] else 1
 
     adapter = ADAPTERS[args.source]()
     if args.source in FIXTURE_PATHS:

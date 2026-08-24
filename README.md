@@ -1,16 +1,17 @@
-# Funding Intelligence for Psychology
+# Funding Intelligence for Psychology v0.2
 
-Prima iterazione separata e prudente di un motore di ricerca per finanziamenti destinati a progetti psicologici.
+Motore locale-first di ricerca per finanziamenti destinati a progetti psicologici, con snapshot verificabile e fonti ufficiali in evidenza.
 
 ## Stato reale
 
-- UI Sites responsive con ricerca, macroaree multi-select, filtri, dettaglio, opportunità in arrivo e preferiti locali.
-- Lo snapshot pubblico `public/data/opportunities.json` contiene il primo popolamento reale: 6.012 opportunità normalizzate da 12 adapter live, con date/importi mancanti lasciati nulli e fallback dimostrativo se il file non è raggiungibile.
-- Core Python senza dipendenze esterne per normalizzazione, classificazione multi-label, deduplicazione e anomaly warning.
-- Adapter EU Funding & Tenders con chiamata live verificata e 100 schede pubblicate nello snapshot iniziale.
-- Adapter Incentivi.gov.it sull'export Solr ufficiale: chiamata live verificata con 5.773 record pubblicati nello snapshot iniziale.
-- Adapter Erasmus+ INDIRE (10 righe), AIG (32 post), Interreg Italy–Croatia (1 call) e Regione Veneto bandi (10 card): trasporto/parsing live verificati e record pubblicati nello snapshot.
-- Adapter Dipartimento Famiglia (22), Dipartimento Disabilità (9), Fondazione Cariparo (9), Fondazione Cariverona (6), Con i Bambini (33) e Fondo per la Repubblica Digitale (7): liste ufficiali live verificate e pubblicate nello snapshot; deadline/importi restano nulli quando l'elenco non li espone.
+- UI Sites responsive con ricerca senza LLM, sinonimi OR/AND deterministici, macroaree multi-select, filtri di territorio/partecipante, dettaglio, Nuovi e Preferiti locali.
+- Lo snapshot corrente `public/data/opportunities-current.json` contiene 1.387 opportunità operative (871 OPEN, 280 UPCOMING, 236 UNKNOWN); i 5.483 CLOSED sono in `public/data/opportunities-archive.json` e non vengono caricati dalla home.
+- Ogni record conserva `firstSeen`, `lastSeen`, `lastChanged`, `contentHash`, fonte dati e URL ufficiale; un fetch fallito o anomalo conserva il precedente valido e marca la fonte `STALE`/`ERROR`.
+- Core Python senza dipendenze esterne per normalizzazione, classificazione multi-label pesata, deduplicazione, paginazione EU, audit e anomaly warning.
+- Funding & Tenders usa la query server-side OPEN/UPCOMING e paginazione fino al totale dichiarato; i CLOSED sono esclusi dal feed operativo.
+- Incentivi.gov.it conserva Regioni/Ambito territoriale e preferisce `Link_istituzionale`; il link al catalogo resta come fonte aggregata.
+- Le liste HTML prioritarie tentano un enrichment best-effort delle pagine dettaglio (deadline, stato, apertura, budget, destinatari) senza cancellare la scheda se il dettaglio non risponde.
+- AIG filtra eventi, webinar e news prive di segnali di call/candidatura/finanziamento; le fonti live restano quelle già presenti in v0.1.
 - Parser fixture-verificato per il calendario FSE+ Veneto; la verifica live resta bloccata dalla catena TLS locale.
 - Parser fixture-verificato per il calendario FESR+ Veneto; la pagina corrente rimanda al cronoprogramma regionale HTML e non espone ancora un CSV stabile.
 - Nessuna API AI, autenticazione, coda, cache complessa o servizio aggiuntivo.
@@ -22,7 +23,7 @@ python -m unittest discover -s tests -p "test_*.py"
 pnpm test
 ```
 
-Validazione manuale degli adapter e rigenerazione dello snapshot:
+Validazione manuale degli adapter e rigenerazione dello snapshot current/archive:
 
 ```powershell
 python -m funding_core.cli validate-source eu-funding-tenders
@@ -51,7 +52,14 @@ python -m funding_core.cli validate-source fondo-repubblica-digitale
 python -m funding_core.cli sync fondo-repubblica-digitale
 python -m funding_core.cli validate-source veneto-fse-calendar
 python -m funding_core.cli validate-source veneto-fesr-calendar
-python -m funding_core.cli populate-snapshot --output public/data/opportunities.json
+python -m funding_core.cli populate-snapshot `
+  --output public/data/opportunities-current.json `
+  --archive-output public/data/opportunities-archive.json `
+  --audit-dir reports
 ```
 
-Vedi `docs/SOURCES.md` per lo stato puntuale delle fonti.
+Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/high-relevance-audit.csv`, `reports/dataset-audit.json` e `reports/search-quality.md`.
+
+La classificazione espone `Alta/Media/Bassa` e resta euristica: non decide l'ammissibilità. Date, importi e destinatari mancanti restano esplicitamente non indicati.
+
+Vedi `docs/SOURCES.md` per lo stato puntuale delle fonti e `docs/ADDING_SOURCE.md` per il contratto minimo di un adapter.
