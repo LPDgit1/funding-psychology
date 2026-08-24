@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vinext/
+.wrangler/
+__pycache__/
+*.pyc
+work/
