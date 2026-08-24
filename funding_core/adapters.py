@@ -9,7 +9,9 @@ import time
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from email.utils import parsedate_to_datetime
+from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
+from urllib.parse import urljoin, urlsplit
 from urllib.request import Request, urlopen
 
 from .models import SourceRecord
@@ -276,6 +278,715 @@ class EuFundingTendersAdapter:
                 source_status=self._status(self._values(metadata, "status")),
             ))
         return records
+
+
+class _ErasmusDeadlineRowsParser(HTMLParser):
+    """Extract only the explicit deadline rows from the official page."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._div_depth = 0
+        self._row_depth: int | None = None
+        self._column_depth: int | None = None
+        self._row: list[str] | None = None
+        self._column: list[str] | None = None
+        self.rows: list[list[str]] = []
+
+    @staticmethod
+    def _classes(attrs: list[tuple[str, str | None]]) -> set[str]:
+        value = dict(attrs).get("class") or ""
+        return set(value.split())
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "div":
+            self._div_depth += 1
+            classes = self._classes(attrs)
+            if self._row is None and {"row", "riga"}.issubset(classes):
+                self._row = []
+                self._row_depth = self._div_depth
+            elif self._row is not None and self._column is None and "col-lg" in classes:
+                self._column = []
+                self._column_depth = self._div_depth
+        elif self._column is not None and tag in {"br", "p", "li"}:
+            self._column.append(" ")
+
+    def handle_data(self, data: str) -> None:
+        if self._column is not None:
+            self._column.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag != "div":
+            return
+        if self._column is not None and self._div_depth == self._column_depth:
+            self._row.append(re.sub(r"\s+", " ", "".join(self._column)).strip())
+            self._column = None
+            self._column_depth = None
+        if self._row is not None and self._div_depth == self._row_depth:
+            if self._row:
+                self.rows.append(self._row)
+            self._row = None
+            self._row_depth = None
+        self._div_depth -= 1
+
+
+class ErasmusIndireAdapter:
+    """Official Erasmus+ national deadline table, limited to INDIRE rows."""
+
+    source_id = "erasmus-indire"
+    page_url = "https://www.erasmusplus.it/programma/scadenze/"
+    source_label = "Erasmus+ INDIRE"
+
+    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=10_000_000)) -> bytes:
+        request = Request(self.page_url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
+        for attempt in range(policy.retries + 1):
+            try:
+                with urlopen(request, timeout=policy.timeout_seconds) as response:
+                    if response.headers.get_content_type() not in {"text/html", "application/xhtml+xml"}:
+                        raise AdapterError("unexpected content type from Erasmus+ INDIRE page")
+                    payload = response.read(policy.max_bytes + 1)
+                break
+            except HTTPError as exc:
+                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"HTTP {exc.code} from Erasmus+ INDIRE page", status_code=exc.code) from exc
+            except URLError as exc:
+                if attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"connection failed for Erasmus+ INDIRE page: {exc.reason}") from exc
+        if len(payload) > policy.max_bytes:
+            raise AdapterError("Erasmus+ INDIRE page exceeds download size limit")
+        return payload
+
+    @staticmethod
+    def _date(value: str) -> date | None:
+        months = {
+            "gennaio": 1, "febbraio": 2, "marzo": 3, "aprile": 4,
+            "maggio": 5, "giugno": 6, "luglio": 7, "agosto": 8,
+            "settembre": 9, "ottobre": 10, "novembre": 11, "dicembre": 12,
+        }
+        match = re.search(r"(\d{1,2})\s+([A-Za-zàèéìòù]+)(?:\s+(\d{4}))?", value, re.IGNORECASE)
+        if match:
+            month = months.get(match.group(2).lower())
+            if month:
+                try:
+                    return date(int(match.group(3) or "2026"), month, int(match.group(1)))
+                except ValueError:
+                    return None
+        match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", value)
+        if match:
+            try:
+                return date(int(match.group(3)), int(match.group(2)), int(match.group(1)))
+            except ValueError:
+                return None
+        return None
+
+    @staticmethod
+    def _clean(value: str) -> str:
+        return re.sub(r"\s+", " ", html.unescape(value)).strip()
+
+    def parse(self, raw: bytes | str) -> list[SourceRecord]:
+        text = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
+        parser = _ErasmusDeadlineRowsParser()
+        parser.feed(text)
+        records: list[SourceRecord] = []
+        seen: set[str] = set()
+        for index, columns in enumerate(parser.rows, 1):
+            if len(columns) < 3:
+                continue
+            title = self._clean(columns[0])
+            sector = self._clean(columns[1])
+            deadline_text = self._clean(columns[2])
+            agency = self._clean(columns[3]) if len(columns) > 3 else ""
+            if not title or "INDIRE" not in agency.upper():
+                continue
+            deadline = self._date(deadline_text)
+            key = f"{title}|{sector}|{deadline_text}"
+            if key in seen:
+                continue
+            seen.add(key)
+            identifier = re.sub(r"[^a-z0-9]+", "-", f"2026-{title}-{sector}".lower()).strip("-")
+            records.append(SourceRecord(
+                external_id=identifier or f"erasmus-indire-row-{index}",
+                title=f"Erasmus+ — {title}",
+                official_url=self.page_url,
+                funder="Agenzia nazionale Erasmus+ INDIRE",
+                programme="Erasmus+ 2026",
+                deadline=deadline,
+                eligible_entities=(sector,) if sector else (),
+                description=f"Settore: {sector}. Scadenza indicata dalla pagina ufficiale: {deadline_text}.",
+                source_status="UNKNOWN",
+            ))
+        return records
+
+
+class AigOpportunitiesAdapter:
+    """Official AIG opportunities archive via its public WordPress REST API."""
+
+    source_id = "aig-opportunities"
+    page_url = "https://agenziagioventu.gov.it/news/opportunita-aig/"
+    endpoint = "https://agenziagioventu.gov.it/wp-json/wp/v2/posts"
+    category_id = 551
+
+    def build_query(self) -> dict[str, str]:
+        return {
+            "categories": str(self.category_id),
+            "per_page": "100",
+            "_fields": "id,date,modified,link,title,content",
+        }
+
+    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=8_000_000)) -> bytes:
+        from urllib.parse import urlencode
+
+        request = Request(
+            f"{self.endpoint}?{urlencode(self.build_query())}",
+            headers={"Accept": "application/json", "User-Agent": policy.user_agent},
+        )
+        for attempt in range(policy.retries + 1):
+            try:
+                with urlopen(request, timeout=policy.timeout_seconds) as response:
+                    if response.headers.get_content_type() != "application/json":
+                        raise AdapterError("unexpected content type from AIG opportunities API")
+                    payload = response.read(policy.max_bytes + 1)
+                break
+            except HTTPError as exc:
+                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"HTTP {exc.code} from AIG opportunities API", status_code=exc.code) from exc
+            except URLError as exc:
+                if attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"connection failed for AIG opportunities API: {exc.reason}") from exc
+        if len(payload) > policy.max_bytes:
+            raise AdapterError("AIG opportunities response exceeds download size limit")
+        return payload
+
+    @staticmethod
+    def _clean(value: str) -> str:
+        text = html.unescape(value)
+        text = re.sub(r"<[^>]+>", " ", text)
+        return re.sub(r"\s+", " ", text).strip()
+
+    @staticmethod
+    def _date(value: str) -> date | None:
+        months = {
+            "gennaio": 1, "febbraio": 2, "marzo": 3, "aprile": 4,
+            "maggio": 5, "giugno": 6, "luglio": 7, "agosto": 8,
+            "settembre": 9, "ottobre": 10, "novembre": 11, "dicembre": 12,
+        }
+        match = re.search(r"(\d{1,2})\s+([A-Za-zàèéìòù]+)(?:\s+(\d{4}))?", value, re.IGNORECASE)
+        if match:
+            month = months.get(match.group(2).lower())
+            if month:
+                try:
+                    return date(int(match.group(3) or "2026"), month, int(match.group(1)))
+                except ValueError:
+                    return None
+        match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", value)
+        if match:
+            try:
+                return date(int(match.group(3)), int(match.group(2)), int(match.group(1)))
+            except ValueError:
+                return None
+        return None
+
+    def parse(self, raw: bytes | str | list[dict]) -> list[SourceRecord]:
+        try:
+            payload = raw if isinstance(raw, list) else json.loads(raw)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise AdapterError("AIG opportunities response is not valid JSON") from exc
+        if not isinstance(payload, list):
+            raise AdapterError("AIG opportunities response is not a list")
+        records: list[SourceRecord] = []
+        for index, item in enumerate(payload, 1):
+            if not isinstance(item, dict):
+                continue
+            title = self._clean(str((item.get("title") or {}).get("rendered", "")))
+            url = str(item.get("link") or self.page_url)
+            content = self._clean(str((item.get("content") or {}).get("rendered", "")))
+            if not title or not url.startswith("https://"):
+                continue
+            deadline_match = re.search(r"(?:scadenza|entro|termine)[^.!?]{0,160}", content, re.IGNORECASE)
+            deadline = self._date(deadline_match.group(0)) if deadline_match else None
+            records.append(SourceRecord(
+                external_id=str(item.get("id") or f"aig-result-{index}"),
+                title=title,
+                official_url=url,
+                funder="Agenzia Italiana per la Gioventù",
+                programme="AIG — Opportunità",
+                deadline=deadline,
+                description=content[:1200],
+                source_status="UNKNOWN",
+            ))
+        return records
+
+
+class InterregItalyCroatiaAdapter:
+    """The current Interreg Italy–Croatia call page has structured call text."""
+
+    source_id = "interreg-italy-croatia"
+    page_url = "https://www.italy-croatia.eu/4th-call-for-proposals"
+
+    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=15_000_000)) -> bytes:
+        request = Request(self.page_url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
+        for attempt in range(policy.retries + 1):
+            try:
+                with urlopen(request, timeout=policy.timeout_seconds) as response:
+                    if response.headers.get_content_type() not in {"text/html", "application/xhtml+xml"}:
+                        raise AdapterError("unexpected content type from Interreg Italy–Croatia page")
+                    payload = response.read(policy.max_bytes + 1)
+                break
+            except HTTPError as exc:
+                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"HTTP {exc.code} from Interreg Italy–Croatia page", status_code=exc.code) from exc
+            except URLError as exc:
+                if attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"connection failed for Interreg Italy–Croatia page: {exc.reason}") from exc
+        if len(payload) > policy.max_bytes:
+            raise AdapterError("Interreg Italy–Croatia page exceeds download size limit")
+        return payload
+
+    @staticmethod
+    def _clean(value: str) -> str:
+        text = html.unescape(value)
+        text = re.sub(r"<[^>]+>", " ", text)
+        return re.sub(r"\s+", " ", text).strip()
+
+    @staticmethod
+    def _date(value: str) -> date | None:
+        try:
+            return datetime.strptime(value, "%d/%m/%Y").date()
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _money(value: str) -> int | None:
+        digits = re.sub(r"[^0-9]", "", value)
+        return int(digits) if digits else None
+
+    def parse(self, raw: bytes | str) -> list[SourceRecord]:
+        text = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw
+        plain = self._clean(text)
+        schedule = re.search(
+            r"Call schedule.*?from\s+(\d{1,2}/\d{1,2}/\d{4})\s+to\s+(\d{1,2}/\d{1,2}/\d{4})",
+            plain,
+            re.IGNORECASE,
+        )
+        budget = re.search(r"Call budget\s+amounts\s+to\s+EUR\s*([0-9.]+)", plain, re.IGNORECASE)
+        title_match = re.search(r"<title>(.*?)</title>", text, re.IGNORECASE | re.DOTALL)
+        title = self._clean(title_match.group(1)) if title_match else "4th Call for Proposals"
+        if not schedule:
+            raise AdapterError("Interreg Italy–Croatia page has no call schedule")
+        description_start = plain.find("The proposals submitted under this Call")
+        description = plain[description_start:description_start + 1800] if description_start >= 0 else plain[:1800]
+        return [SourceRecord(
+            external_id="4th-call-for-proposals",
+            title=title,
+            official_url=self.page_url,
+            funder="Interreg Italy–Croatia",
+            programme="Interreg VI-A Italy–Croatia 2021-2027",
+            opening_date=self._date(schedule.group(1)),
+            deadline=self._date(schedule.group(2)),
+            total_budget=self._money(budget.group(1)) if budget else None,
+            description=description,
+            source_status="UNKNOWN",
+        )]
+
+
+class _VenetoBandiRowsParser(HTMLParser):
+    """Read the compact ``IN SCADENZA`` cards from the public homepage."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._depth = 0
+        self._row_depth: int | None = None
+        self._row_text: list[str] | None = None
+        self._row_href: str | None = None
+        self._row_title = ""
+        self._anchor_href: str | None = None
+        self._anchor_text: list[str] | None = None
+        self.rows: list[tuple[str, str, str]] = []
+
+    @staticmethod
+    def _classes(attrs: list[tuple[str, str | None]]) -> set[str]:
+        value = dict(attrs).get("class") or ""
+        return set(value.split())
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "div":
+            self._depth += 1
+            if self._row_depth is None and "row-inScadenza" in self._classes(attrs):
+                self._row_depth = self._depth
+                self._row_text = []
+                self._row_href = None
+                self._row_title = ""
+        if self._row_depth is not None and tag == "a" and self._anchor_href is None:
+            self._anchor_href = dict(attrs).get("href")
+            self._anchor_text = []
+
+    def handle_data(self, data: str) -> None:
+        if self._row_text is not None:
+            self._row_text.append(data)
+        if self._anchor_text is not None:
+            self._anchor_text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "a" and self._anchor_href is not None:
+            href = self._anchor_href.strip()
+            title = re.sub(r"\s+", " ", "".join(self._anchor_text or [])).strip()
+            if self._row_href is None and href:
+                self._row_href = href
+                self._row_title = title
+            self._anchor_text = None
+            self._anchor_href = None
+            return
+        if tag != "div":
+            return
+        if self._row_depth is not None and self._depth == self._row_depth:
+            if self._row_href:
+                self.rows.append((self._row_href, self._row_title, "".join(self._row_text or [])))
+            self._row_depth = None
+            self._row_text = None
+            self._row_href = None
+            self._row_title = ""
+            self._anchor_href = None
+            self._anchor_text = None
+        self._depth -= 1
+
+
+class VenetoBandiAdapter:
+    """Public homepage adapter for the Regione del Veneto opportunity cards.
+
+    The homepage intentionally exposes only the ten items in its ``IN
+    SCADENZA`` block.  This first contract preserves that bounded, static
+    listing; detail pages can be added once their pagination contract is
+    separately verified.
+    """
+
+    source_id = "veneto-bandi"
+    page_url = "https://bandi.regione.veneto.it/Public/"
+
+    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=5_000_000)) -> bytes:
+        request = Request(self.page_url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
+        for attempt in range(policy.retries + 1):
+            try:
+                with urlopen(request, timeout=policy.timeout_seconds) as response:
+                    if response.headers.get_content_type() not in {"text/html", "application/xhtml+xml"}:
+                        raise AdapterError("unexpected content type from Regione Veneto bandi homepage")
+                    payload = response.read(policy.max_bytes + 1)
+                break
+            except HTTPError as exc:
+                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"HTTP {exc.code} from Regione Veneto bandi homepage", status_code=exc.code) from exc
+            except URLError as exc:
+                if attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"connection failed for Regione Veneto bandi homepage: {exc.reason}") from exc
+        if len(payload) > policy.max_bytes:
+            raise AdapterError("Regione Veneto bandi homepage exceeds download size limit")
+        return payload
+
+    @staticmethod
+    def _clean(value: str) -> str:
+        return re.sub(r"\s+", " ", html.unescape(value)).strip()
+
+    @staticmethod
+    def _date(value: str) -> date | None:
+        for pattern in ("%d/%m/%Y %H:%M", "%d/%m/%Y"):
+            try:
+                return datetime.strptime(value.strip(), pattern).date()
+            except ValueError:
+                continue
+        return None
+
+    def parse(self, raw: bytes | str) -> list[SourceRecord]:
+        if isinstance(raw, bytes):
+            text = raw.decode("utf-8", errors="replace")
+            # The portal declares UTF-8 but a few legacy title fragments still
+            # arrive as Windows-1252 bytes.  Retry only when UTF-8 decoding
+            # produced replacement characters so accents are not lost.
+            if "\ufffd" in text:
+                text = raw.decode("cp1252", errors="replace")
+        else:
+            text = raw
+        parser = _VenetoBandiRowsParser()
+        parser.feed(text)
+        records: list[SourceRecord] = []
+        seen: set[str] = set()
+        for index, (href, title, row_text) in enumerate(parser.rows, 1):
+            match = re.search(r"\b([ABC])\s+(\d{1,2}/\d{1,2}/\d{4}(?:\s+\d{1,2}:\d{2})?)", self._clean(row_text))
+            if not match or not title:
+                continue
+            official_url = urljoin(self.page_url, href)
+            if not official_url.startswith("https://bandi.regione.veneto.it/"):
+                continue
+            external_match = re.search(r"idAtto=(\d+)", official_url, re.IGNORECASE)
+            external_id = external_match.group(1) if external_match else f"homepage-row-{index}"
+            if external_id in seen:
+                continue
+            seen.add(external_id)
+            category = {"A": "Avviso", "B": "Bando o finanziamento", "C": "Concorso"}[match.group(1)]
+            records.append(SourceRecord(
+                external_id=external_id,
+                title=title,
+                official_url=official_url,
+                funder="Regione del Veneto",
+                programme=f"Portale Bandi — {category}",
+                deadline=self._date(match.group(2)),
+                description=f"Voce estratta dalla sezione IN SCADENZA del portale regionale ({category}).",
+                source_status="OPEN",
+            ))
+        return records
+
+
+class _AnchorTextParser(HTMLParser):
+    """Collect anchor href/text pairs without depending on a CSS framework."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._href: str | None = None
+        self._label: str | None = None
+        self._text: list[str] | None = None
+        self.links: list[tuple[str, str]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "a" and self._href is None:
+            href = dict(attrs).get("href")
+            if href:
+                self._href = href
+                attributes = dict(attrs)
+                self._label = attributes.get("aria-label") or attributes.get("title")
+                self._text = []
+
+    def handle_data(self, data: str) -> None:
+        if self._text is not None:
+            self._text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag != "a" or self._href is None:
+            return
+        title = re.sub(r"\s+", " ", "".join(self._text or [])).strip()
+        if self._label and (not title or title.lower() in {"scopri di più", "scopri tutto", "leggi", "leggi tutto"}):
+            title = self._label
+        title = re.sub(r"^(?:vai alla pagina|vai al dettaglio)\s+", "", title, flags=re.IGNORECASE)
+        self.links.append((self._href, title))
+        self._href = None
+        self._label = None
+        self._text = None
+
+
+class _HtmlOpportunityListAdapter:
+    """Small shared transport/parser shell for bounded official link lists."""
+
+    source_id = ""
+    page_url = ""
+    source_label = "official HTML list"
+    funder = ""
+    programme = ""
+    url_prefix = ""
+    url_tokens: tuple[str, ...] = ()
+    excluded_tokens: tuple[str, ...] = ()
+    max_bytes = 8_000_000
+
+    def fetch(self, policy: FetchPolicy | None = None) -> bytes:
+        policy = policy or FetchPolicy(max_bytes=self.max_bytes)
+        request = Request(self.page_url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
+        for attempt in range(policy.retries + 1):
+            try:
+                with urlopen(request, timeout=policy.timeout_seconds) as response:
+                    if response.headers.get_content_type() not in {"text/html", "application/xhtml+xml"}:
+                        raise AdapterError(f"unexpected content type from {self.source_label}")
+                    payload = response.read(policy.max_bytes + 1)
+                break
+            except HTTPError as exc:
+                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"HTTP {exc.code} from {self.source_label}", status_code=exc.code) from exc
+            except URLError as exc:
+                if attempt < policy.retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise AdapterError(f"connection failed for {self.source_label}: {exc.reason}") from exc
+        if len(payload) > policy.max_bytes:
+            raise AdapterError(f"{self.source_label} exceeds download size limit")
+        return payload
+
+    @staticmethod
+    def _clean(value: str) -> str:
+        return re.sub(r"\s+", " ", html.unescape(value)).strip()
+
+    def _include_link(self, official_url: str, title: str) -> bool:
+        parsed = urlsplit(official_url)
+        if parsed.scheme != "https" or not parsed.netloc:
+            return False
+        if self.url_prefix and not parsed.path.lower().startswith(self.url_prefix.lower()):
+            return False
+        if self.url_prefix and parsed.path.rstrip("/").lower() == self.url_prefix.rstrip("/").lower():
+            return False
+        query_suffix = f"?{parsed.query.lower()}" if parsed.query else ""
+        path_and_title = f"{parsed.path.lower()}{query_suffix} {title.lower()}"
+        if self.url_tokens and not any(token.lower() in path_and_title for token in self.url_tokens):
+            return False
+        if any(token.lower() in path_and_title for token in self.excluded_tokens):
+            return False
+        return len(title) >= 8
+
+    @staticmethod
+    def _external_id(official_url: str, index: int) -> str:
+        path = urlsplit(official_url).path.rstrip("/")
+        slug = path.rsplit("/", 1)[-1] if path else ""
+        slug = re.sub(r"[^a-z0-9]+", "-", slug.lower()).strip("-")
+        return slug or f"html-opportunity-{index}"
+
+    def parse(self, raw: bytes | str) -> list[SourceRecord]:
+        if isinstance(raw, bytes):
+            text = raw.decode("utf-8", errors="replace")
+            if "\ufffd" in text:
+                text = raw.decode("cp1252", errors="replace")
+        else:
+            text = raw
+        parser = _AnchorTextParser()
+        parser.feed(text)
+        records: list[SourceRecord] = []
+        seen: set[str] = set()
+        for index, (href, raw_title) in enumerate(parser.links, 1):
+            title = self._clean(raw_title)
+            official_url = urljoin(self.page_url, html.unescape(href))
+            if not self._include_link(official_url, title):
+                continue
+            external_id = self._external_id(official_url, index)
+            if external_id in seen:
+                continue
+            seen.add(external_id)
+            records.append(SourceRecord(
+                external_id=external_id,
+                title=title,
+                official_url=official_url,
+                funder=self.funder,
+                programme=self.programme,
+                description=f"Link estratto dall'elenco ufficiale {self.source_label}.",
+                source_status="UNKNOWN",
+            ))
+        return records
+
+
+class DipartimentoFamigliaAdapter(_HtmlOpportunityListAdapter):
+    source_id = "dipartimento-famiglia"
+    page_url = "https://www.famiglia.governo.it/it/politiche-e-attivita/finanziamenti-avvisi-e-bandi/"
+    source_label = "Dipartimento per le politiche della famiglia"
+    funder = "Dipartimento per le politiche della famiglia"
+    programme = "Politiche della famiglia"
+    url_prefix = "/it/politiche-e-attivita/finanziamenti-avvisi-e-bandi/"
+    url_tokens = ("/avvisi-e-bandi/", "/avviso-")
+    excluded_tokens = ("archivio-bandi", "/faq", "/media/")
+
+    def _include_link(self, official_url: str, title: str) -> bool:
+        if urlsplit(official_url).path.rstrip("/").lower().endswith("/avvisi-e-bandi"):
+            return False
+        return super()._include_link(official_url, title)
+
+
+class DipartimentoDisabilitaAdapter(_HtmlOpportunityListAdapter):
+    source_id = "dipartimento-disabilita"
+    page_url = "https://www.disabilita.governo.it/it/avvisi-e-bandi/"
+    source_label = "Dipartimento per le politiche in favore delle persone con disabilità"
+    funder = "Dipartimento per le politiche in favore delle persone con disabilità"
+    programme = "Fondo unico per l'inclusione e politiche per la disabilità"
+    url_prefix = "/it/avvisi-e-bandi/"
+    excluded_tokens = ("?", "/media/")
+
+
+class FondazioneCariparoAdapter(_HtmlOpportunityListAdapter):
+    source_id = "fondazione-cariparo"
+    page_url = "https://fondazionecariparo.it/bandi/"
+    source_label = "Fondazione Cariparo"
+    funder = "Fondazione Cariparo"
+    programme = "Bandi Fondazione Cariparo"
+    url_tokens = ("/2026/", "/2025/")
+    excluded_tokens = ("/wp-", "/bandi/", "/iniziative/")
+
+
+class FondazioneCariveronaAdapter(_HtmlOpportunityListAdapter):
+    source_id = "fondazione-cariverona"
+    page_url = "https://www.fondazionecariverona.org/bandi/"
+    source_label = "Fondazione Cariverona"
+    funder = "Fondazione Cariverona"
+    programme = "Bandi Fondazione Cariverona"
+    url_prefix = "/iniziative/"
+
+
+class ConIBambiniAdapter(_HtmlOpportunityListAdapter):
+    source_id = "con-i-bambini"
+    page_url = "https://www.conibambini.org/bandi-e-iniziative/"
+    source_label = "Con i Bambini"
+    funder = "Con i Bambini"
+    programme = "Bandi e iniziative per il contrasto della povertà educativa minorile"
+    url_prefix = "/bandi-e-iniziative/"
+    excluded_tokens = ("/categoria/", "/tag/", "#", "/wp-content/")
+
+    def parse(self, raw: bytes | str) -> list[SourceRecord]:
+        if isinstance(raw, bytes):
+            text = raw.decode("utf-8", errors="replace")
+            if "\ufffd" in text:
+                text = raw.decode("cp1252", errors="replace")
+        else:
+            text = raw
+        match = re.search(r"var\s+bandi\s*=\s*(\{.*?\});", text, re.DOTALL)
+        if not match:
+            return super().parse(text)
+        try:
+            payload = json.loads(match.group(1))
+        except json.JSONDecodeError as exc:
+            raise AdapterError("Con i Bambini embedded bandi data is not valid JSON") from exc
+        records: list[SourceRecord] = []
+        seen: set[str] = set()
+        for section in payload.get("list_bandi", []):
+            if not isinstance(section, dict):
+                continue
+            status_text = str(section.get("text") or "").lower()
+            source_status = "OPEN" if "corso" in status_text else "CLOSED" if "scadut" in status_text else "UNKNOWN"
+            for item in section.get("children", []):
+                if not isinstance(item, dict):
+                    continue
+                title = self._clean(str(item.get("text") or ""))
+                official_url = urljoin(self.page_url, str(item.get("id") or ""))
+                if not title or not self._include_link(official_url, title):
+                    continue
+                external_id = self._external_id(official_url, len(records) + 1)
+                if external_id in seen:
+                    continue
+                seen.add(external_id)
+                records.append(SourceRecord(
+                    external_id=external_id,
+                    title=title,
+                    official_url=official_url,
+                    funder=self.funder,
+                    programme=self.programme,
+                    description=f"Voce dell'elenco ufficiale Con i Bambini ({section.get('text', '')}).",
+                    source_status=source_status,
+                ))
+        return records
+
+
+class FondoRepubblicaDigitaleAdapter(_HtmlOpportunityListAdapter):
+    source_id = "fondo-repubblica-digitale"
+    page_url = "https://www.fondorepubblicadigitale.it/pagina-bandi/"
+    source_label = "Fondo per la Repubblica Digitale"
+    funder = "Fondo per la Repubblica Digitale"
+    programme = "Bandi Fondo per la Repubblica Digitale"
+    url_prefix = "/bandi/"
+    excluded_tokens = ("/pagina-bandi/", "/wp-content/")
 
 
 class IncentiviGovAdapter:

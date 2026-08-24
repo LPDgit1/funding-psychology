@@ -4,8 +4,18 @@ from pathlib import Path
 import unittest
 
 from funding_core.adapters import (
+    AigOpportunitiesAdapter,
+    ConIBambiniAdapter,
+    DipartimentoDisabilitaAdapter,
+    DipartimentoFamigliaAdapter,
+    ErasmusIndireAdapter,
+    FondoRepubblicaDigitaleAdapter,
+    FondazioneCariparoAdapter,
+    FondazioneCariveronaAdapter,
     IncentiviGovAdapter,
+    InterregItalyCroatiaAdapter,
     EuFundingTendersAdapter,
+    VenetoBandiAdapter,
     VenetoFesrCalendarAdapter,
     VenetoFseCalendarAdapter,
 )
@@ -91,6 +101,64 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(records[0].external_id, "FESR-2026-01")
         self.assertEqual(records[0].programme, "PR Veneto FESR+ 2021-2027")
         self.assertTrue(records[0].official_url.startswith("https://programmazione-ue-2021-2027.regione.veneto.it/fesr/"))
+
+    def test_erasmus_indire_fixture_filters_agency_and_dates(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "erasmus_indire_deadlines.html"
+        records = ErasmusIndireAdapter().parse(path.read_bytes())
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].deadline, date(2026, 3, 5))
+        self.assertEqual(records[1].deadline, date(2026, 2, 19))
+        self.assertEqual(records[0].funder, "Agenzia nazionale Erasmus+ INDIRE")
+        self.assertTrue(all(record.official_url.startswith("https://") for record in records))
+
+    def test_aig_fixture_parse_and_missing_deadline(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "aig_opportunities.json"
+        records = AigOpportunitiesAdapter().parse(path.read_text(encoding="utf-8"))
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].external_id, "19807")
+        self.assertEqual(records[0].deadline, date(2026, 10, 31))
+        self.assertIn("inclusione sociale", records[0].description)
+        self.assertIsNone(records[1].deadline)
+        self.assertIn("categories", AigOpportunitiesAdapter().build_query())
+
+    def test_interreg_fixture_extracts_schedule_and_budget(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "interreg_italy_croatia_call.html"
+        records = InterregItalyCroatiaAdapter().parse(path.read_bytes())
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].opening_date, date(2026, 6, 15))
+        self.assertEqual(records[0].deadline, date(2026, 9, 15))
+        self.assertEqual(records[0].total_budget, 5_859_000)
+        self.assertTrue(records[0].official_url.startswith("https://www.italy-croatia.eu/"))
+
+    def test_veneto_bandi_home_fixture_extracts_cards(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "veneto_bandi_home.html"
+        records = VenetoBandiAdapter().parse(path.read_bytes())
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].external_id, "13137")
+        self.assertEqual(records[0].deadline, date(2026, 8, 26))
+        self.assertEqual(records[0].programme, "Portale Bandi — Bando o finanziamento")
+        self.assertTrue(records[1].official_url.endswith("idAtto=13237"))
+
+    def test_family_and_disability_lists_filter_detail_links(self):
+        root = Path(__file__).parents[1] / "funding_core" / "fixtures"
+        family = DipartimentoFamigliaAdapter().parse((root / "dipartimento_famiglia.html").read_bytes())
+        disability = DipartimentoDisabilitaAdapter().parse((root / "dipartimento_disabilita.html").read_bytes())
+        self.assertEqual(len(family), 1)
+        self.assertEqual(family[0].source_status, "UNKNOWN")
+        self.assertEqual(len(disability), 1)
+        self.assertEqual(disability[0].external_id, "avviso-vita-opportunita")
+
+    def test_foundation_and_child_digital_lists_filter_detail_links(self):
+        root = Path(__file__).parents[1] / "funding_core" / "fixtures"
+        cariparo = FondazioneCariparoAdapter().parse((root / "fondazione_cariparo.html").read_bytes())
+        cariverona = FondazioneCariveronaAdapter().parse((root / "fondazione_cariverona.html").read_bytes())
+        children = ConIBambiniAdapter().parse((root / "con_i_bambini.html").read_bytes())
+        digital = FondoRepubblicaDigitaleAdapter().parse((root / "fondo_repubblica_digitale.html").read_bytes())
+        self.assertEqual(len(cariparo), 1)
+        self.assertEqual(len(cariverona), 1)
+        self.assertEqual(len(children), 1)
+        self.assertEqual(len(digital), 1)
+        self.assertEqual(digital[0].funder, "Fondo per la Repubblica Digitale")
 
 
 if __name__ == "__main__":
