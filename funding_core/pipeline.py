@@ -9,6 +9,8 @@ from .models import Opportunity, SourceRecord
 
 
 def _status(record: SourceRecord, today: date) -> str:
+    if record.status_authoritative and record.source_status in {"OPEN", "UPCOMING", "CLOSED"}:
+        return record.source_status
     if record.deadline and record.deadline < today:
         return "CLOSED"
     if record.opening_date and record.opening_date > today:

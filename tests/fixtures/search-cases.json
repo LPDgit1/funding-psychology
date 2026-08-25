@@ -1,0 +1,12 @@
+[
+  {"query": "caregiver demenza", "expected": ["fixture-dementia-caregiver"]},
+  {"query": "salute mentale adolescenti", "expected": ["fixture-youth-mental-health"]},
+  {"query": "bullismo scuola", "expected": ["fixture-school-bullying"]},
+  {"query": "violenza di genere", "expected": ["fixture-gender-violence"]},
+  {"query": "dipendenze giovani", "expected": ["fixture-youth-addictions"]},
+  {"query": "burnout lavoratori", "expected": ["fixture-worker-burnout"]},
+  {"query": "psicologia anziani", "expected": ["fixture-older-psychology"]},
+  {"query": "migrazione trauma", "expected": ["fixture-migration-trauma"]},
+  {"query": "inclusione sociale disabilità", "expected": ["fixture-disability-inclusion"]},
+  {"query": "AI salute mentale", "expected": ["fixture-ai-mental-health"]}
+]

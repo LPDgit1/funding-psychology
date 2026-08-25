@@ -124,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
             "erasmus-indire": 10_000_000,
             "aig-opportunities": 8_000_000,
             "interreg-italy-croatia": 15_000_000,
-            "veneto-bandi": 5_000_000,
+            "veneto-bandi": 30_000_000,
             "dipartimento-famiglia": 8_000_000,
             "dipartimento-disabilita": 8_000_000,
             "fondazione-cariparo": 10_000_000,

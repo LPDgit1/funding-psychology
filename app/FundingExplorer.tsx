@@ -79,9 +79,10 @@ export function FundingExplorer() {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem("fip-favorites") ?? "[]"); } catch { return []; }
   });
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(DEMO_OPPORTUNITIES);
+  const [currentOpportunities, setCurrentOpportunities] = useState<Opportunity[]>(DEMO_OPPORTUNITIES);
   const [snapshot, setSnapshot] = useState<SnapshotEnvelope | null>(null);
   const [archive, setArchive] = useState<SnapshotEnvelope | null>(null);
+  const [viewMode, setViewMode] = useState<"current" | "archive">("current");
   const [snapshotError, setSnapshotError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(60);
 
@@ -94,7 +95,7 @@ export function FundingExplorer() {
         if (!isSnapshotEnvelope(payload) || payload.opportunities.some((item) => typeof item.id !== "string" || typeof item.title !== "string")) {
           throw new Error("snapshot non valido");
         }
-        setOpportunities(payload.opportunities);
+        setCurrentOpportunities(payload.opportunities);
         setSnapshot(payload);
       })
       .catch((error: unknown) => {
@@ -104,14 +105,14 @@ export function FundingExplorer() {
   }, []);
 
   async function loadArchive() {
-    if (archive) { setOpportunities(archive.opportunities); setStatus("all"); setIncludeLowRelevance(true); return; }
+    if (archive) { setViewMode("archive"); setStatus("all"); setIncludeLowRelevance(true); return; }
     try {
       const response = await fetch("/data/opportunities-archive.json", { cache: "no-store" });
       if (!response.ok) throw new Error(`archivio HTTP ${response.status}`);
       const payload: unknown = await response.json();
       if (!isSnapshotEnvelope(payload)) throw new Error("archivio non valido");
       setArchive(payload);
-      setOpportunities(payload.opportunities);
+      setViewMode("archive");
       setStatus("all");
       setIncludeLowRelevance(true);
     } catch (error) {
@@ -120,11 +121,12 @@ export function FundingExplorer() {
   }
 
   function returnToCurrent() {
-    if (snapshot) setOpportunities(snapshot.opportunities);
+    setViewMode("current");
     setStatus("current");
     setIncludeLowRelevance(false);
   }
 
+  const opportunities = useMemo(() => viewMode === "archive" ? (archive?.opportunities ?? []) : currentOpportunities, [viewMode, archive, currentOpportunities]);
   const results = useMemo(() => sortResults(filterOpportunities(opportunities, {
     query, macroAreas: macros, territory, status, deadline, applicant,
     favoriteIds: favorites, favoritesOnly, newOnly, includeLowRelevance,
@@ -142,7 +144,7 @@ export function FundingExplorer() {
   return <main>
     <header className="topbar"><a href="#top" className="brand"><span>FIP</span><strong>Funding Intelligence<br/>for Psychology</strong></a><nav><a href="#bandi">Bandi</a><button onClick={activateNew}>Nuovi</button><button onClick={() => { setStatus("UPCOMING"); setNewOnly(false); }}>In arrivo</button><button onClick={() => { setFavoritesOnly((value) => !value); setStatus("current"); }}>{favoritesOnly ? "Tutti" : "Preferiti"} <small>{favorites.length}</small></button><a href="#info">Informazioni</a></nav></header>
 
-    <section className="prototype" role="status">{snapshot ? <><strong>Snapshot corrente attivo.</strong> {snapshot.recordCount.toLocaleString("it-IT")} opportunità operative da {snapshot.liveSourceCount} fonti ufficiali. {snapshot.complete ? "I CLOSED sono nell’archivio separato." : "Una o più fonti sono stale o in errore: i record precedenti sono stati conservati."}</> : <><strong>Prototipo UX verificabile.</strong> Le schede sono scenari dimostrativi, non bandi reali. L’adapter UE è stato verificato live; anche gli adapter nazionali, regionali e delle fondazioni sono stati verificati sul contratto della fonte, ma i dati non sono ancora sincronizzati nello snapshot pubblico.</>}{snapshotError && <span> Caricamento dati non riuscito: viene mantenuto il fallback disponibile.</span>}</section>
+    <section className="status-banner" role="status">{snapshot ? <><strong>Snapshot corrente attivo.</strong> {snapshot.recordCount.toLocaleString("it-IT")} opportunità operative da {snapshot.liveSourceCount} fonti ufficiali. {snapshot.complete ? "I CLOSED sono nell’archivio separato." : "Una o più fonti sono stale o in errore: i record precedenti sono stati conservati."}</> : <><strong>Caricamento dello snapshot corrente.</strong> Le opportunità vengono lette dalle fonti ufficiali già sincronizzate.</>}{snapshotError && <span> Caricamento dati non riuscito: viene mantenuto il fallback disponibile.</span>}</section>
 
     <section className="hero" id="top">
       <p className="eyebrow">Finanziamenti, spiegati con parole semplici</p>
@@ -154,11 +156,11 @@ export function FundingExplorer() {
 
     <section className="macro-browser" aria-labelledby="macro-title"><div className="section-title"><div><p className="eyebrow">Parti dal tuo ambito</p><h2 id="macro-title">Quale tema ti interessa?</h2></div><p>Puoi scegliere più aree. Le opportunità che corrispondono ad almeno una selezione saranno incluse.</p></div><div className="macro-grid">{(showAll ? MACRO_AREAS : HOME_MACROS).map((area) => <button className={macros.includes(area) ? "selected" : ""} key={area} onClick={() => toggleMacro(area)}>{shortMacro(area)}{macros.includes(area) && <span aria-hidden="true">✓</span>}</button>)}</div><button className="show-all" onClick={() => setShowAll((value) => !value)}>{showAll ? "Mostra meno" : "Mostra tutte le macroaree"}</button></section>
 
-    <section className="results" id="bandi"><div className="results-heading"><div><p className="eyebrow">{archive ? "Archivio" : "Opportunità correnti"}</p><h2>{results.length} {results.length === 1 ? "risultato" : "risultati"}</h2></div><div><button className="filter-toggle" onClick={() => setShowFilters((value) => !value)}>Filtri {activeCount > 0 && <span>{activeCount}</span>}</button>{archive ? <button className="filter-toggle" onClick={returnToCurrent}>Torna ai correnti</button> : <button className="filter-toggle" onClick={loadArchive}>Archivio CLOSED</button>}</div></div>
+    <section className="results" id="bandi"><div className="results-heading"><div><p className="eyebrow">{viewMode === "archive" ? "Archivio" : "Opportunità correnti"}</p><h2>{results.length} {results.length === 1 ? "risultato" : "risultati"}</h2></div><div><button className="filter-toggle" onClick={() => setShowFilters((value) => !value)}>Filtri {activeCount > 0 && <span>{activeCount}</span>}</button>{viewMode === "archive" ? <button className="filter-toggle" onClick={returnToCurrent}>Torna ai correnti</button> : <button className="filter-toggle" onClick={loadArchive}>Archivio CLOSED</button>}</div></div>
       <div className={`filter-panel ${showFilters ? "open" : ""}`}>
         <label><span>Territorio</span><select value={territory} onChange={(event) => setTerritory(event.target.value)}><option value="all">Tutti</option><option value="Veneto">Veneto</option><option value="Italia">Italia / nazionale</option><option value="Europa">Europa</option><option value="Altre regioni">Altre regioni</option></select></label>
         <label><span>Stato</span><select value={status} onChange={(event) => setStatus(event.target.value)}><option value="current">Aperti e in arrivo</option><option value="OPEN">Solo aperti</option><option value="UPCOMING">Solo in arrivo</option><option value="all">Tutti gli stati</option><option value="CLOSED">Chiusi</option><option value="UNKNOWN">Da verificare</option></select></label>
-        <label><span>Chi può partecipare</span><select value={applicant} onChange={(event) => setApplicant(event.target.value)}><option value="all">Tutti / da verificare</option><option value="public">Enti pubblici</option><option value="ets">ETS / non profit</option><option value="research">Università / ricerca</option><option value="business">Imprese</option><option value="professional">Professionisti</option><option value="school">Scuole / formazione</option><option value="other">Altro / da verificare</option></select></label>
+        <label><span>Chi può partecipare</span><select value={applicant} onChange={(event) => setApplicant(event.target.value)}><option value="all">Tutti / da verificare</option><option value="public">Enti pubblici</option><option value="ets">ETS / non profit</option><option value="research">Università / ricerca</option><option value="business">Imprese</option><option value="professional">Professionisti</option><option value="education">Scuole / formazione</option><option value="other">Altro</option><option value="unknown">Non indicato</option></select></label>
         <label><span>Scadenza</span><select value={deadline} onChange={(event) => setDeadline(event.target.value)}><option value="all">Qualsiasi</option><option value="30">Entro 30 giorni</option><option value="90">Entro 90 giorni</option></select></label>
         <div className="filter-macros"><span>Macroaree (OR)</span><div>{HOME_MACROS.slice(0, 8).map((area) => <button className={macros.includes(area) ? "selected" : ""} key={area} onClick={() => toggleMacro(area)}>{shortMacro(area)}</button>)}</div></div>
         <label className="checkbox"><input type="checkbox" checked={includeLowRelevance} onChange={(event) => setIncludeLowRelevance(event.target.checked)}/><span>Mostra anche opportunità meno pertinenti</span></label>
@@ -170,9 +172,9 @@ export function FundingExplorer() {
       {results.length === 0 && <div className="empty"><strong>Non abbiamo trovato opportunità con questi criteri.</strong><p>Prova ad ampliare il territorio, rimuovere un filtro o includere anche i bandi in arrivo.</p><button onClick={reset}>Azzera filtri</button></div>}
     </section>
 
-    <section className="info" id="info"><p className="eyebrow">Trasparenza</p><h2>La fonte ufficiale viene prima di tutto.</h2>{snapshot ? <p>La consultazione usa uno snapshot locale generato il {new Date(snapshot.generatedAt).toLocaleString("it-IT")} da {snapshot.liveSourceCount} adapter live. La rilevanza psicologica è una classificazione testuale, non un giudizio di ammissibilità: per requisiti, scadenze e importi vale sempre il testo ufficiale.</p> : <p>Questo prototipo separa rilevanza psicologica e possibilità di partecipare. Gli adapter UE, nazionali, Regione Veneto e fondazioni sono verificabili dal core locale, mentre le schede mostrate qui restano scenari dimostrativi in attesa della persistenza e della sincronizzazione notturna.</p>}</section>
-    <footer><strong>Funding Intelligence for Psychology</strong><span>{snapshot ? "Snapshot locale · fonti ufficiali" : "Prototipo locale · nessuna API AI richiesta"}</span></footer>
+    <section className="info" id="info"><p className="eyebrow">Trasparenza</p><h2>La fonte ufficiale viene prima di tutto.</h2>{snapshot ? <p>La consultazione usa uno snapshot locale generato il {new Date(snapshot.generatedAt).toLocaleString("it-IT")} da {snapshot.liveSourceCount} adapter live. La rilevanza psicologica è una classificazione testuale, non un giudizio di ammissibilità: per requisiti, scadenze e importi vale sempre il testo ufficiale.</p> : <p>La consultazione separa la rilevanza psicologica dalla possibilità di partecipare. Per requisiti, scadenze e importi vale sempre il testo ufficiale della fonte.</p>}</section>
+    <footer><strong>Funding Intelligence for Psychology</strong><span>{snapshot ? "Snapshot locale · fonti ufficiali" : "Snapshot locale · nessuna API AI richiesta"}</span></footer>
 
-    {active && <div className="modal-backdrop" onMouseDown={() => setActive(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" onMouseDown={(event) => event.stopPropagation()}><button className="close" onClick={() => setActive(null)} aria-label="Chiudi">×</button><span className={`status ${active.status.toLowerCase()}`}>{statusLabel(active.status)}</span><h2 id="detail-title">{active.title}</h2><div className="brief"><div><small>Cosa finanzia</small><p>{active.summary}</p></div><div><small>Chi può partecipare</small><p>{active.eligibleEntities.length ? active.eligibleEntities.join(", ") : "Non indicato nella fonte acquisita"}</p></div><div><small>Quanto</small><p>{active.amount ?? "Non indicato nella fonte acquisita"}</p></div><div><small>Dove</small><p>{active.territory}{active.regions?.length ? ` · ${active.regions.join(", ")}` : ""}</p></div><div><small>{active.status === "UPCOMING" ? "Apertura prevista" : active.status === "OPEN" ? "Scadenza" : "Stato"}</small><p>{active.status === "UPCOMING" ? active.openingDate ?? "Da definire" : active.status === "OPEN" ? active.deadline ?? "Da verificare" : statusLabel(active.status)}</p></div></div><h3>Perché può essere interessante</h3><p><strong>Rilevanza {active.relevance.toLowerCase()}.</strong> {active.relevanceWhy}</p><h3>Macroaree</h3><div className="tags">{active.macroAreas.length ? active.macroAreas.map((area) => <span key={area}>{area}</span>) : <span>Nessuna macroarea rilevata automaticamente</span>}</div><div className="eligibility"><strong>Possibilità di partecipare: da verificare</strong><p>Consulta sempre i requisiti nel testo ufficiale. La classificazione non interpreta l’ammissibilità.</p></div><div className="source"><span>{active.demo ? "Scenario dimostrativo" : `Fonte dati: ${active.sourceLabel ?? active.sourceId ?? "ufficiale"}`} · ultimo controllo: {active.lastVerified}</span><span>{active.aggregatorUrl && active.aggregatorUrl !== active.officialUrl ? <a href={active.aggregatorUrl} target="_blank" rel="noreferrer">Fonte dati aggregata ↗</a> : null} <a href={active.officialUrl} target="_blank" rel="noreferrer">Apri la pagina ufficiale ↗</a></span></div></section></div>}
+    {active && <div className="modal-backdrop" onMouseDown={() => setActive(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" onMouseDown={(event) => event.stopPropagation()}><button className="close" onClick={() => setActive(null)} aria-label="Chiudi">×</button><span className={`status ${active.status.toLowerCase()}`}>{statusLabel(active.status)}</span><h2 id="detail-title">{active.title}</h2><div className="brief"><div><small>Cosa finanzia</small><p>{active.summary}</p></div><div><small>Chi può partecipare</small><p>{active.eligibleEntities.length ? active.eligibleEntities.join(", ") : "Non indicato nella fonte acquisita"}</p></div><div><small>Quanto</small><p>{active.amount ?? "Non indicato nella fonte acquisita"}</p></div><div><small>Dove</small><p>{active.territory}{active.regions?.length ? ` · ${active.regions.join(", ")}` : ""}</p></div><div><small>{active.status === "UPCOMING" ? "Apertura prevista" : active.status === "OPEN" ? "Scadenza" : "Stato"}</small><p>{active.status === "UPCOMING" ? active.openingDate ?? "Da definire" : active.status === "OPEN" ? active.deadline ?? "Da verificare" : statusLabel(active.status)}</p></div></div><h3>Perché può essere interessante</h3><p><strong>Rilevanza {active.relevance.toLowerCase()}.</strong> {active.relevanceWhy}</p><h3>Macroaree</h3><div className="tags">{active.macroAreas.length ? active.macroAreas.map((area) => <span key={area}>{area}</span>) : <span>Nessuna macroarea rilevata automaticamente</span>}</div><div className="eligibility"><strong>Possibilità di partecipare: da verificare</strong><p>Consulta sempre i requisiti nel testo ufficiale. La classificazione non interpreta l’ammissibilità.</p></div><div className="source"><span>{active.demo ? "Scheda locale" : `Fonte dati: ${active.sourceLabel ?? active.sourceId ?? "ufficiale"}`} · ultimo controllo: {active.lastVerified}</span><span>{active.aggregatorUrl && active.aggregatorUrl !== active.officialUrl ? <a href={active.aggregatorUrl} target="_blank" rel="noreferrer">Fonte dati aggregata ↗</a> : null} <a href={active.officialUrl} target="_blank" rel="noreferrer">Apri la pagina ufficiale ↗</a></span></div></section></div>}
   </main>;
 }

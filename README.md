@@ -1,19 +1,20 @@
-# Funding Intelligence for Psychology v0.2
+# Funding Intelligence for Psychology v0.2.1
 
 Motore locale-first di ricerca per finanziamenti destinati a progetti psicologici, con snapshot verificabile e fonti ufficiali in evidenza.
 
 ## Stato reale
 
 - UI Sites responsive con ricerca senza LLM, sinonimi OR/AND deterministici, macroaree multi-select, filtri di territorio/partecipante, dettaglio, Nuovi e Preferiti locali.
-- Lo snapshot corrente `public/data/opportunities-current.json` contiene 1.387 opportunità operative (871 OPEN, 280 UPCOMING, 236 UNKNOWN); i 5.483 CLOSED sono in `public/data/opportunities-archive.json` e non vengono caricati dalla home.
+- Lo snapshot corrente `public/data/opportunities-current.json` separa le opportunità operative dall'archivio CLOSED; conteggi e distribuzione degli stati sono generati automaticamente a ogni sync (`reports/dataset-audit.json`).
 - Ogni record conserva `firstSeen`, `lastSeen`, `lastChanged`, `contentHash`, fonte dati e URL ufficiale; un fetch fallito o anomalo conserva il precedente valido e marca la fonte `STALE`/`ERROR`.
 - Core Python senza dipendenze esterne per normalizzazione, classificazione multi-label pesata, deduplicazione, paginazione EU, audit e anomaly warning.
-- Funding & Tenders usa la query server-side OPEN/UPCOMING e paginazione fino al totale dichiarato; i CLOSED sono esclusi dal feed operativo.
+- Funding & Tenders usa la query server-side OPEN/UPCOMING, il contratto multipart del portale e paginazione fino al totale dichiarato; i CLOSED sono esclusi dal feed operativo e lo stato ufficiale prevale sulle deadline locali.
 - Incentivi.gov.it conserva Regioni/Ambito territoriale e preferisce `Link_istituzionale`; il link al catalogo resta come fonte aggregata.
 - Le liste HTML prioritarie tentano un enrichment best-effort delle pagine dettaglio (deadline, stato, apertura, budget, destinatari) senza cancellare la scheda se il dettaglio non risponde.
-- AIG filtra eventi, webinar e news prive di segnali di call/candidatura/finanziamento; le fonti live restano quelle già presenti in v0.1.
+- AIG filtra eventi, webinar, consultazioni, corsi e news prive di segnali di call/candidatura/finanziamento progettuale; le fonti live restano quelle già presenti in v0.1.
 - Parser fixture-verificato per il calendario FSE+ Veneto; la verifica live resta bloccata dalla catena TLS locale.
-- Parser fixture-verificato per il calendario FESR+ Veneto; la pagina corrente rimanda al cronoprogramma regionale HTML e non espone ancora un CSV stabile.
+- Parser fixture-verificato per il calendario FESR+ Veneto; la pubblicazione live resta bloccata finché il contratto ufficiale non è stabile.
+- L'adapter Regione Veneto usa l'elenco ufficiale `Public/Elenco?Tipo=1` e non il blocco homepage limitato alle dieci card; il dettaglio viene consultato solo quando serve.
 - Nessuna API AI, autenticazione, coda, cache complessa o servizio aggiuntivo.
 
 ## Verifica
@@ -58,7 +59,7 @@ python -m funding_core.cli populate-snapshot `
   --audit-dir reports
 ```
 
-Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/high-relevance-audit.csv`, `reports/dataset-audit.json` e `reports/search-quality.md`.
+Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/precision-audit.csv`, `reports/precision-audit.md`, `reports/adapter-status.csv`, `reports/known-relevant-opportunities.json`, `reports/dataset-audit.json`, `reports/search-quality.md` e `reports/final-report.md`.
 
 La classificazione espone `Alta/Media/Bassa` e resta euristica: non decide l'ammissibilità. Date, importi e destinatari mancanti restano esplicitamente non indicati.
 

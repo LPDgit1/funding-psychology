@@ -4,6 +4,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from http.client import IncompleteRead
 from pathlib import Path
 from typing import Any, Callable
 
@@ -45,7 +46,7 @@ LIVE_SOURCE_SPECS: tuple[SnapshotSourceSpec, ...] = (
     SnapshotSourceSpec("erasmus-indire", ErasmusIndireAdapter, 10_000_000),
     SnapshotSourceSpec("aig-opportunities", AigOpportunitiesAdapter, 8_000_000),
     SnapshotSourceSpec("interreg-italy-croatia", InterregItalyCroatiaAdapter, 15_000_000),
-    SnapshotSourceSpec("veneto-bandi", VenetoBandiAdapter, 5_000_000),
+    SnapshotSourceSpec("veneto-bandi", VenetoBandiAdapter, 30_000_000),
     SnapshotSourceSpec("dipartimento-famiglia", DipartimentoFamigliaAdapter, 8_000_000),
     SnapshotSourceSpec("dipartimento-disabilita", DipartimentoDisabilitaAdapter, 8_000_000),
     SnapshotSourceSpec("fondazione-cariparo", FondazioneCariparoAdapter, 10_000_000),
@@ -254,8 +255,18 @@ def build_snapshot_set(
             warnings = anomaly_warnings(
                 len(normalized), [previous_count] if previous_count else [], [record.title for record in records], [record.deadline for record in records]
             )
-            suspicious = previous_count > 10 and (
-                len(normalized) == 0 or len(normalized) < max(1, int(previous_count * 0.2))
+            if spec.source_id == "aig-opportunities":
+                # The strict v0.2.1 event filter intentionally removes most
+                # editorial posts from the old feed; this is not a transport
+                # anomaly when a non-empty parsed result remains.
+                warnings = [warning for warning in warnings if "dropped by more than half" not in warning]
+            # AIG's v0.2.1 parser deliberately removes editorial/event posts,
+            # so a non-empty result can legitimately be much smaller than the
+            # previous broad feed.  Keep the zero-result protection for that
+            # source, while retaining the stronger drop guard everywhere else.
+            suspicious = previous_count >= 10 and (
+                len(normalized) == 0
+                or (spec.source_id != "aig-opportunities" and len(normalized) < max(1, int(previous_count * 0.2)))
             )
             if suspicious:
                 warning = f"{spec.source_id}: parser anomaly; preserved {previous_count} previous records"
@@ -303,6 +314,7 @@ def build_snapshot_set(
                 "kind": "live",
                 "status": source_status,
                 "fetchedRecords": len(records),
+                "parsedRecords": len(normalized),
                 "publishedRecords": published_count,
                 "currentRecords": source_current_count,
                 "archiveRecords": source_archive_count,
@@ -311,7 +323,7 @@ def build_snapshot_set(
                 "unchanged": unchanged_count,
                 "warnings": warnings,
             })
-        except (AdapterError, ValueError, OSError) as exc:
+        except (AdapterError, ValueError, OSError, IncompleteRead) as exc:
             message = str(exc)
             warning = f"{spec.source_id}: {message}; preserved {previous_count} previous records"
             warnings_all.append(warning)
@@ -323,6 +335,7 @@ def build_snapshot_set(
                 "kind": "live",
                 "status": "ERROR" if not previous_items else "STALE",
                 "fetchedRecords": 0,
+                "parsedRecords": 0,
                 "publishedRecords": previous_count,
                 "currentRecords": sum(1 for item in previous_items if item.get("status") != "CLOSED"),
                 "archiveRecords": sum(1 for item in previous_items if item.get("status") == "CLOSED"),
@@ -343,6 +356,7 @@ def build_snapshot_set(
                 "kind": "fixture",
                 "status": "FIXTURE_ONLY",
                 "fetchedRecords": len(records),
+                "parsedRecords": len(records),
                 "publishedRecords": 0,
                 "warnings": ["Fixture verificata; non pubblicata finché il contratto live non è stabile."],
             })
@@ -353,6 +367,7 @@ def build_snapshot_set(
                 "kind": "fixture",
                 "status": "ERROR",
                 "fetchedRecords": 0,
+                "parsedRecords": 0,
                 "publishedRecords": 0,
                 "warnings": [str(exc)],
             })

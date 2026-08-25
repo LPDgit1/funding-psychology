@@ -38,6 +38,19 @@ NEGATIVE_SIGNALS: tuple[tuple[str, float], ...] = (
     ("macchinari", -5), ("commercio", -3), ("agricoltura", -3),
 )
 GENERIC_YOUTH_CONTEXTS = ("giovani imprese", "giovani imprenditori", "giovani aziende", "giovani startup")
+# A small guard against recurring non-psychology sectors that otherwise score
+# through broad words such as disabilita, inclusione or giovani.  It activates
+# only when the record has no direct psychology/psychosocial signal.
+NON_PSYCHOLOGY_CONTEXTS = (
+    "sport", "autoveicol", "predazion", "lupo in malga", "irap", "aler ",
+    "manutenzione programmata", "sponsorizzaz", "consultazion sulla futura politica",
+    "premi di laurea",
+)
+DIRECT_PSYCHOLOGY_SIGNALS = (
+    "supporto psicologico", "psychological support", "psicolog", "salute mentale",
+    "mental health", "psychosocial", "psicoterapia", "benessere psicologico",
+    "trauma", "dipendenz", "caregiver", "demenza",
+)
 
 
 @dataclass(frozen=True)
@@ -72,6 +85,9 @@ def classify_with_relevance(text: str) -> Classification:
         if _contains(folded, signal):
             negative.append(signal)
             score += weight
+    if any(_contains(folded, context) for context in NON_PSYCHOLOGY_CONTEXTS) and not any(_contains(folded, signal) for signal in DIRECT_PSYCHOLOGY_SIGNALS):
+        negative.append("non-psychology context")
+        score -= 6
     macro_areas = tuple(
         area for area, words in MACRO_RULES.items()
         if any(_contains(folded, word) for word in words)

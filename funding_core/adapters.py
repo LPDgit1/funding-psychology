@@ -6,6 +6,7 @@ import io
 import json
 import re
 import time
+import uuid
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from html.parser import HTMLParser
@@ -152,14 +153,16 @@ class EuFundingTendersAdapter:
                 "must": [
                     {"terms": {"type": list(self.grant_types)}},
                     {"terms": {"status": sorted(self.open_statuses)}},
-                    {"term": {"programmePeriod": "2021 - 2027"}},
                 ],
             },
         }
 
     @staticmethod
     def _multipart(fields: dict[str, str]) -> tuple[bytes, str]:
-        boundary = "----FundingIntelligenceBoundary7d4a"
+        # The portal creates a fresh multipart boundary for each request.  A
+        # fixed boundary can be cached as an invalid/replayed request by the
+        # gateway and intermittently return HTTP 404 on subsequent pages.
+        boundary = f"----FundingIntelligenceBoundary{uuid.uuid4().hex}"
         chunks: list[bytes] = []
         for name, value in fields.items():
             chunks.extend([
@@ -179,13 +182,17 @@ class EuFundingTendersAdapter:
         policy: FetchPolicy,
     ) -> dict:
         url = (
-            f"{self.endpoint}?apiKey=SEDIA&text=*&pageSize={self.page_size}"
+            # The current portal uses *** as its all-records sentinel; a
+            # single * now returns HTTP 404 from the same public endpoint.
+            f"{self.endpoint}?apiKey=SEDIA&text=***&pageSize={self.page_size}"
             f"&pageNumber={page_number}"
         )
         request = Request(url, data=body, method="POST", headers={
             "Accept": "application/json",
             "Content-Type": content_type,
             "User-Agent": policy.user_agent,
+            "Referer": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/",
+            "Origin": "https://ec.europa.eu",
         })
         for attempt in range(policy.retries + 1):
             try:
@@ -218,14 +225,18 @@ class EuFundingTendersAdapter:
         query = json.dumps(self.build_query(), ensure_ascii=False, separators=(",", ":"))
         languages = json.dumps(["en"])
         display_fields = json.dumps(list(self.display_fields))
-        body, content_type = self._multipart({
+        multipart_fields = {
+            "sort": json.dumps({"order": "DESC", "field": "relevance"}),
             "query": query,
             "languages": languages,
             "displayFields": display_fields,
-        })
+        }
         results: list[dict] = []
         total_results: int | None = None
         for page_number in range(1, self.max_pages + 1):
+            # Use a fresh boundary on every paginated request, as the portal
+            # does with FormData.
+            body, content_type = self._multipart(multipart_fields)
             page = self._request_page(body, content_type, page_number, policy)
             page_results = page.get("results")
             if not isinstance(page_results, list):
@@ -278,7 +289,27 @@ class EuFundingTendersAdapter:
         code = values[0] if values else ""
         return {"31094501": "UPCOMING", "31094502": "OPEN", "31094503": "CLOSED"}.get(code, "UNKNOWN")
 
-    def parse(self, raw: bytes | str | dict) -> list[SourceRecord]:
+    @classmethod
+    def _deadline(cls, values: list[str], *, source_status: str, today: date | None = None) -> date | None:
+        """Select the meaningful cut-off from all values returned by SEDIA.
+
+        A call can expose historical and future cut-offs together.  For an
+        authoritative OPEN/UPCOMING status the first cut-off that is still
+        usable is the only safe value to publish.  If an authoritative call
+        has no future cut-off we leave the date empty rather than archiving it
+        from a stale historical date; UNKNOWN records retain their latest
+        parsed date so the normal local CLOSED inference remains available.
+        """
+        parsed = sorted({parsed for value in values if (parsed := cls._date(value))})
+        if not parsed:
+            return None
+        reference = today or date.today()
+        future = [value for value in parsed if value >= reference]
+        if source_status in {"OPEN", "UPCOMING"}:
+            return future[0] if future else None
+        return parsed[-1]
+
+    def parse(self, raw: bytes | str | dict, *, today: date | None = None) -> list[SourceRecord]:
         try:
             payload = raw if isinstance(raw, dict) else json.loads(raw)
         except (TypeError, json.JSONDecodeError) as exc:
@@ -313,11 +344,12 @@ class EuFundingTendersAdapter:
                 funder="Unione Europea",
                 programme=(self._values(metadata, "frameworkProgramme") or ["Funding & Tenders Portal"])[0],
                 opening_date=self._date((self._values(metadata, "startDate") or [None])[0]),
-                deadline=self._date((self._values(metadata, "deadlineDate") or [None])[0]),
+                deadline=self._deadline(self._values(metadata, "deadlineDate"), source_status=source_status, today=today),
                 total_budget=self._money(self._values(metadata, "budget", "grantAmount")),
                 eligible_entities=tuple(self._values(metadata, "participantTypes")),
                 description=description[0] if description else "",
                 source_status=source_status,
+                status_authoritative=True,
             ))
         return records
 
@@ -499,18 +531,66 @@ class AigOpportunitiesAdapter:
 
     @staticmethod
     def _is_fundable(title: str, content: str) -> bool:
+        title_text = title.lower()
         text = f"{title} {content}".lower()
-        positive = (
-            "bando", "call", "candidatur", "finanziament", "progett", "scadenz",
-            "erasmus+", "european solidarity corps", "ka1", "ka2", "ka210", "ka220", "grant",
-        )
-        negative = ("seminario", "evento", "presentazione", "webinar", "consultazione", "conferenza", "news informativa", "articolo informativo")
-        has_positive = any(token in text for token in positive)
-        has_negative = any(token in text for token in negative)
-        # A news/event post is retained only when it also contains a clear
-        # call/application/funding signal.  This removes category noise while
-        # keeping Erasmus and youth calls whose title is not literally “bando”.
-        return has_positive or not has_negative
+        # A generic mention of the EU budget or of funding policy is not a
+        # funding opportunity.  Require a local project/grant context instead
+        # of accepting every occurrence of ``finanziamento`` in the article.
+        funding_signal = re.search(
+            r"\b(?:grant(?:\s+opportunit\w*)?|funding\s+(?:application|opportunit\w*|call)|"
+            r"bando|avviso\s+pubblic\w*|finanziament\w*\s+(?:di|per|a(?:\s+favore)?|destinat)|"
+            r"contribut\w*\s+(?:per|a(?:\s+favore)?|destinat)|sovvenzion\w*|"
+            r"opportunit\w*\s+di\s+finanziament\w*|sostegno\s+(?:a|per)\s+(?:progett|spaz|iniziativ))\b",
+            text,
+        ) is not None
+        programme_signal = re.search(
+            r"\b(?:erasmus\+?|european solidarity corps|esc|ka\s*1|ka\s*2|ka210|ka220)\b",
+            text,
+        ) is not None
+        action_code = re.search(r"\bka\s*(?:1|2|210|220)\b|\b(?:ka210|ka220)\b", text) is not None
+        deadline_signal = re.search(r"\b(?:scadenza|deadline|termine|entro il|entro)\b", text) is not None
+        proposal_signal = re.search(
+            r"(?:call\s+for\s+(?:proposal|project|projects)|project\s+call|candidatur\w*\s+(?:per|di)\s+(?:progett|grant|finanziament)|progett\w*\s+(?:finanziat|funding|grant))",
+            text,
+        ) is not None
+        application_signal = re.search(r"\b(?:candidatur\w*|application\w*)\b", text) is not None
+        event_only = re.search(
+            r"\b(?:seminari\w*|webinar\w*|event\w*|festival\w*|consultazion\w*|focus\s+group|"
+            r"training\s+course|cors\w*|conferenz\w*|presentazion\w*|contest\w*|"
+            r"round\s+table|tavola\s+rotonda|iniziativ\w*|percorso\w*|viaggio\s+del\s+ricordo)\b",
+            text,
+        ) is not None
+        participants_only = re.search(r"call\s+for\s+participants?|chiamata\s+per\s+partecipanti", text) is not None
+        title_funding = re.search(
+            r"\b(?:bando|avviso\s+pubblic\w*|grant|funding|finanziament\w*|contribut\w*|"
+            r"sovvenzion\w*|ka\s*(?:1|2|210|220)|ka210|ka220|project\s+call|call\s+for\s+proposals?)\b",
+            title_text,
+        ) is not None
+        activity_marker = re.search(
+            r"\b(?:corso|seminari\w*|webinar\w*|event\w*|festival\w*|consultazion\w*|focus\s+group|"
+            r"round\s+table|tavola\s+rotonda|workshop|contest\w*|concorso\w*|percorso\w*|"
+            r"iniziativ\w*|call\s+for\s+participants?|tavola|appuntament\w*|storie)\b",
+            text,
+        ) is not None
+
+        # Programme/action codes are meaningful only when they identify a
+        # project opportunity; a bare mention in an event announcement is not
+        # enough.  In all other cases require a funding word or a proposal /
+        # application pattern with an explicit deadline or project signal.
+        clear_funding = funding_signal or (programme_signal and (action_code or deadline_signal))
+        clear_project_call = proposal_signal or (application_signal and deadline_signal and re.search(r"\bprogett\w*\b", text) is not None)
+        project_funding = clear_funding or clear_project_call
+        # AIG publishes many informational/editorial posts.  If the title or
+        # body clearly describes an event/course/contest, a generic mention of
+        # a programme or budget is not enough: retain it only with an explicit
+        # funding title or project-call signal.
+        if activity_marker and not title_funding:
+            return False
+        if participants_only and not project_funding:
+            return False
+        if event_only and not project_funding:
+            return False
+        return bool(project_funding)
 
     def parse(self, raw: bytes | str | list[dict]) -> list[SourceRecord]:
         try:
@@ -679,40 +759,141 @@ class _VenetoBandiRowsParser(HTMLParser):
         self._depth -= 1
 
 
-class VenetoBandiAdapter:
-    """Public homepage adapter for the Regione del Veneto opportunity cards.
+class _VenetoBandiListParser(HTMLParser):
+    """Extract detail links and their server-rendered result-row context."""
 
-    The homepage intentionally exposes only the ten items in its ``IN
-    SCADENZA`` block.  This first contract preserves that bounded, static
-    listing; detail pages can be added once their pagination contract is
-    separately verified.
+    _row_marker = re.compile(r"(?:^|[-_ ])(?:row|item|atto|risultat|scheda|elenco)(?:$|[-_ ])", re.IGNORECASE)
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self._depth = 0
+        self._row_depth: int | None = None
+        self._row_text: list[str] | None = None
+        self._row_href: str | None = None
+        self._anchor_href: str | None = None
+        self._anchor_text: list[str] | None = None
+        self.rows: list[tuple[str, str]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self._depth += 1
+        attributes = dict(attrs)
+        identity = " ".join(filter(None, (attributes.get("id"), attributes.get("class"))))
+        if self._row_depth is None and (tag in {"tr", "li"} or self._row_marker.search(identity or "")):
+            self._row_depth = self._depth
+            self._row_text = []
+            self._row_href = None
+        if self._row_depth is not None and tag == "a" and self._anchor_href is None:
+            href = attributes.get("href") or ""
+            if "dettaglio" in href.lower() and "idatto=" in href.lower():
+                self._anchor_href = href
+                self._anchor_text = []
+
+    def handle_data(self, data: str) -> None:
+        if self._row_text is not None:
+            self._row_text.append(data)
+        if self._anchor_text is not None:
+            self._anchor_text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "a" and self._anchor_href is not None:
+            if self._row_href is None:
+                self._row_href = self._anchor_href
+            self._anchor_href = None
+            self._anchor_text = None
+            self._depth = max(0, self._depth - 1)
+            return
+        if self._row_depth is not None and self._depth == self._row_depth:
+            if self._row_href:
+                self.rows.append((self._row_href, "".join(self._row_text or [])))
+            self._row_depth = None
+            self._row_text = None
+            self._row_href = None
+        self._depth = max(0, self._depth - 1)
+
+
+class VenetoBandiAdapter:
+    """Server-rendered official Veneto Bandi list adapter.
+
+    The home page only shows the ten ``IN SCADENZA`` cards.  The stable
+    ``Public/Elenco?Tipo=1`` list is used instead; the parser accepts every
+    detail row returned by that endpoint and does not impose a ten-item cap.
     """
 
     source_id = "veneto-bandi"
-    page_url = "https://bandi.regione.veneto.it/Public/"
+    page_url = "https://bandi.regione.veneto.it/Public/Elenco?Tipo=1"
+    endpoint = "https://bandi.regione.veneto.it/Public/GetListaAttiJson"
+    source_label = "Regione Veneto — Bandi, Avvisi e Concorsi"
+    page_size = 100
+    max_pages = 50
 
-    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=5_000_000)) -> bytes:
-        request = Request(self.page_url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
-        for attempt in range(policy.retries + 1):
+    def fetch(self, policy: FetchPolicy = FetchPolicy(max_bytes=30_000_000)) -> bytes:
+        from urllib.parse import urlencode
+
+        rows: list[object] = []
+        total: int | None = None
+        for page in range(self.max_pages):
+            params = {
+                "cig": "",
+                "parolaChiave": "",
+                "tipoAttoTmp": "1",
+                # The portal's Select2 controls send these sentinel values
+                # when no filter is selected (empty strings return zero rows).
+                "destinatariTmp": "null",
+                "struttureTmp": "0",
+                "categorieTmp": "null",
+                "statoTmp": "null",
+                "materieTmp": "null",
+                "paginaIniziale": "Elenco",
+                "sEcho": str(page + 1),
+                "iDisplayStart": str(page * self.page_size),
+                "iDisplayLength": str(self.page_size),
+                "iSortingCols": "0",
+            }
+            url = f"{self.endpoint}?{urlencode(params)}"
+            request = Request(url, headers={
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+                "Referer": self.page_url,
+                "User-Agent": policy.user_agent,
+            })
+            for attempt in range(policy.retries + 1):
+                try:
+                    with urlopen(request, timeout=policy.timeout_seconds) as response:
+                        if response.headers.get_content_type() != "application/json":
+                            raise AdapterError("unexpected content type from Regione Veneto bandi JSON endpoint")
+                        payload = response.read(policy.max_bytes + 1)
+                    break
+                except HTTPError as exc:
+                    if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                        time.sleep(0.2 * (attempt + 1))
+                        continue
+                    raise AdapterError(f"HTTP {exc.code} from Regione Veneto bandi JSON endpoint", status_code=exc.code) from exc
+                except URLError as exc:
+                    if attempt < policy.retries:
+                        time.sleep(0.2 * (attempt + 1))
+                        continue
+                    raise AdapterError(f"connection failed for Regione Veneto bandi JSON endpoint: {exc.reason}") from exc
+            if len(payload) > policy.max_bytes:
+                raise AdapterError("Regione Veneto bandi JSON page exceeds download size limit")
             try:
-                with urlopen(request, timeout=policy.timeout_seconds) as response:
-                    if response.headers.get_content_type() not in {"text/html", "application/xhtml+xml"}:
-                        raise AdapterError("unexpected content type from Regione Veneto bandi homepage")
-                    payload = response.read(policy.max_bytes + 1)
+                page_payload = json.loads(payload)
+            except json.JSONDecodeError as exc:
+                raise AdapterError("Regione Veneto bandi endpoint returned invalid JSON") from exc
+            page_rows = page_payload.get("aaData") if isinstance(page_payload, dict) else None
+            if not isinstance(page_rows, list):
+                raise AdapterError("Regione Veneto bandi endpoint has no aaData list")
+            rows.extend(page_rows)
+            raw_total = page_payload.get("recordsTotal") if isinstance(page_payload, dict) else None
+            if isinstance(raw_total, int):
+                total = raw_total
+            if not page_rows or len(page_rows) < self.page_size or (total is not None and len(rows) >= total):
                 break
-            except HTTPError as exc:
-                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
-                    time.sleep(0.2 * (attempt + 1))
-                    continue
-                raise AdapterError(f"HTTP {exc.code} from Regione Veneto bandi homepage", status_code=exc.code) from exc
-            except URLError as exc:
-                if attempt < policy.retries:
-                    time.sleep(0.2 * (attempt + 1))
-                    continue
-                raise AdapterError(f"connection failed for Regione Veneto bandi homepage: {exc.reason}") from exc
-        if len(payload) > policy.max_bytes:
-            raise AdapterError("Regione Veneto bandi homepage exceeds download size limit")
-        return payload
+        else:
+            raise AdapterError(f"Regione Veneto bandi pagination exceeded {self.max_pages} pages")
+        combined = json.dumps({"recordsTotal": total if total is not None else len(rows), "aaData": rows}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        if len(combined) > policy.max_bytes:
+            raise AdapterError("Regione Veneto bandi response exceeds download size limit")
+        return combined
 
     @staticmethod
     def _clean(value: str) -> str:
@@ -724,23 +905,51 @@ class VenetoBandiAdapter:
 
     def parse(self, raw: bytes | str) -> list[SourceRecord]:
         if isinstance(raw, bytes):
+            json_text = raw.decode("utf-8", errors="replace")
+        else:
+            json_text = raw
+        try:
+            payload = json.loads(json_text)
+        except (TypeError, json.JSONDecodeError):
+            payload = None
+        if isinstance(payload, dict) and isinstance(payload.get("aaData"), list):
+            fragments: list[str] = []
+            for row in payload["aaData"]:
+                if isinstance(row, list) and row and isinstance(row[0], str):
+                    fragments.append(f'<div class="row-atto">{row[0]}</div>')
+                elif isinstance(row, str):
+                    fragments.append(f'<div class="row-atto">{row}</div>')
+            text = "\n".join(fragments)
+        elif isinstance(raw, bytes):
             text = raw.decode("utf-8", errors="replace")
-            # The portal declares UTF-8 but a few legacy title fragments still
-            # arrive as Windows-1252 bytes.  Retry only when UTF-8 decoding
-            # produced replacement characters so accents are not lost.
             if "\ufffd" in text:
                 text = raw.decode("cp1252", errors="replace")
         else:
             text = raw
-        parser = _VenetoBandiRowsParser()
+        parser = _VenetoBandiListParser()
         parser.feed(text)
+        rows = parser.rows
+        if not rows:
+            # Keep the original homepage fixture contract as a regression
+            # fallback; live collection itself uses the complete list URL.
+            homepage_parser = _VenetoBandiRowsParser()
+            homepage_parser.feed(text)
+            rows = [(href, row_text) for href, _title, row_text in homepage_parser.rows]
         records: list[SourceRecord] = []
         seen: set[str] = set()
-        for index, (href, title, row_text) in enumerate(parser.rows, 1):
-            match = re.search(r"\b([ABC])\s+(\d{1,2}/\d{1,2}/\d{4}(?:\s+\d{1,2}:\d{2})?)", self._clean(row_text))
-            if not match or not title:
+        for index, (href, row_text) in enumerate(rows, 1):
+            cleaned_row = self._clean(row_text)
+            # A detail link is the reliable title source.  The list parser
+            # includes its anchor text in the row context, so remove common
+            # labels and use the first meaningful sentence as a fallback.
+            anchor_title = ""
+            anchor_match = re.search(r"(?:Bando|Avviso|Concorso|Manifestazione|Contributi|Rilevazione)[^|]{8,240}", cleaned_row, re.IGNORECASE)
+            if anchor_match:
+                anchor_title = self._clean(anchor_match.group(0))
+            title = anchor_title or cleaned_row[:240]
+            if not title:
                 continue
-            official_url = urljoin(self.page_url, href)
+            official_url = urljoin("https://bandi.regione.veneto.it/Public/", href)
             if not official_url.startswith("https://bandi.regione.veneto.it/"):
                 continue
             external_match = re.search(r"idAtto=(\d+)", official_url, re.IGNORECASE)
@@ -748,16 +957,24 @@ class VenetoBandiAdapter:
             if external_id in seen:
                 continue
             seen.add(external_id)
-            category = {"A": "Avviso", "B": "Bando o finanziamento", "C": "Concorso"}[match.group(1)]
+            category_match = re.search(r"\b([ABC])\b", cleaned_row)
+            category_code = category_match.group(1) if category_match else ("B" if re.search(r"\bbando\b|\bcontribut", title, re.IGNORECASE) else "A" if re.search(r"\bavviso\b", title, re.IGNORECASE) else "C" if re.search(r"\bconcorso\b", title, re.IGNORECASE) else "B")
+            category = {"A": "Avviso", "B": "Bando o finanziamento", "C": "Concorso"}[category_code]
+            deadline_match = re.search(r"(?:scadenza|termine|entro|chiusura)[^.;]{0,80}(\d{1,2}/\d{1,2}/\d{4}(?:\s+\d{1,2}:\d{2})?)", cleaned_row, re.IGNORECASE)
+            if not deadline_match:
+                deadline_match = re.search(r"\b\d{1,2}/\d{1,2}/\d{4}(?:\s+\d{1,2}:\d{2})?\b", cleaned_row)
+            status = "CLOSED" if re.search(r"\b(?:scadut[oa]|chius[oa]|expired)\b", cleaned_row, re.IGNORECASE) else "OPEN" if re.search(r"\b(?:apert[oa]|in corso|attiv[oa])\b", cleaned_row, re.IGNORECASE) else "UNKNOWN"
+            entities = re.search(r"(?:destinatari|beneficiari|soggetti ammissibili)\s*[:\-]?\s*([^.;]{1,220})", cleaned_row, re.IGNORECASE)
             records.append(SourceRecord(
                 external_id=external_id,
                 title=title,
                 official_url=official_url,
                 funder="Regione del Veneto",
                 programme=f"Portale Bandi — {category}",
-                deadline=self._date(match.group(2)),
-                description=f"Voce estratta dalla sezione IN SCADENZA del portale regionale ({category}).",
-                source_status="OPEN",
+                deadline=self._date(deadline_match.group(1) if deadline_match and deadline_match.lastindex else deadline_match.group(0) if deadline_match else None),
+                eligible_entities=(self._clean(entities.group(1)),) if entities else (),
+                description=f"Voce estratta dall'elenco ufficiale del portale regionale ({category}). {cleaned_row[:900]}".strip(),
+                source_status=status,
             ))
         return records
 
@@ -799,38 +1016,83 @@ class _AnchorTextParser(HTMLParser):
 
 
 class _DetailTextParser(HTMLParser):
-    """Extract readable text and a conservative title from a detail page."""
+    """Extract the real detail content, excluding site chrome.
+
+    The parser deliberately stays structural rather than trying to understand
+    arbitrary page semantics: main > article > known content container > body.
+    This is enough to prevent navigation/footer/cookie text from influencing
+    classification while preserving a conservative body fallback.
+    """
+
+    _excluded_tags = {"header", "nav", "footer", "aside", "script", "style", "noscript", "template", "form"}
+    _excluded_markers = re.compile(
+        r"(?:cookie|consent|breadcrumb|bread-crumb|(?:^|[-_ ])menu(?:$|[-_ ])|navbar|navigation|(?:^|[-_ ])nav(?:$|[-_ ])|search|sidebar|footer|header|social|share|privacy|banner|modal|popup)",
+        re.IGNORECASE,
+    )
+    _known_container = re.compile(
+        r"(?:content|entry-content|page-content|post-content|detail|bando|avviso|opportunit|call-content|main-content)",
+        re.IGNORECASE,
+    )
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self._skip_depth = 0
-        self._title_depth: int | None = None
-        self._depth = 0
+        self._stack: list[tuple[str, bool, int]] = []
+        self._buffers: dict[int, list[str]] = {0: []}
+        self._title_stack_depth: int | None = None
         self._title: list[str] = []
-        self._text: list[str] = []
+
+    @classmethod
+    def _rank(cls, tag: str, attrs: list[tuple[str, str | None]]) -> int:
+        if tag == "main":
+            return 3
+        if tag == "article":
+            return 2
+        attributes = dict(attrs)
+        identity = " ".join(filter(None, (attributes.get("id"), attributes.get("class"))))
+        return 1 if identity and cls._known_container.search(identity) else 0
+
+    @classmethod
+    def _excluded(cls, tag: str, attrs: list[tuple[str, str | None]]) -> bool:
+        if tag in cls._excluded_tags:
+            return True
+        attributes = dict(attrs)
+        identity = " ".join(filter(None, (attributes.get("id"), attributes.get("class"))))
+        return bool(identity and cls._excluded_markers.search(identity))
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        self._depth += 1
-        if tag in {"script", "style", "noscript", "template"}:
-            self._skip_depth += 1
-        if self._title_depth is None and tag in {"title", "h1"} and self._skip_depth == 0:
-            self._title_depth = self._depth
-        if self._skip_depth == 0 and tag in {"br", "p", "li", "div", "tr", "h1", "h2", "h3"}:
-            self._text.append(" ")
+        parent_excluded = self._stack[-1][1] if self._stack else False
+        excluded = parent_excluded or self._excluded(tag, attrs)
+        rank = max((entry[2] for entry in self._stack if not entry[1]), default=0)
+        if not excluded:
+            rank = max(rank, self._rank(tag, attrs))
+            self._buffers.setdefault(rank, [])
+            if tag in {"br", "p", "li", "div", "tr", "h1", "h2", "h3", "section"}:
+                self._buffers[rank].append(" ")
+            if self._title_stack_depth is None and tag in {"title", "h1"}:
+                self._title_stack_depth = len(self._stack) + 1
+        self._stack.append((tag, excluded, rank))
 
     def handle_data(self, data: str) -> None:
-        if self._skip_depth:
+        if not self._stack or self._stack[-1][1]:
             return
-        self._text.append(data)
-        if self._title_depth is not None:
+        rank = max((entry[2] for entry in self._stack if not entry[1]), default=0)
+        self._buffers.setdefault(rank, []).append(data)
+        if self._title_stack_depth is not None:
             self._title.append(data)
 
     def handle_endtag(self, tag: str) -> None:
-        if self._title_depth == self._depth and tag in {"title", "h1"}:
-            self._title_depth = None
-        if tag in {"script", "style", "noscript", "template"} and self._skip_depth:
-            self._skip_depth -= 1
-        self._depth = max(0, self._depth - 1)
+        if not self._stack:
+            return
+        # HTML from public portals is occasionally imperfect.  Pop through a
+        # matching tag without allowing a malformed footer/nav to leak into
+        # later content.
+        index = next((index for index in range(len(self._stack) - 1, -1, -1) if self._stack[index][0] == tag), None)
+        if index is None:
+            return
+        popped = self._stack[index:]
+        del self._stack[index:]
+        if self._title_stack_depth is not None and index < self._title_stack_depth:
+            self._title_stack_depth = None
 
     @property
     def title(self) -> str:
@@ -838,7 +1100,11 @@ class _DetailTextParser(HTMLParser):
 
     @property
     def text(self) -> str:
-        return re.sub(r"\s+", " ", "".join(self._text)).strip()
+        for rank in (3, 2, 1, 0):
+            value = re.sub(r"\s+", " ", "".join(self._buffers.get(rank, []))).strip()
+            if value:
+                return value
+        return ""
 
 
 def _detail_fields(raw: bytes | str) -> dict[str, object]:
@@ -854,9 +1120,14 @@ def _detail_fields(raw: bytes | str) -> dict[str, object]:
         for pattern in patterns:
             match = re.search(pattern, plain, re.IGNORECASE)
             if match:
-                parsed = parse_date(match.group(1))
-                if parsed:
-                    return parsed
+                window = match.group(1)
+                for date_match in re.finditer(
+                    r"\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}[/-]\d{1,2}[/-]\d{4}\b|\b\d{1,2}\s+[A-Za-zÀ-ÿ]+(?:\s+\d{4})?\b|\b[A-Za-z]+\s+\d{1,2},\s+\d{4}\b",
+                    window,
+                ):
+                    parsed = parse_date(date_match.group(0))
+                    if parsed:
+                        return parsed
         return None
 
     deadline = first_date((

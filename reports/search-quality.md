@@ -1,14 +1,16 @@
 # Search quality gate
 
-Conteggi deterministici sullo snapshot current (non sostituiscono la verifica umana).
+La tabella usa la stessa semantica OR/AND e lo stesso insieme di campi della UI; le macroaree generate non entrano nel testo ricercato.
 
-- `salute mentale adolescenti`: 2 risultati; primi titoli: Avviso pubblico invito a presentare candidature per la prima edizione del Premio DonneMare; L’Isola, i giovani e il futuro | Lampedusa, 24-27 settembre – Call for participants
-- `caregiver demenza`: 0 risultati; primi titoli: 
-- `inclusione sociale disabilità`: 37 risultati; primi titoli: Sostegno all'associazionismo sportivo e allo sport agonistico trentino; BANDO ZENIT Fondo Repubblica Digitale; FVG - Contributi a favore dell’occupazione di persone svantaggiate
-- `bullismo scuola`: 0 risultati; primi titoli: 
-- `violenza di genere`: 0 risultati; primi titoli: 
-- `dipendenze giovani`: 0 risultati; primi titoli: 
-- `burnout lavoratori`: 0 risultati; primi titoli: 
-- `psicologia anziani`: 0 risultati; primi titoli: 
-- `migrazione trauma`: 0 risultati; primi titoli: 
-- `intelligenza artificiale salute mentale`: 0 risultati; primi titoli: 
+| Query | Risultati | Primi 5 titoli |
+|---|---:|---|
+| `caregiver demenza` | 1 | Improving socio-economic outcomes for persons with dementia and informal caregivers |
+| `salute mentale adolescenti` | 0 | — |
+| `bullismo scuola` | 0 | — |
+| `violenza di genere` | 0 | — |
+| `dipendenze giovani` | 0 | — |
+| `burnout lavoratori` | 0 | — |
+| `psicologia anziani` | 0 | — |
+| `migrazione trauma` | 0 | — |
+| `inclusione sociale disabilità` | 32 | FVG - Contributi a favore dell’occupazione di persone svantaggiate; Provincia Autonoma di Trento - Contributo per l’attività di tutoraggio a favore del tirocinante con ; Voucher per il lavoro per persone con disabilità - Veneto Lavoro; Avviso "Vita e Opportunità": Pubblicato il decreto di nomina della Commissione di valutazione dei pr; Dote Impresa Collocamento Mirato Disabili - Annualità 2025 - Provincia di Pavia |
+| `AI salute mentale` | 0 | — |

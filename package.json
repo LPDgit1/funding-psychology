@@ -1,6 +1,6 @@
 {
   "name": "funding-intelligence-psychology",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -9,7 +9,7 @@
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "vinext build && node --import tsx --test tests/*.test.mjs",
+    "test": "vinext build && node --require ./tests/tsx-shim.cjs --import tsx --test tests/*.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

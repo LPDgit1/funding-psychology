@@ -10,15 +10,14 @@ async function render() {
   }, { waitUntil() {}, passThroughOnException() {} });
 }
 
-test("home explains the task and discloses prototype data", async () => {
+test("home explains the task and discloses the live snapshot boundary", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Trova finanziamenti per progetti psicologici/);
   assert.match(html, /Che progetto hai in mente/);
-  assert.match(html, /Prototipo UX verificabile/);
-  assert.match(html, /Le schede sono scenari dimostrativi, non bandi reali/);
-  assert.match(html, /L’adapter UE è stato verificato live/);
+  assert.match(html, /Snapshot corrente attivo|Caricamento dello snapshot corrente/);
+  assert.doesNotMatch(html, /Prototipo UX verificabile|scenari dimostrativi|non bandi reali/i);
   assert.match(html, /Minori e adolescenti/);
   assert.match(html, /In arrivo/);
   assert.match(html, /fonte ufficiale/i);

@@ -19,16 +19,76 @@ from funding_core.adapters import (
     VenetoBandiAdapter,
     VenetoFesrCalendarAdapter,
     VenetoFseCalendarAdapter,
+    _detail_fields,
 )
 from funding_core.classifier import classify
 from funding_core.classifier import classify_with_relevance
 from funding_core.dates import parse_date
 from funding_core.pipeline import anomaly_warnings, process
+from funding_core.models import SourceRecord
 from funding_core.snapshot import public_opportunity
+from funding_core.search import matches_query
 from funding_core.territories import normalize_territory, split_regions
 
 
 class FundingCoreTests(unittest.TestCase):
+    def test_eu_multiple_deadlines_and_official_status_precedence(self):
+        payload = {
+            "results": [
+                {"metadata": {
+                    "identifier": ["CASE-A"], "title": ["Open multi-cutoff"], "status": ["31094502"],
+                    "deadlineDate": ["2023-02-01", "2025-02-01", "2026-12-15"],
+                }},
+                {"metadata": {
+                    "identifier": ["CASE-B"], "title": ["Upcoming historical"], "status": ["31094501"],
+                    "deadlineDate": ["2022-02-01", "2024-02-01"],
+                }},
+                {"metadata": {
+                    "identifier": ["CASE-C"], "title": ["Unknown past"], "status": ["999"],
+                    "deadlineDate": ["2022-02-01", "2024-02-01"],
+                }},
+            ],
+        }
+        records = EuFundingTendersAdapter().parse(payload, today=date(2026, 8, 24))
+        self.assertEqual(records[0].deadline, date(2026, 12, 15))
+        self.assertEqual(records[1].deadline, None)
+        self.assertTrue(records[0].status_authoritative)
+        items = process("eu-funding-tenders", records, date(2026, 8, 24))
+        self.assertEqual({item.source_external_id: item.status for item in items}, {"CASE-A": "OPEN", "CASE-B": "UPCOMING", "CASE-C": "CLOSED"})
+
+    def test_detail_cleanup_prefers_main_and_excludes_site_chrome(self):
+        fields = _detail_fields("""
+            <html><head><title>Vero bando</title></head>
+            <header>MENU PRINCIPALE caregiver demenza</header>
+            <nav>Home Archivio Ricerca</nav>
+            <main><h1>Vero bando</h1><p>Scadenza: 24 agosto 2026.</p><p>Beneficiari: ETS e Comuni.</p></main>
+            <aside>SIDEBAR giovani digitale</aside><footer>FOOTER Regione Veneto</footer>
+        """)
+        self.assertIn("Vero bando", str(fields["description"]))
+        self.assertNotIn("MENU PRINCIPALE", str(fields["description"]))
+        self.assertNotIn("FOOTER", str(fields["description"]))
+        self.assertEqual(fields["deadline"], date(2026, 8, 24))
+        self.assertIn("ETS", fields["eligible_entities"][0])
+
+    def test_common_search_fixture_matches_report_semantics(self):
+        fixture_path = Path(__file__).parent / "fixtures" / "search-cases.json"
+        cases = json.loads(fixture_path.read_text(encoding="utf-8"))
+        titles = {
+            "fixture-dementia-caregiver": "Programma caregiver e demenza",
+            "fixture-youth-mental-health": "Salute mentale degli adolescenti",
+            "fixture-school-bullying": "Prevenzione bullismo a scuola",
+            "fixture-gender-violence": "Violenza di genere",
+            "fixture-youth-addictions": "Dipendenze e giovani",
+            "fixture-worker-burnout": "Burnout dei lavoratori",
+            "fixture-older-psychology": "Psicologia per anziani",
+            "fixture-migration-trauma": "Migrazione e trauma",
+            "fixture-disability-inclusion": "Inclusione sociale e disabilità",
+            "fixture-ai-mental-health": "AI e salute mentale",
+        }
+        items = [{"id": item_id, "title": title, "summary": "", "programme": "", "funder": "", "eligibleEntities": [], "regions": []} for item_id, title in titles.items()]
+        for case in cases:
+            found = [item["id"] for item in items if matches_query(item, case["query"])]
+            self.assertEqual(found, case["expected"], case["query"])
     def test_multilabel_school_case(self):
         areas = classify("supporto psicologico scolastico per adolescenti e prevenzione del disagio")
         self.assertIn("Minori e adolescenti", areas)
@@ -78,9 +138,8 @@ class FundingCoreTests(unittest.TestCase):
     def test_eu_query_contract(self):
         query = EuFundingTendersAdapter().build_query()
         encoded = json.dumps(query)
-        self.assertIn("programmePeriod", encoded)
         self.assertIn("31094502", encoded)
-        self.assertIn("2021 - 2027", encoded)
+        self.assertIn('"type": ["1", "8"]', encoded)
 
     def test_eu_fetch_paginates_current_pages(self):
         adapter = EuFundingTendersAdapter()
@@ -108,6 +167,7 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(len(adapter.parse(payload)), 5)
         self.assertEqual(len(calls), 3)
         self.assertIn("pageNumber=2", calls[1])
+        self.assertIn("text=***", calls[0])
 
     def test_incentivi_fixture_parse_and_contract(self):
         path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "incentivi_gov.json"
@@ -148,11 +208,7 @@ class FundingCoreTests(unittest.TestCase):
     def test_aig_fixture_parse_and_missing_deadline(self):
         path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "aig_opportunities.json"
         records = AigOpportunitiesAdapter().parse(path.read_text(encoding="utf-8"))
-        self.assertEqual(len(records), 2)
-        self.assertEqual(records[0].external_id, "19807")
-        self.assertEqual(records[0].deadline, date(2026, 10, 31))
-        self.assertIn("inclusione sociale", records[0].description)
-        self.assertIsNone(records[1].deadline)
+        self.assertEqual(records, [])
         self.assertIn("categories", AigOpportunitiesAdapter().build_query())
 
     def test_interreg_fixture_extracts_schedule_and_budget(self):
@@ -172,6 +228,14 @@ class FundingCoreTests(unittest.TestCase):
         self.assertEqual(records[0].deadline, date(2026, 8, 26))
         self.assertEqual(records[0].programme, "Portale Bandi — Bando o finanziamento")
         self.assertTrue(records[1].official_url.endswith("idAtto=13237"))
+
+    def test_veneto_bandi_elenco_is_not_limited_to_ten_home_cards(self):
+        path = Path(__file__).parents[1] / "funding_core" / "fixtures" / "veneto_bandi_elenco.html"
+        records = VenetoBandiAdapter().parse(path.read_bytes())
+        self.assertEqual(len(records), 12)
+        self.assertEqual(records[-1].external_id, "14012")
+        self.assertEqual(records[0].deadline, date(2026, 9, 1))
+        self.assertIn("Bando 01", records[0].title)
 
     def test_family_and_disability_lists_filter_detail_links(self):
         root = Path(__file__).parents[1] / "funding_core" / "fixtures"
@@ -247,7 +311,45 @@ class FundingCoreTests(unittest.TestCase):
             "content": {"rendered": "Candidature entro il 24 agosto 2026."},
         }]
         records = AigOpportunitiesAdapter().parse(payload)
-        self.assertEqual([record.external_id for record in records], ["2"])
+        self.assertEqual(records, [])
+
+    def test_aig_filters_editorial_activities_without_project_funding(self):
+        payload = [
+            {"id": 3, "link": "https://agenziagioventu.gov.it/contest/3/",
+             "title": {"rendered": "Contest creativo nazionale"},
+             "content": {"rendered": "Un'iniziativa per giovani e partecipanti."}},
+            {"id": 4, "link": "https://agenziagioventu.gov.it/evento/4/",
+             "title": {"rendered": "Round table on social sport"},
+             "content": {"rendered": "Tavola rotonda e confronto tra operatori."}},
+            {"id": 5, "link": "https://agenziagioventu.gov.it/focus/5/",
+             "title": {"rendered": "Focus group giovani"},
+             "content": {"rendered": "Call for participants entro il 24 agosto 2026."}},
+            {"id": 6, "link": "https://agenziagioventu.gov.it/corso/6/",
+             "title": {"rendered": "Training course Erasmus+"},
+             "content": {"rendered": "Corso di formazione per youth workers."}},
+        ]
+        self.assertEqual(AigOpportunitiesAdapter().parse(payload), [])
+
+    def test_aig_keeps_project_calls_and_grants(self):
+        payload = [
+            {
+                "id": 10, "link": "https://agenziagioventu.gov.it/bando/ka210/",
+                "title": {"rendered": "KA210 project grant call"},
+                "content": {"rendered": "Funding application per un progetto di cooperazione. Deadline: 24 agosto 2026."},
+            },
+            {
+                "id": 11, "link": "https://agenziagioventu.gov.it/bando/ka220/",
+                "title": {"rendered": "KA220"},
+                "content": {"rendered": "Bando Erasmus+ per finanziamento di progetti. Scadenza 31 ottobre 2026."},
+            },
+            {
+                "id": 12, "link": "https://agenziagioventu.gov.it/evento/festival/",
+                "title": {"rendered": "Festival giovani"},
+                "content": {"rendered": "Evento e call for participants."},
+            },
+        ]
+        records = AigOpportunitiesAdapter().parse(payload)
+        self.assertEqual([record.external_id for record in records], ["10", "11"])
 
 
 if __name__ == "__main__":

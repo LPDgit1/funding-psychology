@@ -1,0 +1,239 @@
+{
+  "generatedAt": "2026-08-25T20:54:50.417382Z",
+  "sampleSize": 25,
+  "target": 0.8,
+  "discoverableCount": 25,
+  "queryDiscoverableCount": 5,
+  "macroareaDiscoverableCount": 25,
+  "recallRate": 1.0,
+  "manualReviewRequired": true,
+  "gatePassed": false,
+  "gateReason": "Meccanica per macroarea/query; manca una revisione manuale delle opportunità note.",
+  "cases": [
+    {
+      "bucket": "salute mentale",
+      "id": "eu-funding-tenders:HORIZON-MISS-2026-02-CANCER-05",
+      "title": "Boosting mental health of young cancer survivors through the European Cancer Patient Digital Centre (ECPDC)",
+      "query": "salute mentale",
+      "expectedMacroArea": "salute mentale",
+      "discoverableByQuery": true,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "salute mentale",
+      "id": "eu-funding-tenders:HORIZON-CL2-2026-01-TRANSFO-04",
+      "title": "The impact of the use of digital tools outside school and for communication on educational outcomes and mental health",
+      "query": "salute mentale",
+      "expectedMacroArea": "salute mentale",
+      "discoverableByQuery": true,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "salute mentale",
+      "id": "eu-funding-tenders:CERV-2024-CITIZENS-VALUES",
+      "title": "Call for proposals for civil society organisations active on protecting and promoting Union values: call to intermediaries (giving financial support to third parties)",
+      "query": "salute mentale",
+      "expectedMacroArea": "salute mentale",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "adolescenti",
+      "id": "fondazione-cariparo:legami-di-liberta-10-milioni-di-euro-per-prevenire-e-contrastare-le-dipendenze-tra-gli-adolescenti",
+      "title": "“Legami di libertà”: 10 milioni di euro per prevenire e contrastare le dipendenze tra gli adolescenti",
+      "query": "salute mentale adolescenti",
+      "expectedMacroArea": "adolescenti",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "adolescenti",
+      "id": "incentivi-gov:8243",
+      "title": "Regione Campania - Beni confiscati alla criminalità organizzata",
+      "query": "salute mentale adolescenti",
+      "expectedMacroArea": "adolescenti",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "adolescenti",
+      "id": "fondo-repubblica-digitale:bando-dritti-al-punto",
+      "title": "Bando Dritti al Punto",
+      "query": "salute mentale adolescenti",
+      "expectedMacroArea": "adolescenti",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "caregiver/demenza",
+      "id": "eu-funding-tenders:HORIZON-CL2-2027-02-TRANSFO-09-two-stage",
+      "title": "Improving socio-economic outcomes for persons with dementia and informal caregivers",
+      "query": "caregiver demenza",
+      "expectedMacroArea": "caregiver/demenza",
+      "discoverableByQuery": true,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "caregiver/demenza",
+      "id": "incentivi-gov:369",
+      "title": "Contributo a sostegno del costo per l'acquisto di autoveicoli di categoria M1 e M2 - Regione autonoma Friuli-Venezia-Giulia",
+      "query": "caregiver demenza",
+      "expectedMacroArea": "caregiver/demenza",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "caregiver/demenza",
+      "id": "incentivi-gov:8603",
+      "title": "CCIAA Venezia Rovigo - Bando a favore della transizione sostenibile e dell'accessibilità turistica 2026 - Misura A - Sostenibilità Ambientale delle Imprese Turistiche (Codice 2602)",
+      "query": "caregiver demenza",
+      "expectedMacroArea": "caregiver/demenza",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "dipendenze",
+      "id": "incentivi-gov:8655",
+      "title": "Regione Piemonte - Bando STEP",
+      "query": "dipendenze giovani",
+      "expectedMacroArea": "dipendenze",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "dipendenze",
+      "id": "eu-funding-tenders:HORIZON-CL3-2026-01-FCT-04",
+      "title": "Crime prevention approaches, online and off-line, tackling the nexus between addictions and crime",
+      "query": "dipendenze giovani",
+      "expectedMacroArea": "dipendenze",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "dipendenze",
+      "id": "incentivi-gov:4759",
+      "title": "Interventi di welfare aziendale - PR FSE+ Abruzzo 2021-2027",
+      "query": "dipendenze giovani",
+      "expectedMacroArea": "dipendenze",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "violenza",
+      "id": "incentivi-gov:8622",
+      "title": "Linea 3 Housing Sociale Regione Lombardia - Bando per il sostegno a progetti di housing sociale promossi da enti del privato sociale per incentivare l'autonomia abitativa e favorire servizi abitativi sociali",
+      "query": "violenza di genere",
+      "expectedMacroArea": "violenza",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "violenza",
+      "id": "eu-funding-tenders:HORIZON-CL2-2027-01-TRANSFO-07",
+      "title": "Persons with disabilities: opportunities for labour inclusion and social protection through the life course",
+      "query": "violenza di genere",
+      "expectedMacroArea": "violenza",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "violenza",
+      "id": "eu-funding-tenders:HORIZON-MISS-2024-OCEAN-01-02",
+      "title": "Danube river basin lighthouse – Protection and restoration of migratory fish habitats",
+      "query": "violenza di genere",
+      "expectedMacroArea": "violenza",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "scuola",
+      "id": "fondo-repubblica-digitale:bando-onlife-plus",
+      "title": "Bando Onlife+",
+      "query": "bullismo scuola",
+      "expectedMacroArea": "scuola",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "scuola",
+      "id": "fondo-repubblica-digitale:bando-zenit",
+      "title": "Bando Zenit",
+      "query": "bullismo scuola",
+      "expectedMacroArea": "scuola",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "scuola",
+      "id": "con-i-bambini:bando-opportunita-per-me-un-futuro-migliore-percorsi-di-seconda-occasione",
+      "title": "Bando “Opportunità per me, un futuro migliore. Percorsi di seconda occasione”",
+      "query": "bullismo scuola",
+      "expectedMacroArea": "scuola",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "inclusione sociale",
+      "id": "incentivi-gov:2207",
+      "title": "FVG - Contributi a favore dell’occupazione di persone svantaggiate",
+      "query": "inclusione sociale disabilità",
+      "expectedMacroArea": "inclusione sociale",
+      "discoverableByQuery": true,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "inclusione sociale",
+      "id": "incentivi-gov:8061",
+      "title": "Provincia Autonoma di Trento - Contributo per l’attività di tutoraggio a favore del tirocinante con disabilità - Int. 3.3.A",
+      "query": "inclusione sociale disabilità",
+      "expectedMacroArea": "inclusione sociale",
+      "discoverableByQuery": true,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "inclusione sociale",
+      "id": "incentivi-gov:1998",
+      "title": "Contributi per l'attività di tutoraggio - Provincia Autonoma di Trento",
+      "query": "inclusione sociale disabilità",
+      "expectedMacroArea": "inclusione sociale",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "migrazione",
+      "id": "incentivi-gov:1348",
+      "title": "Agevolazioni IRAP per il Terzo settore (art. 81 LR n. 3 del 31.1.24) - Regione Sicilia",
+      "query": "migrazione trauma",
+      "expectedMacroArea": "migrazione",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "lavoro/benessere",
+      "id": "incentivi-gov:8299",
+      "title": "Voucher per il lavoro per persone con disabilità - Veneto Lavoro",
+      "query": "burnout lavoratori",
+      "expectedMacroArea": "lavoro/benessere",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "lavoro/benessere",
+      "id": "incentivi-gov:8073",
+      "title": "Provincia Autonoma di Bolzano - Contributi a cooperative sociali di tipo B per l’inserimento lavorativo di persone svantaggiate",
+      "query": "burnout lavoratori",
+      "expectedMacroArea": "lavoro/benessere",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    },
+    {
+      "bucket": "lavoro/benessere",
+      "id": "incentivi-gov:4467",
+      "title": "Dote Impresa Collocamento Mirato Disabili - Annualità 2025 - Provincia di Pavia",
+      "query": "burnout lavoratori",
+      "expectedMacroArea": "lavoro/benessere",
+      "discoverableByQuery": false,
+      "discoverableByMacro": true
+    }
+  ]
+}

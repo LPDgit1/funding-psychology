@@ -17,6 +17,10 @@ class SourceRecord:
     eligible_entities: tuple[str, ...] = ()
     description: str = ""
     source_status: str = "UNKNOWN"
+    # Some sources (notably Funding & Tenders) expose an authoritative
+    # lifecycle status.  When set, the pipeline must not replace OPEN or
+    # UPCOMING with a local deadline-based inference.
+    status_authoritative: bool = False
     regions: tuple[str, ...] = ()
     territory: str | None = None
     aggregator_url: str | None = None
