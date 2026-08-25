@@ -35,6 +35,31 @@ export type Opportunity = {
   sourceId?: string;
 };
 
+/** Internal classifier labels grouped into the small user-facing vocabulary. */
+export const USER_FACING_THEME_MAP: Record<string, string[]> = {
+  "Salute mentale e benessere": ["Salute mentale e benessere", "Salute pubblica e prevenzione"],
+  "Minori, giovani e famiglie": ["Minori e adolescenti", "Famiglia e genitorialità"],
+  "Inclusione, disabilità e fragilità": ["Inclusione sociale e vulnerabilità", "Disabilità e neurodiversità"],
+  "Scuola, formazione e lavoro": ["Scuola, università e formazione", "Lavoro, organizzazioni e occupazione"],
+  "Anziani, caregiver e salute": ["Anziani, ageing e caregiver"],
+  "Comunità e welfare": ["Comunità, welfare e sviluppo territoriale"],
+  "Diritti, violenza e integrazione": [
+    "Diritti, pari opportunità e contrasto alle discriminazioni",
+    "Violenza, trauma e tutela",
+    "Migrazione, integrazione e intercultura",
+  ],
+  "Digitale, AI e ricerca": ["Digitale, innovazione e AI", "Ricerca e innovazione scientifica"],
+};
+export const USER_FACING_THEMES = Object.keys(USER_FACING_THEME_MAP);
+
+export function themeAreas(theme: string) {
+  return USER_FACING_THEME_MAP[theme] ?? [theme];
+}
+
+export function userFacingThemes(item: Opportunity) {
+  return USER_FACING_THEMES.filter((theme) => themeAreas(theme).some((area) => item.macroAreas.includes(area)));
+}
+
 // Only genuine synonyms belong in a group.  Related concepts remain
 // searchable as their own terms and do not silently widen a query.
 const SYNONYMS: Record<string, string[]> = {
@@ -61,6 +86,9 @@ export function normalized(value: string) {
 const normalizedSynonyms = Object.fromEntries(
   Object.entries(SYNONYMS).map(([key, values]) => [normalized(key), [...new Set(values.map(normalized))]]),
 );
+const reverseSynonyms = Object.fromEntries(
+  Object.values(normalizedSynonyms).flatMap((values) => values.map((value) => [value, values])),
+);
 
 /** OR inside each concept, AND between concepts typed by the user. */
 export function expandedTermGroups(query: string): string[][] {
@@ -69,9 +97,14 @@ export function expandedTermGroups(query: string): string[][] {
   let index = 0;
   while (index < tokens.length) {
     const pair = tokens.slice(index, index + 2).join(" ");
-    const key = normalizedSynonyms[pair] ? pair : tokens[index];
-    groups.push(normalizedSynonyms[key] ? [...normalizedSynonyms[key]] : [tokens[index]]);
-    index += key === pair ? 2 : 1;
+    const pairGroup = normalizedSynonyms[pair] ?? reverseSynonyms[pair];
+    if (pairGroup) {
+      groups.push([...pairGroup]);
+      index += 2;
+      continue;
+    }
+    groups.push([...(normalizedSynonyms[tokens[index]] ?? reverseSynonyms[tokens[index]] ?? [tokens[index]])]);
+    index += 1;
   }
   return groups;
 }
@@ -137,7 +170,9 @@ export function filterOpportunities(
   items: Opportunity[],
   filters: {
     query: string;
-    macroAreas: string[];
+    /** `macroAreas` remains accepted for old callers; the UI uses `themes`. */
+    macroAreas?: string[];
+    themes?: string[];
     territory: string;
     status: string;
     deadline: string;
@@ -157,7 +192,8 @@ export function filterOpportunities(
       ...item.eligibleEntities,
     ].join(" "));
     const matchesText = groups.length === 0 || groups.every((group) => group.some((term) => containsTerm(haystack, term)));
-    const matchesMacro = filters.macroAreas.length === 0 || filters.macroAreas.some((area) => item.macroAreas.includes(area));
+    const selectedThemes = filters.themes ?? filters.macroAreas ?? [];
+    const matchesMacro = selectedThemes.length === 0 || selectedThemes.some((theme) => themeAreas(theme).some((area) => item.macroAreas.includes(area)));
     const matchesTerritory = territoryMatches(item, filters.territory);
     const matchesStatus = filters.status === "all"
       || (filters.status === "current" && (item.status === "OPEN" || item.status === "UPCOMING"))

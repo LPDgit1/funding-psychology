@@ -1,56 +1,56 @@
 {
   "current": {
-    "total": 1949,
+    "total": 1935,
     "status": {
-      "OPEN": 1175,
-      "UNKNOWN": 254,
+      "OPEN": 1173,
+      "UNKNOWN": 242,
       "UPCOMING": 520
     },
     "sources": {
       "aig-opportunities": 1,
       "con-i-bambini": 3,
-      "dipartimento-disabilita": 8,
-      "dipartimento-famiglia": 21,
+      "dipartimento-disabilita": 1,
+      "dipartimento-famiglia": 20,
       "erasmus-indire": 1,
       "eu-funding-tenders": 1049,
-      "fondazione-cariparo": 8,
+      "fondazione-cariparo": 4,
       "fondazione-cariverona": 6,
       "fondo-repubblica-digitale": 6,
-      "incentivi-gov": 807,
+      "incentivi-gov": 805,
       "interreg-italy-croatia": 1,
       "veneto-bandi": 38
     },
     "relevance": {
-      "Alta": 5,
-      "Bassa": 1921,
-      "Media": 23
+      "Alta": 4,
+      "Bassa": 1907,
+      "Media": 24
     },
     "macroAreas": {
       "Anziani, ageing e caregiver": 18,
-      "Comunità, welfare e sviluppo territoriale": 378,
-      "Digitale, innovazione e AI": 340,
+      "Comunità, welfare e sviluppo territoriale": 372,
+      "Digitale, innovazione e AI": 335,
       "Dipendenze": 9,
-      "Diritti, pari opportunità e contrasto alle discriminazioni": 42,
-      "Disabilità e neurodiversità": 51,
-      "Famiglia e genitorialità": 39,
-      "Inclusione sociale e vulnerabilità": 127,
-      "Lavoro, organizzazioni e occupazione": 247,
+      "Diritti, pari opportunità e contrasto alle discriminazioni": 40,
+      "Disabilità e neurodiversità": 44,
+      "Famiglia e genitorialità": 38,
+      "Inclusione sociale e vulnerabilità": 120,
+      "Lavoro, organizzazioni e occupazione": 246,
       "Migrazione, integrazione e intercultura": 1,
       "Minori e adolescenti": 142,
-      "Ricerca e innovazione scientifica": 291,
-      "Salute mentale e benessere": 13,
+      "Ricerca e innovazione scientifica": 285,
+      "Salute mentale e benessere": 11,
       "Salute pubblica e prevenzione": 26,
-      "Scuola, università e formazione": 250,
-      "Violenza, trauma e tutela": 23
+      "Scuola, università e formazione": 248,
+      "Violenza, trauma e tutela": 10
     },
-    "missingDeadline": 701,
+    "missingDeadline": 689,
     "missingTerritory": 0,
     "missingOfficialUrl": 0
   },
   "archive": {
-    "total": 5805,
+    "total": 5807,
     "status": {
-      "CLOSED": 5805
+      "CLOSED": 5807
     },
     "sources": {
       "aig-opportunities": 15,
@@ -60,31 +60,31 @@
       "erasmus-indire": 9,
       "fondazione-cariparo": 1,
       "fondo-repubblica-digitale": 1,
-      "incentivi-gov": 4972,
+      "incentivi-gov": 4974,
       "veneto-bandi": 775
     },
     "relevance": {
-      "Alta": 16,
-      "Bassa": 5689,
-      "Media": 100
+      "Alta": 14,
+      "Bassa": 5696,
+      "Media": 97
     },
     "macroAreas": {
       "Anziani, ageing e caregiver": 46,
-      "Comunità, welfare e sviluppo territoriale": 2594,
+      "Comunità, welfare e sviluppo territoriale": 2591,
       "Digitale, innovazione e AI": 1555,
       "Dipendenze": 26,
-      "Diritti, pari opportunità e contrasto alle discriminazioni": 113,
+      "Diritti, pari opportunità e contrasto alle discriminazioni": 112,
       "Disabilità e neurodiversità": 116,
       "Famiglia e genitorialità": 49,
-      "Inclusione sociale e vulnerabilità": 373,
-      "Lavoro, organizzazioni e occupazione": 769,
+      "Inclusione sociale e vulnerabilità": 371,
+      "Lavoro, organizzazioni e occupazione": 768,
       "Migrazione, integrazione e intercultura": 17,
-      "Minori e adolescenti": 580,
+      "Minori e adolescenti": 579,
       "Ricerca e innovazione scientifica": 975,
-      "Salute mentale e benessere": 73,
+      "Salute mentale e benessere": 71,
       "Salute pubblica e prevenzione": 85,
       "Scuola, università e formazione": 1262,
-      "Violenza, trauma e tutela": 15
+      "Violenza, trauma e tutela": 13
     },
     "missingDeadline": 157,
     "missingTerritory": 0,

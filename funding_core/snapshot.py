@@ -25,7 +25,9 @@ from .adapters import (
     VenetoBandiAdapter,
     VenetoFesrCalendarAdapter,
     VenetoFseCalendarAdapter,
+    is_funding_opportunity,
 )
+from .classifier import classify_with_relevance
 from .models import Opportunity, SourceRecord
 from .pipeline import anomaly_warnings, process
 
@@ -187,6 +189,33 @@ def _previous_source_items(*snapshots: dict[str, Any] | None) -> dict[str, list[
     return grouped
 
 
+def _revalidate_previous_item(item: dict[str, Any]) -> dict[str, Any] | None:
+    """Apply current type/classification rules to a stale fallback record."""
+    title = str(item.get("title") or "")
+    summary = str(item.get("summary") or "")
+    if not is_funding_opportunity(title, summary):
+        return None
+    classification = classify_with_relevance(" ".join((title, summary)))
+    updated = dict(item)
+    updated["macroAreas"] = list(classification.macro_areas)
+    updated["relevance"] = classification.label
+    updated["relevanceScore"] = classification.score
+    updated["positiveSignals"] = list(classification.positive_signals)
+    updated["negativeSignals"] = list(classification.negative_signals)
+    updated["relevanceWhy"] = (
+        "La classificazione testuale intercetta segnali direttamente collegati a interventi psicologici o psicosociali."
+        if classification.label == "Alta" else
+        "La classificazione testuale intercetta segnali adiacenti; verifica il testo ufficiale prima di candidare il progetto."
+        if classification.label == "Media" else
+        "La scheda non contiene segnali sufficienti per una rilevanza psicologica automatica."
+    )
+    return updated
+
+
+def _revalidated_previous_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [updated for item in items if (updated := _revalidate_previous_item(item)) is not None]
+
+
 def _sort_public(items: list[dict[str, Any]]) -> None:
     rank = {"Alta": 0, "Media": 1, "Bassa": 2}
     items.sort(key=lambda item: (
@@ -272,12 +301,13 @@ def build_snapshot_set(
                 warning = f"{spec.source_id}: parser anomaly; preserved {previous_count} previous records"
                 warnings = [*warnings, warning]
                 warnings_all.append(warning)
-                current_opportunities.extend(item for item in previous_items if item.get("status") != "CLOSED")
-                archive_opportunities.extend(item for item in previous_items if item.get("status") == "CLOSED")
+                previous_valid = _revalidated_previous_items(previous_items)
+                current_opportunities.extend(item for item in previous_valid if item.get("status") != "CLOSED")
+                archive_opportunities.extend(item for item in previous_valid if item.get("status") == "CLOSED")
                 source_status = "STALE"
-                published_count = previous_count
-                source_current_count = sum(1 for item in previous_items if item.get("status") != "CLOSED")
-                source_archive_count = sum(1 for item in previous_items if item.get("status") == "CLOSED")
+                published_count = len(previous_valid)
+                source_current_count = sum(1 for item in previous_valid if item.get("status") != "CLOSED")
+                source_archive_count = sum(1 for item in previous_valid if item.get("status") == "CLOSED")
                 new_count = updated_count = unchanged_count = 0
             else:
                 mapped = [
@@ -292,8 +322,10 @@ def build_snapshot_set(
                 ]
                 mapped_ids = {_record_id(item) for item in mapped}
                 retained_archive = [
-                    item for item in previous_items
+                    refreshed
+                    for item in previous_items
                     if item.get("status") == "CLOSED" and _record_id(item) not in mapped_ids
+                    if (refreshed := _revalidate_previous_item(item)) is not None
                 ]
                 current_opportunities.extend(item for item in mapped if item.get("status") != "CLOSED")
                 archive_opportunities.extend(item for item in mapped if item.get("status") == "CLOSED")
@@ -327,8 +359,9 @@ def build_snapshot_set(
             message = str(exc)
             warning = f"{spec.source_id}: {message}; preserved {previous_count} previous records"
             warnings_all.append(warning)
-            current_opportunities.extend(item for item in previous_items if item.get("status") != "CLOSED")
-            archive_opportunities.extend(item for item in previous_items if item.get("status") == "CLOSED")
+            previous_valid = _revalidated_previous_items(previous_items)
+            current_opportunities.extend(item for item in previous_valid if item.get("status") != "CLOSED")
+            archive_opportunities.extend(item for item in previous_valid if item.get("status") == "CLOSED")
             source_results.append({
                 "sourceId": spec.source_id,
                 "label": _source_label(adapter, spec.source_id),
@@ -336,12 +369,12 @@ def build_snapshot_set(
                 "status": "ERROR" if not previous_items else "STALE",
                 "fetchedRecords": 0,
                 "parsedRecords": 0,
-                "publishedRecords": previous_count,
-                "currentRecords": sum(1 for item in previous_items if item.get("status") != "CLOSED"),
-                "archiveRecords": sum(1 for item in previous_items if item.get("status") == "CLOSED"),
+                "publishedRecords": len(previous_valid),
+                "currentRecords": sum(1 for item in previous_valid if item.get("status") != "CLOSED"),
+                "archiveRecords": sum(1 for item in previous_valid if item.get("status") == "CLOSED"),
                 "new": 0,
                 "updated": 0,
-                "unchanged": previous_count,
+                "unchanged": len(previous_valid),
                 "warnings": [warning],
             })
 

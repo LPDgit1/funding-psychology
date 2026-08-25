@@ -38,6 +38,11 @@ _NORMALIZED_SYNONYMS = {
     normalized(key): tuple(dict.fromkeys(normalized(value) for value in values))
     for key, values in SEARCH_SYNONYMS.items()
 }
+_REVERSE_SYNONYMS: dict[str, tuple[str, ...]] = {
+    term: values
+    for values in _NORMALIZED_SYNONYMS.values()
+    for term in values
+}
 
 
 def term_groups(query: str) -> list[list[str]]:
@@ -47,9 +52,13 @@ def term_groups(query: str) -> list[list[str]]:
     index = 0
     while index < len(tokens):
         pair = " ".join(tokens[index:index + 2])
-        key = pair if pair in _NORMALIZED_SYNONYMS else tokens[index]
-        groups.append(list(_NORMALIZED_SYNONYMS.get(key, (tokens[index],))))
-        index += 2 if key == pair else 1
+        pair_group = _NORMALIZED_SYNONYMS.get(pair) or _REVERSE_SYNONYMS.get(pair)
+        if pair_group:
+            groups.append(list(pair_group))
+            index += 2
+            continue
+        groups.append(list(_NORMALIZED_SYNONYMS.get(tokens[index]) or _REVERSE_SYNONYMS.get(tokens[index]) or (tokens[index],)))
+        index += 1
     return groups
 
 

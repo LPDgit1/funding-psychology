@@ -35,6 +35,48 @@ class AdapterError(RuntimeError):
         self.status_code = status_code
 
 
+# These are deliberately narrow patterns.  A generic word such as
+# ``decreto`` or ``accordo`` is not enough to reject a record: an official
+# act can also approve a real call.  The helper is used only by the bounded
+# HTML/AIG adapters where these editorial follow-ups were observed.
+_FUNDING_TITLE_SIGNAL = re.compile(
+    r"\b(?:bando|avviso\s+(?:pubblic\w*|per)|call\s+for\s+(?:proposal|project)|"
+    r"finanziament\w*|grant|contribut\w*|presentazion\w*\s+(?:delle\s+)?(?:domande|candidatur\w*|progett\w*)|"
+    r"candidatur\w*\s+aperte|progett\w*\s+finanziabil\w*)\b",
+    re.IGNORECASE,
+)
+_NON_OPPORTUNITY_STRONG = re.compile(
+    r"(?:\bdecreto\s+(?:di\s+)?nomina(?:zione)?\s+(?:della\s+)?commissione\b|"
+    r"\bdecreto\s+commissione\s+valutazione\b|"
+    r"\bdecreto\s+(?:di\s+)?(?:riconoscimento|approvazione|conferma)\b|"
+    r"\bcommissione\s+(?:di\s+)?valutazione\b|"
+    r"\b(?:graduatori\w*|esiti(?:\s+finali)?|approvazione\s+(?:della\s+)?graduatori\w*)\b|"
+    r"\bdecreto[^.;]{0,80}\briparto\b|"
+    r"\b(?:pubblicat\w*\s+)?accordo\s+di\s+collaborazione\b|"
+    r"^\s*informativa\b)",
+    re.IGNORECASE,
+)
+_NON_OPPORTUNITY_EDITORIAL = re.compile(
+    r"\b(?:comunicat\w*|seminari\w*|webinar\w*|convegn\w*|focus\s+group|consultazion\w*)\b",
+    re.IGNORECASE,
+)
+
+
+def is_funding_opportunity(title: str, content: str = "") -> bool:
+    """Keep candidate calls and reject clearly non-candidable follow-ups."""
+    title_text = re.sub(r"\s+", " ", html.unescape(str(title or ""))).strip()
+    content_text = re.sub(r"\s+", " ", html.unescape(str(content or ""))).strip()
+    if _NON_OPPORTUNITY_STRONG.search(title_text):
+        return False
+    # A real call remains valid even when its detail page mentions a
+    # commission, an agreement, or a later administrative step.
+    if not _FUNDING_TITLE_SIGNAL.search(title_text) and (
+        _NON_OPPORTUNITY_STRONG.search(content_text) or _NON_OPPORTUNITY_EDITORIAL.search(content_text)
+    ):
+        return False
+    return True
+
+
 class VenetoFseCalendarAdapter:
     """Small deterministic parser for the official FSE+ calendar CSV.
 
@@ -531,6 +573,8 @@ class AigOpportunitiesAdapter:
 
     @staticmethod
     def _is_fundable(title: str, content: str) -> bool:
+        if not is_funding_opportunity(title, content):
+            return False
         title_text = title.lower()
         text = f"{title} {content}".lower()
         # A generic mention of the EU budget or of funding policy is not a
@@ -1033,6 +1077,10 @@ class _DetailTextParser(HTMLParser):
         r"(?:content|entry-content|page-content|post-content|detail|bando|avviso|opportunit|call-content|main-content)",
         re.IGNORECASE,
     )
+    _noise_text = re.compile(
+        r"\b(?:vai\s+al\s+contenuto(?:\s+principale)?|vai\s+alla\s+navigazione(?:\s+del\s+sito)?|menu\s+accessibilit[aà])\b",
+        re.IGNORECASE,
+    )
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -1101,7 +1149,8 @@ class _DetailTextParser(HTMLParser):
     @property
     def text(self) -> str:
         for rank in (3, 2, 1, 0):
-            value = re.sub(r"\s+", " ", "".join(self._buffers.get(rank, []))).strip()
+            value = self._noise_text.sub(" ", "".join(self._buffers.get(rank, [])))
+            value = re.sub(r"\s+", " ", value).strip()
             if value:
                 return value
         return ""
@@ -1257,6 +1306,8 @@ class _HtmlOpportunityListAdapter:
             official_url = urljoin(self.page_url, html.unescape(href))
             if not self._include_link(official_url, title):
                 continue
+            if not is_funding_opportunity(title):
+                continue
             external_id = self._external_id(official_url, index)
             if external_id in seen:
                 continue
@@ -1296,6 +1347,8 @@ class _HtmlOpportunityListAdapter:
                     raise AdapterError(f"detail page exceeds size limit for {self.source_label}")
                 fields = _detail_fields(payload)
                 description = str(fields["description"] or record.description)
+                if not is_funding_opportunity(record.title, description):
+                    continue
                 if len(description) < 40:
                     description = record.description
                 entities = tuple(fields["eligible_entities"] or record.eligible_entities)
@@ -1397,6 +1450,8 @@ class ConIBambiniAdapter(_HtmlOpportunityListAdapter):
                 title = self._clean(str(item.get("text") or ""))
                 official_url = urljoin(self.page_url, str(item.get("id") or ""))
                 if not title or not self._include_link(official_url, title):
+                    continue
+                if not is_funding_opportunity(title):
                     continue
                 external_id = self._external_id(official_url, len(records) + 1)
                 if external_id in seen:

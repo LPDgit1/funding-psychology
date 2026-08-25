@@ -6,6 +6,8 @@ import {
   expandedTermGroups,
   filterOpportunities,
   territoryMatches,
+  USER_FACING_THEMES,
+  userFacingThemes,
 } from "../app/funding-domain.ts";
 
 const base = {
@@ -40,7 +42,7 @@ const fixtureItems = [
   ["fixture-ai-mental-health", "AI e salute mentale"],
 ].map(([id, title]) => ({ ...base, id, title }));
 
-const filters = (query) => ({ query, macroAreas: [], territory: "all", status: "all", deadline: "all", includeLowRelevance: true });
+const filters = (query) => ({ query, themes: [], territory: "all", status: "all", deadline: "all", includeLowRelevance: true });
 
 test("synonyms are OR within a concept and AND between concepts", () => {
   const groups = expandedTermGroups("anziani demenza");
@@ -62,6 +64,20 @@ test("required psychology search terms return relevant records", () => {
   for (const query of ["anziani", "adolescenti", "scuola", "burnout", "caregiver", "violenza", "dipendenze", "salute mentale", "inclusione sociale"]) {
     assert.ok(filterOpportunities(items, filters(query)).length > 0, query);
   }
+});
+
+test("reverse synonym lookup works from any term in the group", () => {
+  assert.ok(expandedTermGroups("giovani")[0].includes("adolescenti"));
+  assert.ok(expandedTermGroups("adolescenti")[0].includes("giovani"));
+  assert.ok(expandedTermGroups("AI")[0].includes("artificial intelligence"));
+});
+
+test("user-facing themes map internal areas and share filter semantics", () => {
+  assert.equal(USER_FACING_THEMES.length, 8);
+  const item = { ...base, id: "theme-item", macroAreas: ["Disabilità e neurodiversità", "Inclusione sociale e vulnerabilità"] };
+  assert.deepEqual(userFacingThemes(item), ["Inclusione, disabilità e fragilità"]);
+  assert.equal(filterOpportunities([item], { ...filters(""), themes: ["Inclusione, disabilità e fragilità"] }).length, 1);
+  assert.equal(filterOpportunities([item], { ...filters(""), themes: ["Digitale, AI e ricerca"] }).length, 0);
 });
 
 test("applicant categories are multilabel and ETS includes public plus ETS", () => {

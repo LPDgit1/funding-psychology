@@ -20,6 +20,7 @@ from funding_core.adapters import (
     VenetoFesrCalendarAdapter,
     VenetoFseCalendarAdapter,
     _detail_fields,
+    is_funding_opportunity,
 )
 from funding_core.classifier import classify
 from funding_core.classifier import classify_with_relevance
@@ -27,7 +28,7 @@ from funding_core.dates import parse_date
 from funding_core.pipeline import anomaly_warnings, process
 from funding_core.models import SourceRecord
 from funding_core.snapshot import public_opportunity
-from funding_core.search import matches_query
+from funding_core.search import matches_query, term_groups
 from funding_core.territories import normalize_territory, split_regions
 
 
@@ -69,6 +70,36 @@ class FundingCoreTests(unittest.TestCase):
         self.assertNotIn("FOOTER", str(fields["description"]))
         self.assertEqual(fields["deadline"], date(2026, 8, 24))
         self.assertIn("ETS", fields["eligible_entities"][0])
+
+    def test_detail_cleanup_removes_accessibility_skip_links(self):
+        fields = _detail_fields("""
+            <main><h1>Avviso pubblico</h1>
+            <p>Vai al contenuto principale Vai alla navigazione del sito menu accessibilità</p>
+            <p>Finanziamento di progetti di supporto psicologico.</p></main>
+        """)
+        self.assertNotIn("Vai al contenuto", str(fields["description"]))
+        self.assertNotIn("navigazione del sito", str(fields["description"]))
+        self.assertNotIn("menu accessibilità", str(fields["description"]).lower())
+        self.assertIn("Finanziamento di progetti", str(fields["description"]))
+
+    def test_opportunity_type_filter_rejects_administrative_followups(self):
+        self.assertFalse(is_funding_opportunity("Pubblicato il decreto di nomina della Commissione di valutazione dei progetti"))
+        self.assertFalse(is_funding_opportunity("Pubblicato decreto recante il riparto tra le Regioni del Fondo"))
+        self.assertFalse(is_funding_opportunity("Pubblicato Accordo di collaborazione tra il Dipartimento e un ente"))
+        self.assertFalse(is_funding_opportunity("Pubblicata la graduatoria finale dei progetti ammessi"))
+        self.assertFalse(is_funding_opportunity("Pubblicato decreto di riconoscimento e conferma delle associazioni"))
+        self.assertTrue(is_funding_opportunity("Avviso pubblico per il finanziamento di progetti psicologici"))
+
+    def test_contextual_protection_does_not_create_violence_false_positive(self):
+        fish = classify_with_relevance("Protection and restoration of migratory fish habitats")
+        child = classify_with_relevance("Child protection from violence and abuse")
+        self.assertNotIn("Violenza, trauma e tutela", fish.macro_areas)
+        self.assertIn("Violenza, trauma e tutela", child.macro_areas)
+
+    def test_search_reverse_synonyms_activate_the_same_group(self):
+        self.assertIn("giovani", term_groups("adolescenti")[0])
+        self.assertIn("adolescenti", term_groups("giovani")[0])
+        self.assertIn("artificial intelligence", term_groups("AI")[0])
 
     def test_common_search_fixture_matches_report_semantics(self):
         fixture_path = Path(__file__).parent / "fixtures" / "search-cases.json"

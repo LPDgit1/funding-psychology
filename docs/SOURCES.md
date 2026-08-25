@@ -1,6 +1,6 @@
 # Fonti e contratti v0.2.1
 
-Lo snapshot corrente separa le opportunità operative dall'archivio CLOSED. Conteggi, stati e avvisi sono generati a ogni sync nei report sotto `reports/` e non sono duplicati nella documentazione statica.
+Il dataset corrente separa le opportunità operative dall'elenco dei bandi scaduti. Conteggi, stati e avvisi sono generati a ogni sync nei report sotto `reports/` e non sono duplicati nella documentazione statica.
 
 | Source | Adapter | Method | Role | Status | Notes |
 |---|---|---|---|---|---|

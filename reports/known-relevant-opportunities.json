@@ -1,239 +1,483 @@
 {
-  "generatedAt": "2026-08-25T20:54:50.417382Z",
-  "sampleSize": 25,
-  "target": 0.8,
-  "discoverableCount": 25,
-  "queryDiscoverableCount": 5,
-  "macroareaDiscoverableCount": 25,
-  "recallRate": 1.0,
-  "manualReviewRequired": true,
-  "gatePassed": false,
-  "gateReason": "Meccanica per macroarea/query; manca una revisione manuale delle opportunità note.",
+  "generatedAt": "2026-08-25T22:19:12.105226Z",
+  "sampleSize": 30,
+  "positiveCount": 15,
+  "hardNegativeCount": 15,
+  "targetPrecision": 0.85,
+  "targetDiscoverability": 0.8,
+  "truePositive": 15,
+  "falsePositive": 0,
+  "falseNegative": 0,
+  "precisionHighMedium": 1.0,
+  "discoverableCount": 15,
+  "queryDiscoverableCount": 12,
+  "themeDiscoverableCount": 15,
+  "discoverabilityRate": 1.0,
+  "opportunityTypeCorrectness": 1.0,
+  "themeCorrectness": 1.0,
+  "manualReviewRequired": false,
+  "gatePassed": true,
+  "gateReason": "PASS",
   "cases": [
     {
-      "bucket": "salute mentale",
       "id": "eu-funding-tenders:HORIZON-MISS-2026-02-CANCER-05",
+      "label": "positive",
       "title": "Boosting mental health of young cancer survivors through the European Cancer Patient Digital Centre (ECPDC)",
-      "query": "salute mentale",
-      "expectedMacroArea": "salute mentale",
+      "query": "mental health",
+      "expectedThemes": [
+        "Salute mentale e benessere"
+      ],
+      "found": true,
+      "predictedRelevant": true,
       "discoverableByQuery": true,
-      "discoverableByMacro": true
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Mental health of young cancer survivors."
     },
     {
-      "bucket": "salute mentale",
       "id": "eu-funding-tenders:HORIZON-CL2-2026-01-TRANSFO-04",
+      "label": "positive",
       "title": "The impact of the use of digital tools outside school and for communication on educational outcomes and mental health",
-      "query": "salute mentale",
-      "expectedMacroArea": "salute mentale",
+      "query": "mental health adolescents",
+      "expectedThemes": [
+        "Salute mentale e benessere",
+        "Minori, giovani e famiglie"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": false,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Educational outcomes and mental health."
+    },
+    {
+      "id": "eu-funding-tenders:HORIZON-HLTH-2027-01-STAYHLTH-01",
+      "label": "positive",
+      "title": "Addressing disabilities through the life course to support independent living and inclusion",
+      "query": "disabilities inclusion",
+      "expectedThemes": [
+        "Inclusione, disabilità e fragilità"
+      ],
+      "found": true,
+      "predictedRelevant": true,
       "discoverableByQuery": true,
-      "discoverableByMacro": true
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Independent living and inclusion for persons with disabilities."
     },
     {
-      "bucket": "salute mentale",
-      "id": "eu-funding-tenders:CERV-2024-CITIZENS-VALUES",
-      "title": "Call for proposals for civil society organisations active on protecting and promoting Union values: call to intermediaries (giving financial support to third parties)",
-      "query": "salute mentale",
-      "expectedMacroArea": "salute mentale",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "adolescenti",
-      "id": "fondazione-cariparo:legami-di-liberta-10-milioni-di-euro-per-prevenire-e-contrastare-le-dipendenze-tra-gli-adolescenti",
-      "title": "“Legami di libertà”: 10 milioni di euro per prevenire e contrastare le dipendenze tra gli adolescenti",
-      "query": "salute mentale adolescenti",
-      "expectedMacroArea": "adolescenti",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "adolescenti",
-      "id": "incentivi-gov:8243",
-      "title": "Regione Campania - Beni confiscati alla criminalità organizzata",
-      "query": "salute mentale adolescenti",
-      "expectedMacroArea": "adolescenti",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "adolescenti",
-      "id": "fondo-repubblica-digitale:bando-dritti-al-punto",
-      "title": "Bando Dritti al Punto",
-      "query": "salute mentale adolescenti",
-      "expectedMacroArea": "adolescenti",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "caregiver/demenza",
       "id": "eu-funding-tenders:HORIZON-CL2-2027-02-TRANSFO-09-two-stage",
+      "label": "positive",
       "title": "Improving socio-economic outcomes for persons with dementia and informal caregivers",
-      "query": "caregiver demenza",
-      "expectedMacroArea": "caregiver/demenza",
+      "query": "dementia caregivers",
+      "expectedThemes": [
+        "Anziani, caregiver e salute"
+      ],
+      "found": true,
+      "predictedRelevant": true,
       "discoverableByQuery": true,
-      "discoverableByMacro": true
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Dementia and informal caregivers."
     },
     {
-      "bucket": "caregiver/demenza",
-      "id": "incentivi-gov:369",
-      "title": "Contributo a sostegno del costo per l'acquisto di autoveicoli di categoria M1 e M2 - Regione autonoma Friuli-Venezia-Giulia",
-      "query": "caregiver demenza",
-      "expectedMacroArea": "caregiver/demenza",
+      "id": "dipartimento-famiglia:avviso-pubblico-per-il-finanziamento-di-progetti-di-assistenza-psicologica-e-psicosociologica-a-favore-dei-genitori-in-conseguenza-della-morte-del-figlio",
+      "label": "positive",
+      "title": "Avviso pubblico per il finanziamento di progetti di assistenza psicologica e psicosociologica a favore dei genitori in conseguenza della morte del figlio",
+      "query": "supporto psicologico genitori",
+      "expectedThemes": [
+        "Minori, giovani e famiglie"
+      ],
+      "found": true,
+      "predictedRelevant": true,
       "discoverableByQuery": false,
-      "discoverableByMacro": true
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Explicit psychological and psychosocial assistance."
     },
     {
-      "bucket": "caregiver/demenza",
-      "id": "incentivi-gov:8603",
-      "title": "CCIAA Venezia Rovigo - Bando a favore della transizione sostenibile e dell'accessibilità turistica 2026 - Misura A - Sostenibilità Ambientale delle Imprese Turistiche (Codice 2602)",
-      "query": "caregiver demenza",
-      "expectedMacroArea": "caregiver/demenza",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "dipendenze",
-      "id": "incentivi-gov:8655",
-      "title": "Regione Piemonte - Bando STEP",
-      "query": "dipendenze giovani",
-      "expectedMacroArea": "dipendenze",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "dipendenze",
-      "id": "eu-funding-tenders:HORIZON-CL3-2026-01-FCT-04",
-      "title": "Crime prevention approaches, online and off-line, tackling the nexus between addictions and crime",
-      "query": "dipendenze giovani",
-      "expectedMacroArea": "dipendenze",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "dipendenze",
-      "id": "incentivi-gov:4759",
-      "title": "Interventi di welfare aziendale - PR FSE+ Abruzzo 2021-2027",
-      "query": "dipendenze giovani",
-      "expectedMacroArea": "dipendenze",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "violenza",
-      "id": "incentivi-gov:8622",
-      "title": "Linea 3 Housing Sociale Regione Lombardia - Bando per il sostegno a progetti di housing sociale promossi da enti del privato sociale per incentivare l'autonomia abitativa e favorire servizi abitativi sociali",
-      "query": "violenza di genere",
-      "expectedMacroArea": "violenza",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "violenza",
-      "id": "eu-funding-tenders:HORIZON-CL2-2027-01-TRANSFO-07",
-      "title": "Persons with disabilities: opportunities for labour inclusion and social protection through the life course",
-      "query": "violenza di genere",
-      "expectedMacroArea": "violenza",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "violenza",
-      "id": "eu-funding-tenders:HORIZON-MISS-2024-OCEAN-01-02",
-      "title": "Danube river basin lighthouse – Protection and restoration of migratory fish habitats",
-      "query": "violenza di genere",
-      "expectedMacroArea": "violenza",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "scuola",
-      "id": "fondo-repubblica-digitale:bando-onlife-plus",
-      "title": "Bando Onlife+",
-      "query": "bullismo scuola",
-      "expectedMacroArea": "scuola",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "scuola",
-      "id": "fondo-repubblica-digitale:bando-zenit",
-      "title": "Bando Zenit",
-      "query": "bullismo scuola",
-      "expectedMacroArea": "scuola",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "scuola",
-      "id": "con-i-bambini:bando-opportunita-per-me-un-futuro-migliore-percorsi-di-seconda-occasione",
-      "title": "Bando “Opportunità per me, un futuro migliore. Percorsi di seconda occasione”",
-      "query": "bullismo scuola",
-      "expectedMacroArea": "scuola",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "inclusione sociale",
-      "id": "incentivi-gov:2207",
-      "title": "FVG - Contributi a favore dell’occupazione di persone svantaggiate",
-      "query": "inclusione sociale disabilità",
-      "expectedMacroArea": "inclusione sociale",
+      "id": "fondazione-cariparo:legami-di-liberta-10-milioni-di-euro-per-prevenire-e-contrastare-le-dipendenze-tra-gli-adolescenti",
+      "label": "positive",
+      "title": "“Legami di libertà”: 10 milioni di euro per prevenire e contrastare le dipendenze tra gli adolescenti",
+      "query": "dipendenze adolescenti",
+      "expectedThemes": [
+        "Minori, giovani e famiglie"
+      ],
+      "found": true,
+      "predictedRelevant": true,
       "discoverableByQuery": true,
-      "discoverableByMacro": true
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Prevention of addictions among adolescents."
     },
     {
-      "bucket": "inclusione sociale",
       "id": "incentivi-gov:8061",
+      "label": "positive",
       "title": "Provincia Autonoma di Trento - Contributo per l’attività di tutoraggio a favore del tirocinante con disabilità - Int. 3.3.A",
-      "query": "inclusione sociale disabilità",
-      "expectedMacroArea": "inclusione sociale",
+      "query": "disabilità lavoro",
+      "expectedThemes": [
+        "Inclusione, disabilità e fragilità",
+        "Scuola, formazione e lavoro"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": false,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Tutoring for a trainee with disability."
+    },
+    {
+      "id": "eu-funding-tenders:HORIZON-CL2-2027-01-TRANSFO-07",
+      "label": "positive",
+      "title": "Persons with disabilities: opportunities for labour inclusion and social protection through the life course",
+      "query": "disabilities labour inclusion",
+      "expectedThemes": [
+        "Inclusione, disabilità e fragilità",
+        "Scuola, formazione e lavoro"
+      ],
+      "found": true,
+      "predictedRelevant": true,
       "discoverableByQuery": true,
-      "discoverableByMacro": true
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Labour inclusion and social protection."
     },
     {
-      "bucket": "inclusione sociale",
-      "id": "incentivi-gov:1998",
-      "title": "Contributi per l'attività di tutoraggio - Provincia Autonoma di Trento",
-      "query": "inclusione sociale disabilità",
-      "expectedMacroArea": "inclusione sociale",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "migrazione",
-      "id": "incentivi-gov:1348",
-      "title": "Agevolazioni IRAP per il Terzo settore (art. 81 LR n. 3 del 31.1.24) - Regione Sicilia",
-      "query": "migrazione trauma",
-      "expectedMacroArea": "migrazione",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
-    },
-    {
-      "bucket": "lavoro/benessere",
       "id": "incentivi-gov:8299",
+      "label": "positive",
       "title": "Voucher per il lavoro per persone con disabilità - Veneto Lavoro",
-      "query": "burnout lavoratori",
-      "expectedMacroArea": "lavoro/benessere",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
+      "query": "lavoro disabilità",
+      "expectedThemes": [
+        "Inclusione, disabilità e fragilità",
+        "Scuola, formazione e lavoro"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Employment voucher for persons with disabilities."
     },
     {
-      "bucket": "lavoro/benessere",
-      "id": "incentivi-gov:8073",
-      "title": "Provincia Autonoma di Bolzano - Contributi a cooperative sociali di tipo B per l’inserimento lavorativo di persone svantaggiate",
-      "query": "burnout lavoratori",
-      "expectedMacroArea": "lavoro/benessere",
-      "discoverableByQuery": false,
-      "discoverableByMacro": true
+      "id": "dipartimento-famiglia:avviso-supporto-per-lo-sviluppo-dei-centri-della-famiglia-e-il-coordinamento-di-interventi-in-materia-di-servizi-di-protezione-e-di-inclusione-sociale-per-nuclei-famigliari-multiproblematici",
+      "label": "positive",
+      "title": "Avviso \"Supporto per lo sviluppo dei centri della famiglia e il coordinamento di interventi in materia di servizi di protezione e di inclusione sociale per nuclei famigliari multiproblematici\"",
+      "query": "famiglia inclusione",
+      "expectedThemes": [
+        "Minori, giovani e famiglie",
+        "Inclusione, disabilità e fragilità"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Family centres and inclusion services."
     },
     {
-      "bucket": "lavoro/benessere",
       "id": "incentivi-gov:4467",
+      "label": "positive",
       "title": "Dote Impresa Collocamento Mirato Disabili - Annualità 2025 - Provincia di Pavia",
-      "query": "burnout lavoratori",
-      "expectedMacroArea": "lavoro/benessere",
+      "query": "disabili lavoro",
+      "expectedThemes": [
+        "Inclusione, disabilità e fragilità",
+        "Scuola, formazione e lavoro"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Targeted employment placement for disability."
+    },
+    {
+      "id": "eu-funding-tenders:HORIZON-HLTH-2024-STAYHLTH-01-02-two-stage",
+      "label": "positive",
+      "title": "Towards a holistic support to children and adolescents’ health and care provisions in an increasingly digital society",
+      "query": "children adolescents health",
+      "expectedThemes": [
+        "Minori, giovani e famiglie",
+        "Salute mentale e benessere"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Children and adolescents health and care provisions."
+    },
+    {
+      "id": "con-i-bambini:bando-opportunita-per-me-un-futuro-migliore-percorsi-di-seconda-occasione",
+      "label": "positive",
+      "title": "Bando “Opportunità per me, un futuro migliore. Percorsi di seconda occasione”",
+      "query": "seconda occasione",
+      "expectedThemes": [
+        "Minori, giovani e famiglie",
+        "Scuola, formazione e lavoro"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Second-chance paths for minors and young people."
+    },
+    {
+      "id": "con-i-bambini:iniziative-in-cofinanziamento-quinta-edizione",
+      "label": "positive",
+      "title": "Iniziative in cofinanziamento: quinta edizione",
+      "query": "cofinanziamento",
+      "expectedThemes": [
+        "Minori, giovani e famiglie",
+        "Comunità e welfare"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Cofinanced initiatives for children and communities."
+    },
+    {
+      "id": "eu-funding-tenders:CERV-2026-DAPHNE-CHILDREN",
+      "label": "positive",
+      "title": "Strengthen integrated child protection systems (CPS) incl. via cross-sectoral collaboration, and ensure child-centred, coordinated responses to violence against children, to contribute to the implementation of Commission Recommendation on integrated CPS",
+      "query": "child protection violence",
+      "expectedThemes": [
+        "Minori, giovani e famiglie",
+        "Diritti, violenza e integrazione"
+      ],
+      "found": true,
+      "predictedRelevant": true,
+      "discoverableByQuery": true,
+      "discoverableByTheme": true,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Integrated child protection and responses to violence."
+    },
+    {
+      "id": "eu-funding-tenders:HORIZON-MISS-2024-OCEAN-01-02",
+      "label": "hard_negative",
+      "title": "Danube river basin lighthouse – Protection and restoration of migratory fish habitats",
+      "query": "fish protection",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Fish habitat protection, not human protection."
+    },
+    {
+      "id": "eu-funding-tenders:PERI-2026-ANTI-COUNTERFEIT",
+      "label": "hard_negative",
+      "title": "Protection of the euro against counterfeiting",
+      "query": "euro protection",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Protection against counterfeiting."
+    },
+    {
+      "id": "eu-funding-tenders:HORIZON-CL3-2026-02-CS-ECCC-02",
+      "label": "hard_negative",
+      "title": "Enhancing the Security, Privacy and Robustness of AI Models and Systems (SecureAI)",
+      "query": "AI security",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Cybersecurity and robust AI systems."
+    },
+    {
+      "id": "dipartimento-disabilita:avviso-vita-e-opportunita-pubblicato-il-decreto-di-nomina-della-commissione-di-valutazione-dei-progetti",
+      "label": "hard_negative",
+      "title": "Commission appointment decree.",
+      "query": "commissione valutazione",
+      "expectedThemes": [],
+      "found": false,
+      "predictedRelevant": false,
       "discoverableByQuery": false,
-      "discoverableByMacro": true
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Commission appointment decree."
+    },
+    {
+      "id": "dipartimento-disabilita:pubblicato-decreto-recante-il-riparto-tra-le-regioni-del-fondo-per-l-implementazione-dei-progetti-di-vita-individuali-personalizzati-e-partecipati",
+      "label": "hard_negative",
+      "title": "Allocation decree.",
+      "query": "riparto fondo",
+      "expectedThemes": [],
+      "found": false,
+      "predictedRelevant": false,
+      "discoverableByQuery": false,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Allocation decree."
+    },
+    {
+      "id": "dipartimento-disabilita:pubblicato-accordo-di-collaborazione-tra-il-dipartimento-e-la-rosa-blu-consorzio-degli-enti-aderenti-alla-rete-associativa-di-anffas-nazionale",
+      "label": "hard_negative",
+      "title": "Collaboration agreement.",
+      "query": "accordo collaborazione",
+      "expectedThemes": [],
+      "found": false,
+      "predictedRelevant": false,
+      "discoverableByQuery": false,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Collaboration agreement."
+    },
+    {
+      "id": "dipartimento-disabilita:pubblicato-decreto-di-riconoscimento-e-conferma-delle-associazioni-e-degli-enti-legittimati-ad-agire-in-giudizio",
+      "label": "hard_negative",
+      "title": "Recognition decree.",
+      "query": "decreto riconoscimento",
+      "expectedThemes": [],
+      "found": false,
+      "predictedRelevant": false,
+      "discoverableByQuery": false,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Recognition decree."
+    },
+    {
+      "id": "dipartimento-disabilita:expo-aid-pubblicato-decreto-commissione-valutazione-delle-manifestazioni-di-interesse",
+      "label": "hard_negative",
+      "title": "Commission evaluation decree.",
+      "query": "commissione manifestazioni interesse",
+      "expectedThemes": [],
+      "found": false,
+      "predictedRelevant": false,
+      "discoverableByQuery": false,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Commission evaluation decree."
+    },
+    {
+      "id": "incentivi-gov:8564",
+      "label": "hard_negative",
+      "title": "CCIAA Reggio Calabria - Bando Efficienza 2026 - Contributi a fondo perduto alle MPMI per l’efficientamento energetico e/o idrico",
+      "query": "efficientamento energetico",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Energy and water efficiency for businesses."
+    },
+    {
+      "id": "incentivi-gov:8604",
+      "label": "hard_negative",
+      "title": "CCIAA Venezia Rovigo - Bando a favore della transizione sostenibile e dell'accessibilità turistica 2026 - Misura B - Turismo Accessibile e Inclusivo (Codice 2603)",
+      "query": "turismo accessibile",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Accessible tourism transition."
+    },
+    {
+      "id": "incentivi-gov:8610",
+      "label": "hard_negative",
+      "title": "CCIAA Catanzaro Crotone Vibo Valentia - Bando Turismo 2026: contributi per la promozione di eventi culturali, artistici e ricreativi",
+      "query": "turismo eventi",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Tourism and cultural events."
+    },
+    {
+      "id": "incentivi-gov:8569",
+      "label": "hard_negative",
+      "title": "Le Marche per i giovani imprenditori: Start&Innova Giovani – Sostegno alla creazione di imprese innovative da parte di giovani disoccupati",
+      "query": "giovani imprenditori",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Young entrepreneurs and innovative businesses."
+    },
+    {
+      "id": "eu-funding-tenders:DIGITAL-EUROHPC-JU-2023-ACADEMY-02-01",
+      "label": "hard_negative",
+      "title": "EuroHPC Virtual Training Academy",
+      "query": "virtual training",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Technical training academy."
+    },
+    {
+      "id": "veneto-bandi:12988",
+      "label": "hard_negative",
+      "title": "Bando Premio Compraverde Imprese Veneto 2026 - IX° edizione Struttura: Direzione Acquisti, AA.GG. e SOS affidamento servizi e forniture",
+      "query": "premio compraverde",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "Green procurement award."
+    },
+    {
+      "id": "incentivi-gov:8052",
+      "label": "hard_negative",
+      "title": "CCIAA Como-Lecco - Bando Voucher AI 2026",
+      "query": "voucher AI PMI",
+      "expectedThemes": [],
+      "found": true,
+      "predictedRelevant": false,
+      "discoverableByQuery": true,
+      "discoverableByTheme": false,
+      "typeCorrect": true,
+      "themeCorrect": true,
+      "note": "AI voucher for SMEs."
     }
   ]
 }

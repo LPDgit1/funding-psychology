@@ -10,15 +10,18 @@ async function render() {
   }, { waitUntil() {}, passThroughOnException() {} });
 }
 
-test("home explains the task and discloses the live snapshot boundary", async () => {
+test("home presents the simplified public vocabulary", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Trova finanziamenti per progetti psicologici/);
   assert.match(html, /Che progetto hai in mente/);
-  assert.match(html, /Snapshot corrente attivo|Caricamento dello snapshot corrente/);
+  assert.doesNotMatch(html, /snapshot|macroarea|Archivio CLOSED|\bOPEN\b|\bUPCOMING\b|\bCLOSED\b/);
   assert.doesNotMatch(html, /Prototipo UX verificabile|scenari dimostrativi|non bandi reali/i);
-  assert.match(html, /Minori e adolescenti/);
+  assert.match(html, /Aree di interesse|Scegli un.area di interesse/);
+  assert.match(html, /Minori, giovani e famiglie/);
+  assert.match(html, /Inclusione, disabilità e fragilità/);
+  assert.match(html, /Scaduti|Consulta anche i bandi scaduti/);
   assert.match(html, /In arrivo/);
   assert.match(html, /fonte ufficiale/i);
 });

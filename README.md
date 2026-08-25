@@ -1,10 +1,10 @@
-# Funding Intelligence for Psychology v0.2.1
+# Funding Intelligence for Psychology v0.2.2
 
 Motore locale-first di ricerca per finanziamenti destinati a progetti psicologici, con snapshot verificabile e fonti ufficiali in evidenza.
 
 ## Stato reale
 
-- UI Sites responsive con ricerca senza LLM, sinonimi OR/AND deterministici, macroaree multi-select, filtri di territorio/partecipante, dettaglio, Nuovi e Preferiti locali.
+- UI Sites responsive con ricerca senza LLM, sinonimi OR/AND deterministici, otto aree di interesse user-facing, filtri primari di tema/territorio/scadenza/partecipazione, dettaglio, Nuovi e Preferiti locali.
 - Lo snapshot corrente `public/data/opportunities-current.json` separa le opportunità operative dall'archivio CLOSED; conteggi e distribuzione degli stati sono generati automaticamente a ogni sync (`reports/dataset-audit.json`).
 - Ogni record conserva `firstSeen`, `lastSeen`, `lastChanged`, `contentHash`, fonte dati e URL ufficiale; un fetch fallito o anomalo conserva il precedente valido e marca la fonte `STALE`/`ERROR`.
 - Core Python senza dipendenze esterne per normalizzazione, classificazione multi-label pesata, deduplicazione, paginazione EU, audit e anomaly warning.

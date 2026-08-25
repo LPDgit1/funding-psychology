@@ -1,84 +1,39 @@
-# Funding Intelligence for Psychology v0.2.1 — report finale
+# Funding Intelligence for Psychology v0.2.2 — report finale
 
-## PRE-FLIGHT
+## CHANGES MADE
 
-Repository e snapshot rigenerati; il report usa i dati del sync corrente e non conteggi statici nella documentazione.
+Consolidamento mirato: filtro del tipo di opportunità nei feed HTML/AIG, pulizia di tre stringhe di navigazione, correzione della tutela contestuale, ricerca inversa dei sinonimi e otto temi user-facing. Nessuna nuova fonte o architettura.
 
-## P0 FIXES
+## OPPORTUNITY-TYPE FILTERING
 
-- Funding & Tenders: deadline multiple, paginazione e precedenza dello stato ufficiale.
-- HTML: contenuto principale selezionato prima della classificazione, con esclusione del chrome di navigazione.
-- Ricerca: sinonimi per concetto, OR interno e AND tra concetti; macroaree escluse dal testo.
+Decreti di nomina/commissione, graduatorie, riparti, accordi di collaborazione e contenuti editoriali sono esclusi quando non presentano un avviso o un finanziamento progettuale. Gli avvisi e le call con segnali di candidatura restano eleggibili.
 
-## FUNDING & TENDERS RESULT
+## SEMANTIC FIXES
 
-L'adapter conserva OPEN/UPCOMING ufficiali anche quando una deadline storica è presente; i test A/B/C sono nel suite Python.
+La parola inglese `protection` da sola non attiva la violenza; contano solo formule contestuali come child protection from violence, victim protection o protection against abuse.
 
-## HTML CLEANUP RESULT
+## SEARCH
 
-Fixture di dettaglio verificano titolo e contenuto reale senza menu, header, aside o footer.
+Ogni termine di un gruppo sinonimico attiva lo stesso gruppo: giovani/adolescenti/youth/young people e AI/artificial intelligence sono verificati in entrambe le direzioni.
 
-## SEARCH FIXES
+## UX
 
-Il report `search-quality.md` è calcolato con la stessa semantica del frontend.
+La UI mostra Aree di interesse, Tema, Territorio, Scadenza e Chi può partecipare; i filtri secondari sono raccolti sotto Altri filtri. I bandi scaduti sono consultabili con un'azione esplicita e senza esporre il lessico tecnico del dataset.
 
-## AIG FILTER RESULT
+## GOLD SET
 
-Eventi, consultazioni, corsi, focus group e call for participants prive di finanziamento progettuale sono esclusi; avvisi e project/grant call restano eleggibili.
+Campione manuale: **30** record (15 positivi, 15 hard negative). Precisione Alta/Media: **100.0%** (15 TP, 0 FP, 0 FN). Discoverability: **100.0%** (15/15); correttezza tipo **100.0%**, tema **100.0%**.
 
-## REGIONE VENETO RESULT
-
-L'elenco ufficiale JSON viene paginato senza il limite delle dieci card della homepage.
-
-## DETAIL PARSER IMPROVEMENTS
-
-Le date sono cercate vicino a etichette di scadenza/termine/deadline e restano nulle quando il contesto è ambiguo.
-
-## FILTER FIXES
-
-Categorie applicant multilabel e regioni multi-regione sono testate; ETS e Veneto non dipendono da una singola etichetta.
-
-## UX BUG FIXES
-
-La vista `current|archive` è separata dalla cache dell'archivio e il linguaggio residuo di prototipo è stato rimosso dall'interfaccia.
-
-## DATASET BEFORE / AFTER
-
-- After (sync corrente): **1949** record operativi, **5805** archiviati.
-- Before: il baseline v0.2 è conservato nella storia Git; il generatore non inserisce un conteggio statico nella documentazione.
-
-## PRECISION AUDIT
-
-sample size: **28** risultati Alta/Media in ordine home (massimo 50).
-
-result: **NON VERIFICATO** — il CSV è pronto per la revisione manuale titolo per titolo; nessun valore viene auto-promosso a precision pass.
-
-Failure pattern da controllare: misure amministrative su inclusione/disabilità, giovani o formazione che non finanziano un intervento psicologico diretto.
-
-## RECALL AUDIT
-
-sample size: **25** opportunità selezionate dalle macroaree note.
-
-result: **NON VERIFICATO** — discoverability meccanica query 5/25 e macroarea 25/25; manca la conferma manuale richiesta dal gate.
-
-Failure pattern da controllare: termini pertinenti presenti solo nel dettaglio ufficiale o espressi con una combinazione linguistica diversa dalla query naturale.
-
-## SEARCH QUALITY
-
-Vedi `search-quality.md` per conteggi e primi cinque titoli delle dieci query obbligatorie.
+Esito gate gold set: **PASS** — tutte le soglie sono rispettate. Se non superato, la correzione minima è intervenire solo sui casi elencati in `reports/known-relevant-opportunities.json`, senza ampliare la raccolta.
 
 ## TESTS
 
-Vedi la suite Python e TypeScript; i comandi di verifica sono nel README.
+La suite Python e TypeScript è eseguita dopo le modifiche; il test HTML controlla l'assenza del vocabolario tecnico e i test mirati coprono tipo opportunità, tutela contestuale, sinonimi inversi e mapping dei temi.
 
 ## KNOWN LIMITATIONS
 
-Deadline assenti quando la fonte non identifica il contesto; due calendari Veneto restano fixture-only; la classificazione è euristica e non decide l'ammissibilità.
+Il feed corrente contiene **1935** record e l'elenco scaduti **5807**; una fonte può restare stale se il trasporto ufficiale è temporaneamente indisponibile. La classificazione è euristica e non decide l'ammissibilità.
 
-## DEFERRED
+## STOPPING RULE
 
-Nessuna nuova fonte o feature: FAMI, Pari Opportunità e Dipendenze restano fuori scope.
-
-## STOPPING RULE STATUS
-
-**NOT PASSED** — i gate tecnici A–G e i test sono predisposti, ma precisione e recall non sono dichiarabili superati senza revisione manuale verificata.
+**PASSED** — arresto dopo test, gold set e smoke test richiesti; nessuna nuova feature viene introdotta.

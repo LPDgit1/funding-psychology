@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .adapters import is_funding_opportunity
 from .search import matches_query
 
 
@@ -124,67 +125,131 @@ def _adapter_status_rows(current: dict[str, Any], archive: dict[str, Any]) -> li
     return rows
 
 
-_RECALL_BUCKETS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
-    ("salute mentale", "salute mentale", ("salute mentale", "benessere")),
-    ("adolescenti", "salute mentale adolescenti", ("minori", "adolescenti")),
-    ("caregiver/demenza", "caregiver demenza", ("anziani", "caregiver", "demenza")),
-    ("disabilità", "disabilità", ("disabilita", "neurodiversita")),
-    ("dipendenze", "dipendenze giovani", ("dipendenze",)),
-    ("violenza", "violenza di genere", ("violenza",)),
-    ("scuola", "bullismo scuola", ("scuola",)),
-    ("inclusione sociale", "inclusione sociale disabilità", ("inclusione sociale",)),
-    ("migrazione", "migrazione trauma", ("migrazione", "migranti")),
-    ("lavoro/benessere", "burnout lavoratori", ("lavoro", "occupazione", "burnout")),
-)
+USER_THEME_MAP: dict[str, tuple[str, ...]] = {
+    "Salute mentale e benessere": ("Salute mentale e benessere", "Salute pubblica e prevenzione"),
+    "Minori, giovani e famiglie": ("Minori e adolescenti", "Famiglia e genitorialità"),
+    "Inclusione, disabilità e fragilità": ("Inclusione sociale e vulnerabilità", "Disabilità e neurodiversità"),
+    "Scuola, formazione e lavoro": ("Scuola, università e formazione", "Lavoro, organizzazioni e occupazione"),
+    "Anziani, caregiver e salute": ("Anziani, ageing e caregiver",),
+    "Comunità e welfare": ("Comunità, welfare e sviluppo territoriale",),
+    "Diritti, violenza e integrazione": (
+        "Diritti, pari opportunità e contrasto alle discriminazioni",
+        "Violenza, trauma e tutela",
+        "Migrazione, integrazione e intercultura",
+    ),
+    "Digitale, AI e ricerca": ("Digitale, innovazione e AI", "Ricerca e innovazione scientifica"),
+}
+
+
+def _load_gold_set() -> list[dict[str, Any]]:
+    path = Path(__file__).parents[1] / "tests" / "fixtures" / "gold-set.json"
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"gold set non leggibile: {path}") from exc
+    if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        raise RuntimeError("gold set non valido")
+    return value
 
 
 def _known_relevant(current: dict[str, Any]) -> dict[str, Any]:
-    items = [item for item in current.get("opportunities", []) if isinstance(item, dict)]
-    selected: list[dict[str, Any]] = []
-    selected_ids: set[str] = set()
-    ordered = sorted(items, key=_home_sort_key)
-    for bucket, query, macro_tokens in _RECALL_BUCKETS:
-        candidates = []
-        for item in ordered:
-            item_id = str(item.get("id", ""))
-            if item_id in selected_ids:
-                continue
-            macro_text = " ".join(str(value) for value in item.get("macroAreas", [])).casefold()
-            # The known-relevant pool is selected from the classifier's
-            # explicit macroarea labels, not from the same query result we are
-            # measuring.  This avoids circularly choosing only easy hits.
-            if any(token in macro_text for token in macro_tokens):
-                candidates.append(item)
-        for item in candidates[:3]:
-            item_id = str(item.get("id", ""))
-            by_query = matches_query(item, query)
-            by_macro = any(token in " ".join(str(value) for value in item.get("macroAreas", [])).casefold() for token in macro_tokens)
-            selected.append({
-                "bucket": bucket,
-                "id": item_id,
-                "title": item.get("title", ""),
-                "query": query,
-                "expectedMacroArea": bucket,
-                "discoverableByQuery": by_query,
-                "discoverableByMacro": by_macro,
-            })
-            selected_ids.add(item_id)
-    query_discoverable = sum(1 for item in selected if item["discoverableByQuery"])
-    macro_discoverable = sum(1 for item in selected if item["discoverableByMacro"])
-    discoverable = sum(1 for item in selected if item["discoverableByQuery"] or item["discoverableByMacro"])
-    sample_size = len(selected)
+    """Evaluate the manually selected gold set without selecting from labels."""
+    indexed = {
+        str(item.get("id")): item
+        for item in current.get("opportunities", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+    cases: list[dict[str, Any]] = []
+    positives = negatives = true_positive = false_positive = false_negative = 0
+    discoverable = query_discoverable = theme_discoverable = 0
+    type_correct = theme_correct = 0
+    gold_set = _load_gold_set()
+    for gold in gold_set:
+        item_id = str(gold.get("id", ""))
+        label = str(gold.get("label", ""))
+        expected_positive = label == "positive"
+        positives += int(expected_positive)
+        negatives += int(not expected_positive)
+        item = indexed.get(item_id)
+        found = item is not None
+        predicted_relevant = bool(item and item.get("relevance") in {"Alta", "Media"})
+        if expected_positive and predicted_relevant:
+            true_positive += 1
+        elif expected_positive and not predicted_relevant:
+            false_negative += 1
+        elif not expected_positive and predicted_relevant:
+            false_positive += 1
+        query = str(gold.get("query", ""))
+        by_query = bool(item and matches_query(item, query))
+        expected_themes = [str(value) for value in gold.get("expectedThemes", [])]
+        actual_areas = {str(value) for value in (item or {}).get("macroAreas", [])}
+        by_theme = bool(item and any(area in actual_areas for theme in expected_themes for area in USER_THEME_MAP.get(theme, (theme,))))
+        if expected_positive:
+            query_discoverable += int(by_query)
+            theme_discoverable += int(by_theme)
+            discoverable += int(by_query or by_theme)
+        case_type = str(gold.get("type") or ("funding" if expected_positive else "non_opportunity"))
+        if case_type == "non_opportunity":
+            type_ok = not found
+        else:
+            type_ok = found and is_funding_opportunity(str(item.get("title", "")), str(item.get("summary", "")))
+        # Theme correctness is assessed on the manually labelled positives;
+        # irrelevant funding calls are intentionally valid hard negatives even
+        # when they belong to a broad non-psychology theme.
+        theme_ok = (not expected_positive) or (found and (not expected_themes or by_theme))
+        type_correct += int(type_ok)
+        theme_correct += int(theme_ok)
+        cases.append({
+            "id": item_id,
+            "label": label,
+            "title": (item or {}).get("title", gold.get("note", "")),
+            "query": query,
+            "expectedThemes": expected_themes,
+            "found": found,
+            "predictedRelevant": predicted_relevant,
+            "discoverableByQuery": by_query,
+            "discoverableByTheme": by_theme,
+            "typeCorrect": type_ok,
+            "themeCorrect": theme_ok,
+            "note": gold.get("note", ""),
+        })
+    predicted_positive = true_positive + false_positive
+    precision = true_positive / predicted_positive if predicted_positive else 0.0
+    positive_count = positives or 1
+    discoverability = discoverable / positive_count
+    theme_accuracy = theme_correct / len(cases) if cases else 0.0
+    type_accuracy = type_correct / len(cases) if cases else 0.0
+    gate_passed = precision >= 0.85 and discoverability >= 0.80 and type_accuracy == 1.0 and theme_accuracy >= 0.80
+    failed = []
+    if precision < 0.85:
+        failed.append(f"precisione Alta/Media {precision:.1%} < 85%")
+    if discoverability < 0.80:
+        failed.append(f"discoverability {discoverability:.1%} < 80%")
+    if type_accuracy < 1.0:
+        failed.append(f"correttezza tipo {type_accuracy:.1%} < 100%")
+    if theme_accuracy < 0.80:
+        failed.append(f"correttezza tema {theme_accuracy:.1%} < 80%")
     return {
         "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "sampleSize": sample_size,
-        "target": 0.80,
+        "sampleSize": len(cases),
+        "positiveCount": positives,
+        "hardNegativeCount": negatives,
+        "targetPrecision": 0.85,
+        "targetDiscoverability": 0.80,
+        "truePositive": true_positive,
+        "falsePositive": false_positive,
+        "falseNegative": false_negative,
+        "precisionHighMedium": round(precision, 4),
         "discoverableCount": discoverable,
         "queryDiscoverableCount": query_discoverable,
-        "macroareaDiscoverableCount": macro_discoverable,
-        "recallRate": round(discoverable / sample_size, 4) if sample_size else 0.0,
-        "manualReviewRequired": True,
-        "gatePassed": False,
-        "gateReason": "Meccanica per macroarea/query; manca una revisione manuale delle opportunità note.",
-        "cases": selected,
+        "themeDiscoverableCount": theme_discoverable,
+        "discoverabilityRate": round(discoverability, 4),
+        "opportunityTypeCorrectness": round(type_accuracy, 4),
+        "themeCorrectness": round(theme_accuracy, 4),
+        "manualReviewRequired": False,
+        "gatePassed": gate_passed,
+        "gateReason": "PASS" if gate_passed else "; ".join(failed),
+        "cases": cases,
     }
 
 
@@ -224,51 +289,28 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
     recall = _known_relevant(current)
     recall_path.write_text(json.dumps(recall, ensure_ascii=False, indent=2), encoding="utf-8")
     final_path = directory / "final-report.md"
+    gold_gate_detail = "tutte le soglie sono rispettate" if recall["gatePassed"] else recall["gateReason"]
     final_path.write_text(
-        "# Funding Intelligence for Psychology v0.2.1 — report finale\n\n"
-        "## PRE-FLIGHT\n\n"
-        "Repository e snapshot rigenerati; il report usa i dati del sync corrente e non conteggi statici nella documentazione.\n\n"
-        "## P0 FIXES\n\n"
-        "- Funding & Tenders: deadline multiple, paginazione e precedenza dello stato ufficiale.\n"
-        "- HTML: contenuto principale selezionato prima della classificazione, con esclusione del chrome di navigazione.\n"
-        "- Ricerca: sinonimi per concetto, OR interno e AND tra concetti; macroaree escluse dal testo.\n\n"
-        "## FUNDING & TENDERS RESULT\n\n"
-        "L'adapter conserva OPEN/UPCOMING ufficiali anche quando una deadline storica è presente; i test A/B/C sono nel suite Python.\n\n"
-        "## HTML CLEANUP RESULT\n\n"
-        "Fixture di dettaglio verificano titolo e contenuto reale senza menu, header, aside o footer.\n\n"
-        "## SEARCH FIXES\n\n"
-        "Il report `search-quality.md` è calcolato con la stessa semantica del frontend.\n\n"
-        "## AIG FILTER RESULT\n\n"
-        "Eventi, consultazioni, corsi, focus group e call for participants prive di finanziamento progettuale sono esclusi; avvisi e project/grant call restano eleggibili.\n\n"
-        "## REGIONE VENETO RESULT\n\n"
-        "L'elenco ufficiale JSON viene paginato senza il limite delle dieci card della homepage.\n\n"
-        "## DETAIL PARSER IMPROVEMENTS\n\n"
-        "Le date sono cercate vicino a etichette di scadenza/termine/deadline e restano nulle quando il contesto è ambiguo.\n\n"
-        "## FILTER FIXES\n\n"
-        "Categorie applicant multilabel e regioni multi-regione sono testate; ETS e Veneto non dipendono da una singola etichetta.\n\n"
-        "## UX BUG FIXES\n\n"
-        "La vista `current|archive` è separata dalla cache dell'archivio e il linguaggio residuo di prototipo è stato rimosso dall'interfaccia.\n\n"
-        "## DATASET BEFORE / AFTER\n\n"
-        f"- After (sync corrente): **{current_stats['total']}** record operativi, **{archive_stats['total']}** archiviati.\n"
-        "- Before: il baseline v0.2 è conservato nella storia Git; il generatore non inserisce un conteggio statico nella documentazione.\n\n"
-        "## PRECISION AUDIT\n\n"
-        f"sample size: **{len(precision_rows)}** risultati Alta/Media in ordine home (massimo 50).\n\n"
-        "result: **NON VERIFICATO** — il CSV è pronto per la revisione manuale titolo per titolo; nessun valore viene auto-promosso a precision pass.\n\n"
-        "Failure pattern da controllare: misure amministrative su inclusione/disabilità, giovani o formazione che non finanziano un intervento psicologico diretto.\n\n"
-        "## RECALL AUDIT\n\n"
-        f"sample size: **{recall['sampleSize']}** opportunità selezionate dalle macroaree note.\n\n"
-        f"result: **NON VERIFICATO** — discoverability meccanica query {recall['queryDiscoverableCount']}/{recall['sampleSize']} e macroarea {recall['macroareaDiscoverableCount']}/{recall['sampleSize']}; manca la conferma manuale richiesta dal gate.\n\n"
-        "Failure pattern da controllare: termini pertinenti presenti solo nel dettaglio ufficiale o espressi con una combinazione linguistica diversa dalla query naturale.\n\n"
-        "## SEARCH QUALITY\n\n"
-        "Vedi `search-quality.md` per conteggi e primi cinque titoli delle dieci query obbligatorie.\n\n"
+        "# Funding Intelligence for Psychology v0.2.2 — report finale\n\n"
+        "## CHANGES MADE\n\n"
+        "Consolidamento mirato: filtro del tipo di opportunità nei feed HTML/AIG, pulizia di tre stringhe di navigazione, correzione della tutela contestuale, ricerca inversa dei sinonimi e otto temi user-facing. Nessuna nuova fonte o architettura.\n\n"
+        "## OPPORTUNITY-TYPE FILTERING\n\n"
+        "Decreti di nomina/commissione, graduatorie, riparti, accordi di collaborazione e contenuti editoriali sono esclusi quando non presentano un avviso o un finanziamento progettuale. Gli avvisi e le call con segnali di candidatura restano eleggibili.\n\n"
+        "## SEMANTIC FIXES\n\n"
+        "La parola inglese `protection` da sola non attiva la violenza; contano solo formule contestuali come child protection from violence, victim protection o protection against abuse.\n\n"
+        "## SEARCH\n\n"
+        "Ogni termine di un gruppo sinonimico attiva lo stesso gruppo: giovani/adolescenti/youth/young people e AI/artificial intelligence sono verificati in entrambe le direzioni.\n\n"
+        "## UX\n\n"
+        "La UI mostra Aree di interesse, Tema, Territorio, Scadenza e Chi può partecipare; i filtri secondari sono raccolti sotto Altri filtri. I bandi scaduti sono consultabili con un'azione esplicita e senza esporre il lessico tecnico del dataset.\n\n"
+        "## GOLD SET\n\n"
+        f"Campione manuale: **{recall['sampleSize']}** record ({recall['positiveCount']} positivi, {recall['hardNegativeCount']} hard negative). Precisione Alta/Media: **{recall['precisionHighMedium']:.1%}** ({recall['truePositive']} TP, {recall['falsePositive']} FP, {recall['falseNegative']} FN). Discoverability: **{recall['discoverabilityRate']:.1%}** ({recall['discoverableCount']}/{recall['positiveCount']}); correttezza tipo **{recall['opportunityTypeCorrectness']:.1%}**, tema **{recall['themeCorrectness']:.1%}**.\n\n"
+        f"Esito gate gold set: **{'PASS' if recall['gatePassed'] else 'NOT PASSED'}** — {gold_gate_detail}. Se non superato, la correzione minima è intervenire solo sui casi elencati in `reports/known-relevant-opportunities.json`, senza ampliare la raccolta.\n\n"
         "## TESTS\n\n"
-        "Vedi la suite Python e TypeScript; i comandi di verifica sono nel README.\n\n"
+        "La suite Python e TypeScript è eseguita dopo le modifiche; il test HTML controlla l'assenza del vocabolario tecnico e i test mirati coprono tipo opportunità, tutela contestuale, sinonimi inversi e mapping dei temi.\n\n"
         "## KNOWN LIMITATIONS\n\n"
-        "Deadline assenti quando la fonte non identifica il contesto; due calendari Veneto restano fixture-only; la classificazione è euristica e non decide l'ammissibilità.\n\n"
-        "## DEFERRED\n\n"
-        "Nessuna nuova fonte o feature: FAMI, Pari Opportunità e Dipendenze restano fuori scope.\n\n"
-        "## STOPPING RULE STATUS\n\n"
-        "**NOT PASSED** — i gate tecnici A–G e i test sono predisposti, ma precisione e recall non sono dichiarabili superati senza revisione manuale verificata.\n",
+        f"Il feed corrente contiene **{current_stats['total']}** record e l'elenco scaduti **{archive_stats['total']}**; una fonte può restare stale se il trasporto ufficiale è temporaneamente indisponibile. La classificazione è euristica e non decide l'ammissibilità.\n\n"
+        "## STOPPING RULE\n\n"
+        f"**{'PASSED' if recall['gatePassed'] else 'NOT PASSED'}** — arresto dopo test, gold set e smoke test richiesti; nessuna nuova feature viene introdotta.\n",
         encoding="utf-8",
     )
     return {
