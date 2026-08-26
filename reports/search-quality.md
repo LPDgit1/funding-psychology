@@ -4,7 +4,7 @@ La tabella usa la stessa semantica OR/AND e lo stesso insieme di campi della UI;
 
 | Query | Risultati | Primi 5 titoli |
 |---|---:|---|
-| `caregiver demenza` | 1 | Improving socio-economic outcomes for persons with dementia and informal caregivers |
+| `caregiver demenza` | 0 | — |
 | `salute mentale adolescenti` | 0 | — |
 | `bullismo scuola` | 0 | — |
 | `violenza di genere` | 0 | — |

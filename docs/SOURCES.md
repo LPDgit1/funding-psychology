@@ -1,4 +1,4 @@
-# Fonti e contratti v0.2.1
+# Fonti e contratti v0.3.0
 
 Il dataset corrente separa le opportunità operative dall'elenco dei bandi scaduti. Conteggi, stati e avvisi sono generati a ogni sync nei report sotto `reports/` e non sono duplicati nella documentazione statica.
 
@@ -18,6 +18,19 @@ Il dataset corrente separa le opportunità operative dall'elenco dei bandi scadu
 | Fondazione Cariverona | `FondazioneCariveronaAdapter` | HTML lista + detail best-effort | Tier A fondazioni | LIVE / SNAPSHOT ACTIVE | Deadline lasciata nulla quando il dettaglio non la identifica con sufficiente affidabilità; conteggi nel report generato |
 | Con i Bambini | `ConIBambiniAdapter` | JSON embedded `var bandi` + detail best-effort | Tier A fondazioni | LIVE / SNAPSHOT ACTIVE | Stati In corso/Scaduti mantenuti; conteggi nel report generato |
 | Fondo per la Repubblica Digitale | `FondoRepubblicaDigitaleAdapter` | HTML lista + detail best-effort | Tier A fondazioni | LIVE / SNAPSHOT ACTIVE | Conteggi nel report generato |
-| Pari Opportunità / Dipendenze / FAMI | `NOT IMPLEMENTED` | Per fonte | OPEN | NOT IMPLEMENTED | Da implementare con contratti separati, senza forzare una lista universale |
+| Pari Opportunità | `PariOpportunitaAdapter` (`pari_opportunita`) | HTML tag-search ufficiale “Bandi e Avvisi” + detail best-effort | Istituzionale | LIVE / SNAPSHOT ACTIVE | Usa il percorso tag-search server-rendered dopo il 404 della vecchia categoria; esclude premi, news, esiti, incarichi e aggiornamenti procedurali |
+| Dipartimento Politiche Antidroga | `DipendenzeAdapter` (`dipendenze`) | HTML avvisi ufficiale + detail best-effort | Istituzionale | IMPLEMENTED / live 503 / fixture verificata | Esclude selezione esperti, incarichi, commissioni e graduatorie |
+| FAMI | `FamiAdapter` (`fami`) | Calendario ufficiale HTML/JSON | Istituzionale | LIVE / fixture verificata / zero server-side items | Separa `CALL` e `EARLY`; la pagina live può esporre zero elementi nel widget server-side |
+| PN Scuola e Competenze | `PnScuolaAdapter` (`pn_scuola`) | Tabella HTML strutturata | Istituzionale | LIVE / SNAPSHOT ACTIVE | Protocollo, scadenza e status della riga; applicant esposto come istituzione scolastica |
+| Fondazione di Venezia | `FondazioneVeneziaAdapter` (`fondazione_venezia`) | Listing HTML/heading ufficiale | Fondazione | LIVE / fixture verificata | Non acquisisce iniziative/progetti selezionati; fallback heading-only quando il link è gestito da controllo JS |
+| Fondo di Beneficenza Intesa Sanpaolo | `IntesaBeneficenzaAdapter` (`intesa_beneficenza`) | Pagina ufficiale “Come richiedere un contributo” | Fondazione | LIVE / SNAPSHOT ACTIVE | Record rolling canonico, deadline `NULL`, enti non profit con sede in Italia |
+| Compagnia di San Paolo | `CompagniaSanPaoloAdapter` (`compagnia_san_paolo`) | Listing contributi HTML + detail best-effort | Fondazione | LIVE / SNAPSHOT ACTIVE | Filtra i detail sotto `/it/contributi/` e conserva anche call non psicologiche |
+| Fondazione Cariplo | `FondazioneCariploAdapter` (`fondazione_cariplo`) | Listing bandi HTML + detail best-effort | Fondazione | LIVE / SNAPSHOT ACTIVE | Recupera titoli dai heading delle card “Scopri di più”; territorio solo se esposto |
+| Fondazione CON IL SUD | `FondazioneConIlSudAdapter` (`fondazione_con_il_sud`) | Listing bandi HTML + detail best-effort | Fondazione | LIVE / SNAPSHOT ACTIVE | Preserva regioni e risorse del singolo bando; esclude progetti sostenuti/esiti/news |
+| Fondazione CRT | `FondazioneCrtAdapter` (`fondazione_crt`) | Listing Progetti e Bandi HTML | Fondazione | LIVE / SNAPSHOT ACTIVE | Filtra risultati/news e normalizza il perimetro Piemonte–Valle d’Aosta |
+| Fondazione CR Firenze | `FondazioneCrFirenzeAdapter` (`fondazione_cr_firenze`) | Listing Bandi HTML + detail best-effort | Fondazione | LIVE / SNAPSHOT ACTIVE | Territorio puntuale (es. Città metropolitana di Firenze) quando dichiarato |
+| Fondazione CRC | `FondazioneCrcAdapter` (`fondazione_crc`) | Archivio/listing Bandi HTML | Fondazione | LIVE / fixture verificata / zero server-side items | Esclude “Contributi deliberati”, progetti ed eventi; zero current è valido se non risultano bandi aperti |
+| Fondazione di Sardegna | `FondazioneSardegnaAdapter` (`fondazione_sardegna`) | Pagina Bandi-ROL HTML | Fondazione | LIVE / SNAPSHOT ACTIVE | Un record canonico annuale 2026 per settore; nessuna data inventata |
+| Fondazione Friuli | `FondazioneFriuliAdapter` (`fondazione_friuli`) | Pagina Bandi Online HTML | Fondazione | LIVE / SNAPSHOT ACTIVE | Bandi 2026 chiusi e Bando Welfare 2026 `UPCOMING` senza deadline puntuale |
 
 `FIXTURE VERIFIED` non equivale a sorgente live completata. Lo snapshot espone solo fonti live riuscite; i calendari FSE+/FESR+ restano disponibili per test fixture finché i contratti ufficiali non sono stabili. In caso di errore o calo anomalo, la pipeline conserva i record precedenti e marca la fonte come `STALE`.

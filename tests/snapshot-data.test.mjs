@@ -7,12 +7,15 @@ test("public snapshot contains live adapter data and explicit fixture boundaries
   const archive = JSON.parse(await readFile(new URL("../public/data/opportunities-archive.json", import.meta.url), "utf8"));
   assert.equal(snapshot.schemaVersion, 2);
   assert.equal(snapshot.dataset, "current");
-  // A temporary upstream outage may leave one source STALE while the
+  // A temporary upstream outage may leave one source STALE/ERROR while the
   // previously verified records remain published; that state is explicit in
   // the envelope and is not a malformed snapshot.
-  assert.equal(snapshot.complete, snapshot.liveSourceCount === 12);
+  assert.equal(snapshot.complete, !snapshot.sources.some((source) => ["ERROR", "STALE"].includes(source.status)));
   assert.ok(snapshot.recordCount > 0);
-  assert.ok(snapshot.recordCount < 2000);
+  // The official feeds grow over time; keep a broad guard against accidental
+  // explosions while allowing the current live set to exceed the v0.2 bound.
+  assert.ok(snapshot.recordCount < 2500);
+  assert.equal(new Set(snapshot.opportunities.map((item) => item.id)).size, snapshot.recordCount);
   assert.ok(snapshot.liveSourceCount >= 10);
   assert.equal(snapshot.sources.find((source) => source.sourceId === "veneto-fse-calendar").status, "FIXTURE_ONLY");
   assert.equal(snapshot.opportunities.every((item) => item.demo === false), true);

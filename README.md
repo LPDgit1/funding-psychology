@@ -1,4 +1,4 @@
-# Funding Intelligence for Psychology v0.2.2b
+# Funding Intelligence for Psychology v0.3.0
 
 Motore locale-first di ricerca per finanziamenti destinati a progetti psicologici, con snapshot verificabile e fonti ufficiali in evidenza.
 
@@ -14,6 +14,9 @@ Motore locale-first di ricerca per finanziamenti destinati a progetti psicologic
 - AIG filtra eventi, webinar, consultazioni, corsi e news prive di segnali di call/candidatura/finanziamento progettuale; le fonti live restano quelle già presenti in v0.1.
 - Parser fixture-verificato per il calendario FSE+ Veneto; la verifica live resta bloccata dalla catena TLS locale.
 - Parser fixture-verificato per il calendario FESR+ Veneto; la pubblicazione live resta bloccata finché il contratto ufficiale non è stabile.
+- v0.3 aggiunge 14 adapter dedicati per fonti istituzionali e fondazioni, con filtri source-specific per bandi, avvisi, calendari EARLY e standing opportunity.
+- Ogni nuova fonte conserva status `UNKNOWN`/`UPCOMING` e campi mancanti quando il sito ufficiale non espone una data o un territorio verificabile; non vengono trasformati news, esiti o progetti finanziati in candidature.
+- La validazione live v0.3 e il rendimento `raw/current/unique/duplicates` sono registrati nei report sotto `reports/`.
 - L'adapter Regione Veneto usa l'elenco ufficiale `Public/Elenco?Tipo=1` e non il blocco homepage limitato alle dieci card; il dettaglio viene consultato solo quando serve.
 - Nessuna API AI, autenticazione, coda, cache complessa o servizio aggiuntivo.
 
@@ -60,6 +63,8 @@ python -m funding_core.cli populate-snapshot `
 ```
 
 Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/precision-audit.csv`, `reports/precision-audit.md`, `reports/adapter-status.csv`, `reports/known-relevant-opportunities.json`, `reports/dataset-audit.json`, `reports/search-quality.md` e `reports/final-report.md`.
+
+Per la release v0.3, il report canonico dell’espansione selettiva è `reports/v0.3-source-report.md`, con la validazione live in `reports/v0.3-live-validation.txt` e il dettaglio incrementale in `reports/v0.3-incremental-coverage.json`.
 
 La classificazione espone `Alta/Media/Bassa` e resta euristica: non decide l'ammissibilità. Date, importi e destinatari mancanti restano esplicitamente non indicati.
 

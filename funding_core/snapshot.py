@@ -30,6 +30,22 @@ from .adapters import (
 from .classifier import classify_with_relevance
 from .models import Opportunity, SourceRecord
 from .pipeline import anomaly_warnings, process
+from adapters import (
+    PariOpportunitaAdapter,
+    DipendenzeAdapter,
+    FamiAdapter,
+    PnScuolaAdapter,
+    FondazioneVeneziaAdapter,
+    IntesaBeneficenzaAdapter,
+    CompagniaSanPaoloAdapter,
+    FondazioneCariploAdapter,
+    FondazioneConIlSudAdapter,
+    FondazioneCrtAdapter,
+    FondazioneCrFirenzeAdapter,
+    FondazioneCrcAdapter,
+    FondazioneSardegnaAdapter,
+    FondazioneFriuliAdapter,
+)
 
 
 @dataclass(frozen=True)
@@ -55,6 +71,20 @@ LIVE_SOURCE_SPECS: tuple[SnapshotSourceSpec, ...] = (
     SnapshotSourceSpec("fondazione-cariverona", FondazioneCariveronaAdapter, 10_000_000),
     SnapshotSourceSpec("con-i-bambini", ConIBambiniAdapter, 10_000_000),
     SnapshotSourceSpec("fondo-repubblica-digitale", FondoRepubblicaDigitaleAdapter, 10_000_000),
+    SnapshotSourceSpec("pari_opportunita", PariOpportunitaAdapter, 12_000_000),
+    SnapshotSourceSpec("dipendenze", DipendenzeAdapter, 12_000_000),
+    SnapshotSourceSpec("fami", FamiAdapter, 12_000_000),
+    SnapshotSourceSpec("pn_scuola", PnScuolaAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_venezia", FondazioneVeneziaAdapter, 10_000_000),
+    SnapshotSourceSpec("intesa_beneficenza", IntesaBeneficenzaAdapter, 10_000_000),
+    SnapshotSourceSpec("compagnia_san_paolo", CompagniaSanPaoloAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_cariplo", FondazioneCariploAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_con_il_sud", FondazioneConIlSudAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_crt", FondazioneCrtAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_cr_firenze", FondazioneCrFirenzeAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_crc", FondazioneCrcAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_sardegna", FondazioneSardegnaAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_friuli", FondazioneFriuliAdapter, 12_000_000),
 )
 
 
@@ -249,7 +279,7 @@ def _envelope(
         "sourceCount": len(source_results),
         "sources": source_results,
         "warnings": warnings,
-        "notImplemented": ["Pari Opportunità", "Dipendenze", "FAMI"],
+        "notImplemented": [],
         "opportunities": opportunities,
     }
 
@@ -306,9 +336,12 @@ def build_snapshot_set(
                 archive_opportunities.extend(item for item in previous_valid if item.get("status") == "CLOSED")
                 source_status = "STALE"
                 published_count = len(previous_valid)
+                unique_count = len(previous_valid)
+                duplicates_collapsed = 0
                 source_current_count = sum(1 for item in previous_valid if item.get("status") != "CLOSED")
                 source_archive_count = sum(1 for item in previous_valid if item.get("status") == "CLOSED")
                 new_count = updated_count = unchanged_count = 0
+                new_current_count = new_archive_count = 0
             else:
                 mapped = [
                     public_opportunity(
@@ -332,10 +365,14 @@ def build_snapshot_set(
                 archive_opportunities.extend(retained_archive)
                 source_status = "LIVE"
                 published_count = len(mapped) + len(retained_archive)
+                unique_count = len(normalized)
+                duplicates_collapsed = max(0, len(records) - len(normalized))
                 source_current_count = sum(1 for item in mapped if item.get("status") != "CLOSED")
                 source_archive_count = sum(1 for item in mapped if item.get("status") == "CLOSED") + len(retained_archive)
                 old_ids = {_record_id(item) for item in previous_items}
                 new_count = sum(1 for item in mapped if _record_id(item) not in old_ids)
+                new_current_count = sum(1 for item in mapped if item.get("status") != "CLOSED" and _record_id(item) not in old_ids)
+                new_archive_count = sum(1 for item in mapped if item.get("status") == "CLOSED" and _record_id(item) not in old_ids)
                 updated_count = sum(1 for item in mapped if _record_id(item) in old_ids and item.get("contentHash") != next((old.get("contentHash") for old in previous_items if _record_id(old) == _record_id(item)), None))
                 unchanged_count = published_count - new_count - updated_count
             if warnings:
@@ -348,9 +385,13 @@ def build_snapshot_set(
                 "fetchedRecords": len(records),
                 "parsedRecords": len(normalized),
                 "publishedRecords": published_count,
+                "uniqueRecords": unique_count,
+                "duplicatesCollapsed": duplicates_collapsed,
                 "currentRecords": source_current_count,
                 "archiveRecords": source_archive_count,
                 "new": new_count,
+                "newCurrent": new_current_count,
+                "newArchive": new_archive_count,
                 "updated": updated_count,
                 "unchanged": unchanged_count,
                 "warnings": warnings,
@@ -370,9 +411,13 @@ def build_snapshot_set(
                 "fetchedRecords": 0,
                 "parsedRecords": 0,
                 "publishedRecords": len(previous_valid),
+                "uniqueRecords": len(previous_valid),
+                "duplicatesCollapsed": 0,
                 "currentRecords": sum(1 for item in previous_valid if item.get("status") != "CLOSED"),
                 "archiveRecords": sum(1 for item in previous_valid if item.get("status") == "CLOSED"),
                 "new": 0,
+                "newCurrent": 0,
+                "newArchive": 0,
                 "updated": 0,
                 "unchanged": len(previous_valid),
                 "warnings": [warning],
@@ -391,6 +436,8 @@ def build_snapshot_set(
                 "fetchedRecords": len(records),
                 "parsedRecords": len(records),
                 "publishedRecords": 0,
+                "uniqueRecords": len(records),
+                "duplicatesCollapsed": 0,
                 "warnings": ["Fixture verificata; non pubblicata finché il contratto live non è stabile."],
             })
         except (OSError, ValueError, AdapterError) as exc:
@@ -402,6 +449,8 @@ def build_snapshot_set(
                 "fetchedRecords": 0,
                 "parsedRecords": 0,
                 "publishedRecords": 0,
+                "uniqueRecords": 0,
+                "duplicatesCollapsed": 0,
                 "warnings": [str(exc)],
             })
 

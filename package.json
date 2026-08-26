@@ -1,6 +1,6 @@
 {
   "name": "funding-intelligence-psychology",
-  "version": "0.2.2b",
+  "version": "0.3.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"

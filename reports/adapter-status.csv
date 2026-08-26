@@ -1,15 +1,29 @@
 Source,Fetched,Parsed,Current,Archive,Missing deadline,Warnings,Status
-eu-funding-tenders,0,0,1022,0,455,eu-funding-tenders: HTTP 404 from EU Funding & Tenders API (retry later); preserved 1022 previous records,STALE
-incentivi-gov,5779,5779,805,4974,201,,LIVE
+eu-funding-tenders,1420,1112,1112,0,533,,LIVE
+incentivi-gov,5816,5816,832,4984,204,,LIVE
 Erasmus+ INDIRE,10,10,1,9,0,,LIVE
 aig-opportunities,2,2,1,15,1,,LIVE
 interreg-italy-croatia,1,1,1,0,0,,LIVE
-"Regione Veneto — Bandi, Avvisi e Concorsi",812,812,38,775,6,,LIVE
+"Regione Veneto — Bandi, Avvisi e Concorsi",813,813,40,774,7,,LIVE
 Dipartimento per le politiche della famiglia,21,21,20,1,20,,LIVE
 Dipartimento per le politiche in favore delle persone con disabilità,2,2,1,1,1,,LIVE
 Fondazione Cariparo,5,5,4,1,4,,LIVE
 Fondazione Cariverona,6,6,6,0,6,all deadlines are missing,LIVE
 Con i Bambini,32,32,3,30,3,,LIVE
 Fondo per la Repubblica Digitale,7,7,6,1,6,,LIVE
+Dipartimento per le pari opportunità,4,4,4,0,2,,LIVE
+Dipartimento per le politiche antidroga,0,0,0,0,0,dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records,ERROR
+Programma Nazionale FAMI 2021-2027,0,0,0,0,0,,LIVE
+Programma Nazionale Scuola e Competenze 2021-2027,12,12,2,10,2,,LIVE
+Fondazione di Venezia,1,1,1,0,1,all deadlines are missing,LIVE
+Fondo di Beneficenza Intesa Sanpaolo,1,1,1,0,1,all deadlines are missing,LIVE
+Fondazione Compagnia di San Paolo,12,12,6,6,1,,LIVE
+Fondazione Cariplo,5,5,5,0,5,all deadlines are missing,LIVE
+Fondazione CON IL SUD,40,40,2,38,1,,LIVE
+Fondazione CRT,6,6,6,0,6,all deadlines are missing,LIVE
+Fondazione CR Firenze,2,2,1,1,0,,LIVE
+Fondazione CRC,0,0,0,0,0,,LIVE
+Fondazione di Sardegna,4,4,4,0,4,all deadlines are missing,LIVE
+Fondazione Friuli,3,3,1,2,1,,LIVE
 Veneto FSE+,2,2,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY
 Veneto FESR+,1,1,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY

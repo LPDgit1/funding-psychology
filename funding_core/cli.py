@@ -25,6 +25,22 @@ from .adapters import (
 from .pipeline import anomaly_warnings, process
 from .audit import write_audit_reports
 from .snapshot import ALL_SOURCE_IDS, FIXTURE_SOURCE_SPECS, LIVE_SOURCE_SPECS, build_snapshot_set, write_snapshot
+from adapters import (
+    PariOpportunitaAdapter,
+    DipendenzeAdapter,
+    FamiAdapter,
+    PnScuolaAdapter,
+    FondazioneVeneziaAdapter,
+    IntesaBeneficenzaAdapter,
+    CompagniaSanPaoloAdapter,
+    FondazioneCariploAdapter,
+    FondazioneConIlSudAdapter,
+    FondazioneCrtAdapter,
+    FondazioneCrFirenzeAdapter,
+    FondazioneCrcAdapter,
+    FondazioneSardegnaAdapter,
+    FondazioneFriuliAdapter,
+)
 
 
 ADAPTERS = {
@@ -42,6 +58,20 @@ ADAPTERS = {
     "fondo-repubblica-digitale": FondoRepubblicaDigitaleAdapter,
     "veneto-fse-calendar": VenetoFseCalendarAdapter,
     "veneto-fesr-calendar": VenetoFesrCalendarAdapter,
+    "pari_opportunita": PariOpportunitaAdapter,
+    "dipendenze": DipendenzeAdapter,
+    "fami": FamiAdapter,
+    "pn_scuola": PnScuolaAdapter,
+    "fondazione_venezia": FondazioneVeneziaAdapter,
+    "intesa_beneficenza": IntesaBeneficenzaAdapter,
+    "compagnia_san_paolo": CompagniaSanPaoloAdapter,
+    "fondazione_cariplo": FondazioneCariploAdapter,
+    "fondazione_con_il_sud": FondazioneConIlSudAdapter,
+    "fondazione_crt": FondazioneCrtAdapter,
+    "fondazione_cr_firenze": FondazioneCrFirenzeAdapter,
+    "fondazione_crc": FondazioneCrcAdapter,
+    "fondazione_sardegna": FondazioneSardegnaAdapter,
+    "fondazione_friuli": FondazioneFriuliAdapter,
 }
 
 FIXTURE_PATHS = {source_id: fixture_name for source_id, _, fixture_name in FIXTURE_SOURCE_SPECS}
@@ -96,6 +126,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Archived records: {archive['recordCount']}")
         print(f"Live sources: {current['liveSourceCount']}/{len(LIVE_SOURCE_SPECS)}")
         print(f"Audit: {reports['highRelevanceCsv']}")
+        print(f"v0.3 source report: {reports['sourceReport']}")
         for warning in current["warnings"]:
             print(f"WARNING: {warning}")
         return 0 if current["recordCount"] else 1
@@ -109,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, AdapterError, ValueError) as exc:
             print(f"FIXTURE: ERROR\nItems found: 0\nParsed: 0\nWarnings: {exc}", file=sys.stderr)
             return 1
-        print(f"FIXTURE: OK\nItems found: {len(records)}\nParsed: {len(records)}\nTitles: {'OK' if records else 'WARNING'}")
+        print(f"FIXTURE: OK\nItems found: {len(records)}\nParsed: {len(records)}\nCurrent: {sum(1 for item in process(adapter.source_id, records) if item.status != 'CLOSED')}\nTitles: {'OK' if records else 'WARNING'}")
         if args.command == "sync":
             opportunities = process(adapter.source_id, records)
             warnings = anomaly_warnings(len(opportunities), [], [item.title for item in records], [item.deadline for item in records])
@@ -137,10 +168,12 @@ def main(argv: list[str] | None = None) -> int:
     except AdapterError as exc:
         print(f"HTTP: ERROR\nItems found: 0\nParsed: 0\nWarnings: {exc}", file=sys.stderr)
         return 1
-    print(f"HTTP: OK\nItems found: {len(records)}\nParsed: {len(records)}\nTitles: {'OK' if records else 'WARNING'}")
+    opportunities = process(adapter.source_id, records)
+    warnings = anomaly_warnings(len(opportunities), [], [item.title for item in records], [item.deadline for item in records])
+    print(f"HTTP: OK\nItems found: {len(records)}\nParsed: {len(records)}\nCurrent: {sum(1 for item in opportunities if item.status != 'CLOSED')}\nTitles: {'OK' if records else 'WARNING'}")
+    for warning in warnings:
+        print(f"WARNING: {warning}")
     if args.command == "sync":
-        opportunities = process(adapter.source_id, records)
-        warnings = anomaly_warnings(len(opportunities), [], [item.title for item in records], [item.deadline for item in records])
         print(f"New: {len(opportunities)}\nUpdated: 0\nUnchanged: 0")
         for warning in warnings:
             print(f"WARNING: {warning}")

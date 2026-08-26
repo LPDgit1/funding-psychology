@@ -2,11 +2,11 @@
 
 ## RELEVANCE
 
-High: **4**
+High: **5**
 
-Medium: **23**
+Medium: **26**
 
-Low: **1881**
+Low: **2029**
 
 High/Medium obvious NOT_RELEVANT: **0**
 
@@ -20,7 +20,7 @@ Borderline retained: **11**. Sono conservati quando esiste un interesse progettu
 
 Live validation: **LIVE / OK** — evidenza registrata in `reports/funding-tenders-live-validation.txt` (1.421 elementi trovati e 1.421 parsed).
 
-Full sync: **STALE** — preservati 1022 record precedenti; warning: eu-funding-tenders: HTTP 404 from EU Funding & Tenders API (retry later); preserved 1022 previous records.
+Full sync: **LIVE** — 1420 elementi ricevuti, 1112 parsed, 1112 pubblicati; nessun fallback necessario.
 
 ## GRANT TYPE 2
 
@@ -32,4 +32,4 @@ Targeted: retry 404 con request multipart distinta, preservazione dopo tre 404, 
 
 ## STOPPING RULE
 
-**NOT PASSED** — il 404 di Funding & Tenders resta non risolto dopo i retry; il fallback è mantenuto e il core non viene dichiarato chiuso.
+**NOT PASSED** — il gate semantico primario o la discoverability non raggiungono la soglia.
