@@ -127,6 +127,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Live sources: {current['liveSourceCount']}/{len(LIVE_SOURCE_SPECS)}")
         print(f"Audit: {reports['highRelevanceCsv']}")
         print(f"v0.3 source report: {reports['sourceReport']}")
+        print(f"v0.3.1 final report: {reports['v031FinalReport']}")
         for warning in current["warnings"]:
             print(f"WARNING: {warning}")
         return 0 if current["recordCount"] else 1

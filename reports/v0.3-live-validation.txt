@@ -16,10 +16,10 @@ Warning: dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; pres
 
 [fami]
 HTTP: OK
-Found: 0
-Parsed: 0
-Current: 0
-Warning: zero current
+Found: 18
+Parsed: 18
+Current: 3
+Warning: all deadlines are missing
 
 [pn_scuola]
 HTTP: OK
@@ -32,8 +32,8 @@ Warning: —
 HTTP: OK
 Found: 1
 Parsed: 1
-Current: 1
-Warning: all deadlines are missing
+Current: 0
+Warning: zero current
 
 [intesa_beneficenza]
 HTTP: OK
@@ -51,10 +51,10 @@ Warning: —
 
 [fondazione_cariplo]
 HTTP: OK
-Found: 5
-Parsed: 5
-Current: 5
-Warning: all deadlines are missing
+Found: 34
+Parsed: 34
+Current: 9
+Warning: —
 
 [fondazione_con_il_sud]
 HTTP: OK
@@ -65,31 +65,31 @@ Warning: —
 
 [fondazione_crt]
 HTTP: OK
-Found: 6
-Parsed: 6
-Current: 6
+Found: 1
+Parsed: 1
+Current: 1
 Warning: all deadlines are missing
 
 [fondazione_cr_firenze]
 HTTP: OK
-Found: 2
-Parsed: 2
-Current: 1
+Found: 11
+Parsed: 11
+Current: 2
 Warning: —
 
 [fondazione_crc]
 HTTP: OK
-Found: 0
-Parsed: 0
-Current: 0
-Warning: zero current
+Found: 4
+Parsed: 4
+Current: 4
+Warning: —
 
 [fondazione_sardegna]
 HTTP: OK
 Found: 4
 Parsed: 4
-Current: 4
-Warning: all deadlines are missing
+Current: 0
+Warning: zero current
 
 [fondazione_friuli]
 HTTP: OK

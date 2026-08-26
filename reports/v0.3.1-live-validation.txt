@@ -1,0 +1,73 @@
+# v0.3.1 live validation — modified sources only
+
+[fami]
+Source: Programma Nazionale FAMI 2021-2027
+HTTP: OK
+Raw: 18
+Parsed: 18
+Current: 3
+Archive: 15
+Warnings: all deadlines are missing
+
+[fondazione_crc]
+Source: Fondazione CRC
+HTTP: OK
+Raw: 4
+Parsed: 4
+Current: 4
+Archive: 0
+Warnings: —
+
+[fondazione_crt]
+Source: Fondazione CRT
+HTTP: OK
+Raw: 1
+Parsed: 1
+Current: 1
+Archive: 0
+Warnings: all deadlines are missing
+
+[fondazione_venezia]
+Source: Fondazione di Venezia
+HTTP: OK
+Raw: 1
+Parsed: 1
+Current: 0
+Archive: 1
+Warnings: —
+
+[fondazione_sardegna]
+Source: Fondazione di Sardegna
+HTTP: OK
+Raw: 4
+Parsed: 4
+Current: 0
+Archive: 4
+Warnings: —
+
+[fondazione_cariplo]
+Source: Fondazione Cariplo
+HTTP: OK
+Raw: 34
+Parsed: 34
+Current: 9
+Archive: 25
+Warnings: —
+
+[fondazione_con_il_sud]
+Source: Fondazione CON IL SUD
+HTTP: OK
+Raw: 40
+Parsed: 40
+Current: 2
+Archive: 38
+Warnings: —
+
+[fondazione_cr_firenze]
+Source: Fondazione CR Firenze
+HTTP: OK
+Raw: 11
+Parsed: 11
+Current: 2
+Archive: 9
+Warnings: —

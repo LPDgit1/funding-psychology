@@ -1,5 +1,20 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
+  "modifiedSources": [
+    "fami",
+    "fondazione_crc",
+    "fondazione_crt",
+    "fondazione_venezia",
+    "fondazione_sardegna",
+    "fondazione_cariplo",
+    "fondazione_con_il_sud",
+    "fondazione_cr_firenze"
+  ],
+  "readiness": {
+    "ready": 12,
+    "partial": 1,
+    "notReady": 1
+  },
   "newCurrent": 2,
   "newArchive": 0,
   "duplicatesCollapsed": 0,
@@ -7,220 +22,285 @@
     {
       "sourceId": "pari_opportunita",
       "label": "Dipartimento per le pari opportunità",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "existing v0.3 live adapter",
       "raw": 4,
       "parsed": 4,
       "current": 4,
+      "archive": 0,
       "unique": 4,
       "duplicates": 0,
-      "archive": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": ""
     },
     {
       "sourceId": "dipendenze",
       "label": "Dipartimento per le politiche antidroga",
+      "status": "ERROR",
       "readiness": "NOT READY",
-      "method": "official source unavailable in this run",
+      "method": "existing v0.3 live adapter",
       "raw": 0,
       "parsed": 0,
       "current": 0,
+      "archive": 0,
       "unique": 0,
       "duplicates": 0,
-      "archive": 0,
       "newCurrent": 0,
       "newArchive": 0,
       "warnings": [
         "dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records"
-      ]
+      ],
+      "note": ""
     },
     {
       "sourceId": "fami",
       "label": "Programma Nazionale FAMI 2021-2027",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "two official HTML entry points (Avvisi Pubblici + calendario)",
       "raw": 18,
       "parsed": 18,
       "current": 3,
+      "archive": 15,
       "unique": 18,
       "duplicates": 0,
-      "archive": 15,
       "newCurrent": 0,
       "newArchive": 0,
       "warnings": [
         "all deadlines are missing"
-      ]
+      ],
+      "note": "published calls are authoritative OPEN/CLOSED; programmed calls remain UPCOMING only when identifiable"
     },
     {
       "sourceId": "pn_scuola",
       "label": "Programma Nazionale Scuola e Competenze 2021-2027",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "existing v0.3 live adapter",
       "raw": 12,
       "parsed": 12,
       "current": 2,
+      "archive": 10,
       "unique": 12,
       "duplicates": 0,
-      "archive": 10,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": ""
     },
     {
       "sourceId": "fondazione_venezia",
       "label": "Fondazione di Venezia",
-      "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "status": "LIVE",
+      "readiness": "PARTIAL",
+      "method": "official activity/archive listing + detail deadline",
       "raw": 1,
       "parsed": 1,
       "current": 0,
+      "archive": 1,
       "unique": 1,
       "duplicates": 0,
-      "archive": 1,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": "the identified 2025 call is now archived after detail deadline enrichment"
     },
     {
       "sourceId": "intesa_beneficenza",
       "label": "Fondo di Beneficenza Intesa Sanpaolo",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "existing v0.3 live adapter",
       "raw": 1,
       "parsed": 1,
       "current": 1,
+      "archive": 0,
       "unique": 1,
       "duplicates": 0,
-      "archive": 0,
       "newCurrent": 0,
       "newArchive": 0,
       "warnings": [
         "all deadlines are missing"
-      ]
+      ],
+      "note": ""
     },
     {
       "sourceId": "compagnia_san_paolo",
       "label": "Fondazione Compagnia di San Paolo",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "existing v0.3 live adapter",
       "raw": 12,
       "parsed": 12,
       "current": 6,
+      "archive": 6,
       "unique": 12,
       "duplicates": 0,
-      "archive": 6,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": ""
     },
     {
       "sourceId": "fondazione_cariplo",
       "label": "Fondazione Cariplo",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "official paged listing + detail phase deadlines",
       "raw": 34,
       "parsed": 34,
       "current": 9,
+      "archive": 25,
       "unique": 34,
       "duplicates": 0,
-      "archive": 25,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": "six listing pages are collected; next future phase is selected when present"
     },
     {
       "sourceId": "fondazione_con_il_sud",
       "label": "Fondazione CON IL SUD",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "official listing + explicit deadline parsing",
       "raw": 40,
       "parsed": 40,
       "current": 2,
+      "archive": 38,
       "unique": 40,
       "duplicates": 0,
-      "archive": 38,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": "Bando Volontariato 2026 exposes 30 September 2026"
     },
     {
       "sourceId": "fondazione_crt",
       "label": "Fondazione CRT",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "official In corso listing + application-evidence filter",
       "raw": 1,
       "parsed": 1,
       "current": 1,
+      "archive": 0,
       "unique": 1,
       "duplicates": 0,
-      "archive": 0,
       "newCurrent": 0,
       "newArchive": 0,
       "warnings": [
         "all deadlines are missing"
-      ]
+      ],
+      "note": "Bando Unito retained; project/program cards rejected without application evidence"
     },
     {
       "sourceId": "fondazione_cr_firenze",
       "label": "Fondazione CR Firenze",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "official /bandi/ listing (non-thematic)",
       "raw": 11,
       "parsed": 11,
       "current": 2,
+      "archive": 9,
       "unique": 11,
       "duplicates": 0,
-      "archive": 9,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": "Grandi Attrezzature is acquired as a real call despite low thematic relevance"
     },
     {
       "sourceId": "fondazione_crc",
       "label": "Fondazione CRC",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "official Bandi aperti cards + detail enrichment",
       "raw": 4,
       "parsed": 4,
       "current": 4,
+      "archive": 0,
       "unique": 4,
       "duplicates": 0,
-      "archive": 0,
       "newCurrent": 2,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": "current Bandi aperti cards kept; deliberati/projects/events/news/esiti excluded"
     },
     {
       "sourceId": "fondazione_sardegna",
       "label": "Fondazione di Sardegna",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "official sector listing + official 2026 PDF deadline",
       "raw": 4,
       "parsed": 4,
       "current": 0,
+      "archive": 4,
       "unique": 4,
       "duplicates": 0,
-      "archive": 4,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": "annual 2026 titles use the real 5 December 2025 ROL deadline from official PDFs"
     },
     {
       "sourceId": "fondazione_friuli",
       "label": "Fondazione Friuli",
+      "status": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
+      "method": "existing v0.3 live adapter",
       "raw": 3,
       "parsed": 3,
       "current": 1,
+      "archive": 2,
       "unique": 3,
       "duplicates": 0,
-      "archive": 2,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "note": ""
+    }
+  ],
+  "snapshotSanity": [
+    {
+      "check": "FAMI current > 0 when published calls are open",
+      "passed": true,
+      "evidence": "3 current"
+    },
+    {
+      "check": "CRC current > 0 when Bandi aperti are shown",
+      "passed": true,
+      "evidence": "4 current"
+    },
+    {
+      "check": "CRT known project cards absent",
+      "passed": true,
+      "evidence": "no Agenda/European Pavilion in current"
+    },
+    {
+      "check": "Venezia expired 2025 call absent from current",
+      "passed": true,
+      "evidence": "0 expired current"
+    },
+    {
+      "check": "Sardegna annual 2026 records archived with real deadlines",
+      "passed": true,
+      "evidence": "4 archive / 4 deadlines"
+    },
+    {
+      "check": "Cariplo pagination reaches beyond v0.3 first page",
+      "passed": true,
+      "evidence": "34 unique"
+    },
+    {
+      "check": "CON IL SUD Volontariato 2026 deadline present",
+      "passed": true,
+      "evidence": "30 September 2026"
     }
   ]
 }
