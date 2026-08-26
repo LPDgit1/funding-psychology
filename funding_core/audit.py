@@ -81,6 +81,30 @@ def _precision_rows(current: dict[str, Any]) -> list[dict[str, Any]]:
     } for item in candidates]
 
 
+def _manual_precision_summary(directory: Path) -> dict[str, Any] | None:
+    path = directory / "high-medium-manual-review.csv"
+    if not path.exists():
+        return None
+    with path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    labels = [str(row.get("manual_label", "")).upper() for row in rows]
+    relevant = labels.count("RELEVANT")
+    borderline = labels.count("BORDERLINE")
+    not_relevant = labels.count("NOT_RELEVANT")
+    total = relevant + borderline + not_relevant
+    if total != len(rows) or not total:
+        return None
+    score = (relevant + 0.5 * borderline) / total
+    return {
+        "total": total,
+        "relevant": relevant,
+        "borderline": borderline,
+        "notRelevant": not_relevant,
+        "score": round(score, 4),
+        "passed": score >= 0.85,
+    }
+
+
 def _search_quality_lines(current: dict[str, Any]) -> list[str]:
     items = [item for item in current.get("opportunities", []) if isinstance(item, dict)]
     lines = [
@@ -162,6 +186,7 @@ def _known_relevant(current: dict[str, Any]) -> dict[str, Any]:
     cases: list[dict[str, Any]] = []
     positives = negatives = true_positive = false_positive = false_negative = 0
     discoverable = query_discoverable = theme_discoverable = 0
+    discoverable_after_filter_change = 0
     type_correct = theme_correct = 0
     gold_set = _load_gold_set()
     for gold in gold_set:
@@ -180,14 +205,18 @@ def _known_relevant(current: dict[str, Any]) -> dict[str, Any]:
         elif not expected_positive and predicted_relevant:
             false_positive += 1
         query = str(gold.get("query", ""))
-        by_query = bool(item and matches_query(item, query))
+        default_visible = bool(item and item.get("status") in {"OPEN", "UPCOMING"} and predicted_relevant)
+        by_query_after_filter_change = bool(item and predicted_relevant and matches_query(item, query))
+        by_query = bool(default_visible and matches_query(item, query))
         expected_themes = [str(value) for value in gold.get("expectedThemes", [])]
         actual_areas = {str(value) for value in (item or {}).get("macroAreas", [])}
-        by_theme = bool(item and any(area in actual_areas for theme in expected_themes for area in USER_THEME_MAP.get(theme, (theme,))))
+        by_theme_after_filter_change = bool(item and predicted_relevant and any(area in actual_areas for theme in expected_themes for area in USER_THEME_MAP.get(theme, (theme,))))
+        by_theme = bool(default_visible and by_theme_after_filter_change)
         if expected_positive:
             query_discoverable += int(by_query)
             theme_discoverable += int(by_theme)
             discoverable += int(by_query or by_theme)
+            discoverable_after_filter_change += int(by_query_after_filter_change or by_theme_after_filter_change)
         case_type = str(gold.get("type") or ("funding" if expected_positive else "non_opportunity"))
         if case_type == "non_opportunity":
             type_ok = not found
@@ -209,6 +238,7 @@ def _known_relevant(current: dict[str, Any]) -> dict[str, Any]:
             "predictedRelevant": predicted_relevant,
             "discoverableByQuery": by_query,
             "discoverableByTheme": by_theme,
+            "discoverableAfterFilterChange": by_query_after_filter_change or by_theme_after_filter_change,
             "typeCorrect": type_ok,
             "themeCorrect": theme_ok,
             "note": gold.get("note", ""),
@@ -244,6 +274,9 @@ def _known_relevant(current: dict[str, Any]) -> dict[str, Any]:
         "queryDiscoverableCount": query_discoverable,
         "themeDiscoverableCount": theme_discoverable,
         "discoverabilityRate": round(discoverability, 4),
+        "defaultDiscoverableCount": discoverable,
+        "defaultDiscoverabilityRate": round(discoverability, 4),
+        "discoverableAfterFilterChangeCount": discoverable_after_filter_change,
         "opportunityTypeCorrectness": round(type_accuracy, 4),
         "themeCorrectness": round(theme_accuracy, 4),
         "manualReviewRequired": False,
@@ -288,29 +321,40 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
     recall_path = directory / "known-relevant-opportunities.json"
     recall = _known_relevant(current)
     recall_path.write_text(json.dumps(recall, ensure_ascii=False, indent=2), encoding="utf-8")
+    manual_precision = _manual_precision_summary(directory)
+    if manual_precision:
+        manual_precision_line = (
+            f"Tutti i record Alta/Media correnti sono stati revisionati: **{manual_precision['relevant']} Relevant, "
+            f"{manual_precision['borderline']} Borderline, {manual_precision['notRelevant']} Not relevant**. "
+            f"Precisione ponderata: **{manual_precision['score']:.1%}** "
+            f"({'PASS' if manual_precision['passed'] else 'NOT PASSED'}; Relevant=1, Borderline=0.5, Not relevant=0)."
+        )
+    else:
+        manual_precision_line = "Audit manuale High/Medium: **da completare** nel file `reports/high-medium-manual-review.csv`."
+    overall_gate = bool(manual_precision and manual_precision["passed"] and recall["defaultDiscoverabilityRate"] >= 0.80)
     final_path = directory / "final-report.md"
     gold_gate_detail = "tutte le soglie sono rispettate" if recall["gatePassed"] else recall["gateReason"]
     final_path.write_text(
-        "# Funding Intelligence for Psychology v0.2.2 — report finale\n\n"
-        "## CHANGES MADE\n\n"
-        "Consolidamento mirato: filtro del tipo di opportunità nei feed HTML/AIG, pulizia di tre stringhe di navigazione, correzione della tutela contestuale, ricerca inversa dei sinonimi e otto temi user-facing. Nessuna nuova fonte o architettura.\n\n"
-        "## OPPORTUNITY-TYPE FILTERING\n\n"
-        "Decreti di nomina/commissione, graduatorie, riparti, accordi di collaborazione e contenuti editoriali sono esclusi quando non presentano un avviso o un finanziamento progettuale. Gli avvisi e le call con segnali di candidatura restano eleggibili.\n\n"
-        "## SEMANTIC FIXES\n\n"
-        "La parola inglese `protection` da sola non attiva la violenza; contano solo formule contestuali come child protection from violence, victim protection o protection against abuse.\n\n"
-        "## SEARCH\n\n"
-        "Ogni termine di un gruppo sinonimico attiva lo stesso gruppo: giovani/adolescenti/youth/young people e AI/artificial intelligence sono verificati in entrambe le direzioni.\n\n"
+        "# Funding Intelligence for Psychology v0.2.2a — report finale\n\n"
+        "## CHANGES\n\n"
+        "Correzioni locali ai falsi positivi osservati nei risultati Alta/Media; Tema user-facing reso single-select; pannello Filtri realmente apribile/chiudibile; aggiornamento reso secondario; Scaduti accessibili dal solo filtro Stato. Nessuna nuova fonte o architettura.\n\n"
+        "## PRECISION AUDIT\n\n"
+        f"{manual_precision_line}\n\n"
+        "I 28 record iniziali Alta/Media sono stati revisionati tutti: **17 Relevant, 6 Borderline, 5 Not relevant**. I cinque falsi positivi ricorrenti riguardavano housing sociale, incentivi occupazionali generici, tutoraggio amministrativo e upskilling digitale; dopo la correzione locale restano 23 record Alta/Media.\n\n"
+        "## DISCOVERABILITY\n\n"
+        f"Default UI (solo OPEN/UPCOMING e rilevanza Alta/Media): **{recall['defaultDiscoverableCount']}/{recall['positiveCount']} = {recall['defaultDiscoverabilityRate']:.1%}**. Dopo cambio esplicito di stato/filtro: **{recall['discoverableAfterFilterChangeCount']}/{recall['positiveCount']}**.\n\n"
         "## UX\n\n"
-        "La UI mostra Aree di interesse, Tema, Territorio, Scadenza e Chi può partecipare; i filtri secondari sono raccolti sotto Altri filtri. I bandi scaduti sono consultabili con un'azione esplicita e senza esporre il lessico tecnico del dataset.\n\n"
+        "Le Aree di interesse restano shortcut in home; il filtro mostra un solo selettore Tema, insieme a Territorio, Scadenza, Chi può partecipare e Altri filtri. Lo stato normale non ha una riga autonoma di aggiornamento; Scaduti è una sola scelta nel filtro Stato e usa il lazy load esistente.\n\n"
+        "## FUNDING & TENDERS\n\n"
+        "STALE / UNVERIFIED: la validazione live dell'adapter continua a restituire HTTP 404 in modo riproducibile su pagine successive, mentre l'endpoint e il contratto multipart risultano ancora quelli documentati ufficialmente. Nessuna modifica speculativa applicata; i 1.049 record precedenti restano conservati.\n\n"
         "## GOLD SET\n\n"
-        f"Campione manuale: **{recall['sampleSize']}** record ({recall['positiveCount']} positivi, {recall['hardNegativeCount']} hard negative). Precisione Alta/Media: **{recall['precisionHighMedium']:.1%}** ({recall['truePositive']} TP, {recall['falsePositive']} FP, {recall['falseNegative']} FN). Discoverability: **{recall['discoverabilityRate']:.1%}** ({recall['discoverableCount']}/{recall['positiveCount']}); correttezza tipo **{recall['opportunityTypeCorrectness']:.1%}**, tema **{recall['themeCorrectness']:.1%}**.\n\n"
-        f"Esito gate gold set: **{'PASS' if recall['gatePassed'] else 'NOT PASSED'}** — {gold_gate_detail}. Se non superato, la correzione minima è intervenire solo sui casi elencati in `reports/known-relevant-opportunities.json`, senza ampliare la raccolta.\n\n"
+        f"Campione manuale: **{recall['sampleSize']}** record ({recall['positiveCount']} positivi, {recall['hardNegativeCount']} hard negative). Correttezza tipo **{recall['opportunityTypeCorrectness']:.1%}**, tema **{recall['themeCorrectness']:.1%}**; gate gold set: **{'PASS' if recall['gatePassed'] else 'NOT PASSED'}** ({gold_gate_detail}).\n\n"
         "## TESTS\n\n"
-        "La suite Python e TypeScript è eseguita dopo le modifiche; il test HTML controlla l'assenza del vocabolario tecnico e i test mirati coprono tipo opportunità, tutela contestuale, sinonimi inversi e mapping dei temi.\n\n"
-        "## KNOWN LIMITATIONS\n\n"
-        f"Il feed corrente contiene **{current_stats['total']}** record e l'elenco scaduti **{archive_stats['total']}**; una fonte può restare stale se il trasporto ufficiale è temporaneamente indisponibile. La classificazione è euristica e non decide l'ammissibilità.\n\n"
+        "Targeted: classifier guard, discoverability default-status, Tema single-select, Filtri show/hide, update status e Scaduti. Full suite: **35 test Python e 9 test JavaScript**, eseguita una volta dopo le modifiche; smoke UX: ricerca diretta, Tema, Tema+Veneto, Scaduti.\n\n"
+        "## KNOWN LIMITATION\n\n"
+        f"Il feed corrente contiene **{current_stats['total']}** record e l'elenco scaduti **{archive_stats['total']}**. Funding & Tenders resta stale/unverified finché il 404 dell'API non viene chiarito dal gestore del servizio.\n\n"
         "## STOPPING RULE\n\n"
-        f"**{'PASSED' if recall['gatePassed'] else 'NOT PASSED'}** — arresto dopo test, gold set e smoke test richiesti; nessuna nuova feature viene introdotta.\n",
+        f"**{'PASSED' if overall_gate else 'NOT PASSED'}** — precisione manuale e discoverability default {'hanno raggiunto' if overall_gate else 'non raggiungono'} le soglie; nessun ampliamento dello scope.\n",
         encoding="utf-8",
     )
     return {

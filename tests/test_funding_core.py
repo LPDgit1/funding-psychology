@@ -24,6 +24,7 @@ from funding_core.adapters import (
 )
 from funding_core.classifier import classify
 from funding_core.classifier import classify_with_relevance
+from funding_core.audit import _known_relevant
 from funding_core.dates import parse_date
 from funding_core.pipeline import anomaly_warnings, process
 from funding_core.models import SourceRecord
@@ -95,6 +96,32 @@ class FundingCoreTests(unittest.TestCase):
         child = classify_with_relevance("Child protection from violence and abuse")
         self.assertNotIn("Violenza, trauma e tutela", fish.macro_areas)
         self.assertIn("Violenza, trauma e tutela", child.macro_areas)
+
+    def test_generic_funding_contexts_do_not_stay_medium(self):
+        cases = (
+            "Housing sociale e servizi abitativi sociali",
+            "Contributi a favore dell'occupazione di persone svantaggiate",
+            "Contributi per l'attività di tutoraggio - Provincia Autonoma di Trento",
+            "Agevolazione riferita ai costi salariali per cooperative sociali",
+            "Bando per upskilling e reskilling digitale",
+        )
+        for text in cases:
+            self.assertEqual(classify_with_relevance(text).label, "Bassa", text)
+
+    def test_discoverability_uses_the_real_default_status(self):
+        item = {
+            "id": "open-mental-health", "title": "Bando mental health", "summary": "",
+            "status": "OPEN", "relevance": "Alta", "macroAreas": [],
+        }
+        unknown = {**item, "id": "unknown-mental-health", "status": "UNKNOWN"}
+        with patch("funding_core.audit._load_gold_set", return_value=[
+            {"id": item["id"], "label": "positive", "query": "mental health", "expectedThemes": []},
+            {"id": unknown["id"], "label": "positive", "query": "mental health", "expectedThemes": []},
+        ]):
+            result = _known_relevant({"opportunities": [item, unknown]})
+        self.assertEqual(result["defaultDiscoverableCount"], 1)
+        self.assertEqual(result["discoverableAfterFilterChangeCount"], 2)
+        self.assertEqual(result["defaultDiscoverabilityRate"], 0.5)
 
     def test_search_reverse_synonyms_activate_the_same_group(self):
         self.assertIn("giovani", term_groups("adolescenti")[0])

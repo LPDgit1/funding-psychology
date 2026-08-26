@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T22:19:12.105226Z",
+  "generatedAt": "2026-08-26T05:53:51.915583Z",
   "sampleSize": 30,
   "positiveCount": 15,
   "hardNegativeCount": 15,
@@ -9,12 +9,15 @@
   "falsePositive": 0,
   "falseNegative": 0,
   "precisionHighMedium": 1.0,
-  "discoverableCount": 15,
-  "queryDiscoverableCount": 12,
-  "themeDiscoverableCount": 15,
-  "discoverabilityRate": 1.0,
+  "discoverableCount": 12,
+  "queryDiscoverableCount": 10,
+  "themeDiscoverableCount": 12,
+  "discoverabilityRate": 0.8,
+  "defaultDiscoverableCount": 12,
+  "defaultDiscoverabilityRate": 0.8,
+  "discoverableAfterFilterChangeCount": 15,
   "opportunityTypeCorrectness": 1.0,
-  "themeCorrectness": 1.0,
+  "themeCorrectness": 0.9,
   "manualReviewRequired": false,
   "gatePassed": true,
   "gateReason": "PASS",
@@ -31,6 +34,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Mental health of young cancer survivors."
@@ -48,6 +52,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": false,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Educational outcomes and mental health."
@@ -64,6 +69,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Independent living and inclusion for persons with disabilities."
@@ -80,6 +86,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Dementia and informal caregivers."
@@ -95,9 +102,10 @@
       "found": true,
       "predictedRelevant": true,
       "discoverableByQuery": false,
-      "discoverableByTheme": true,
+      "discoverableByTheme": false,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
-      "themeCorrect": true,
+      "themeCorrect": false,
       "note": "Explicit psychological and psychosocial assistance."
     },
     {
@@ -112,6 +120,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Prevention of addictions among adolescents."
@@ -129,6 +138,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": false,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Tutoring for a trainee with disability."
@@ -146,6 +156,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Labour inclusion and social protection."
@@ -163,6 +174,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Employment voucher for persons with disabilities."
@@ -178,10 +190,11 @@
       ],
       "found": true,
       "predictedRelevant": true,
-      "discoverableByQuery": true,
-      "discoverableByTheme": true,
+      "discoverableByQuery": false,
+      "discoverableByTheme": false,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
-      "themeCorrect": true,
+      "themeCorrect": false,
       "note": "Family centres and inclusion services."
     },
     {
@@ -195,10 +208,11 @@
       ],
       "found": true,
       "predictedRelevant": true,
-      "discoverableByQuery": true,
-      "discoverableByTheme": true,
+      "discoverableByQuery": false,
+      "discoverableByTheme": false,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
-      "themeCorrect": true,
+      "themeCorrect": false,
       "note": "Targeted employment placement for disability."
     },
     {
@@ -214,6 +228,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Children and adolescents health and care provisions."
@@ -231,6 +246,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Second-chance paths for minors and young people."
@@ -248,6 +264,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Cofinanced initiatives for children and communities."
@@ -265,6 +282,7 @@
       "predictedRelevant": true,
       "discoverableByQuery": true,
       "discoverableByTheme": true,
+      "discoverableAfterFilterChange": true,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Integrated child protection and responses to violence."
@@ -277,8 +295,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Fish habitat protection, not human protection."
@@ -291,8 +310,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Protection against counterfeiting."
@@ -305,8 +325,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Cybersecurity and robust AI systems."
@@ -321,6 +342,7 @@
       "predictedRelevant": false,
       "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Commission appointment decree."
@@ -335,6 +357,7 @@
       "predictedRelevant": false,
       "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Allocation decree."
@@ -349,6 +372,7 @@
       "predictedRelevant": false,
       "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Collaboration agreement."
@@ -363,6 +387,7 @@
       "predictedRelevant": false,
       "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Recognition decree."
@@ -377,6 +402,7 @@
       "predictedRelevant": false,
       "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Commission evaluation decree."
@@ -389,8 +415,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Energy and water efficiency for businesses."
@@ -403,8 +430,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Accessible tourism transition."
@@ -417,8 +445,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Tourism and cultural events."
@@ -431,8 +460,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Young entrepreneurs and innovative businesses."
@@ -445,8 +475,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Technical training academy."
@@ -459,8 +490,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "Green procurement award."
@@ -473,8 +505,9 @@
       "expectedThemes": [],
       "found": true,
       "predictedRelevant": false,
-      "discoverableByQuery": true,
+      "discoverableByQuery": false,
       "discoverableByTheme": false,
+      "discoverableAfterFilterChange": false,
       "typeCorrect": true,
       "themeCorrect": true,
       "note": "AI voucher for SMEs."

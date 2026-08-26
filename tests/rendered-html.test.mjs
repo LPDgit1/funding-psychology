@@ -21,7 +21,10 @@ test("home presents the simplified public vocabulary", async () => {
   assert.match(html, /Aree di interesse|Scegli un.area di interesse/);
   assert.match(html, /Minori, giovani e famiglie/);
   assert.match(html, /Inclusione, disabilità e fragilità/);
-  assert.match(html, /Scaduti|Consulta anche i bandi scaduti/);
+  assert.match(html, /Scaduti/);
+  assert.match(html, /Tutti i temi/);
+  assert.match(html, /Altri filtri/);
+  assert.doesNotMatch(html, /Consulta anche i bandi scaduti/);
   assert.match(html, /In arrivo/);
   assert.match(html, /fonte ufficiale/i);
 });

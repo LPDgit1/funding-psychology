@@ -22,8 +22,8 @@
     },
     "relevance": {
       "Alta": 4,
-      "Bassa": 1907,
-      "Media": 24
+      "Bassa": 1912,
+      "Media": 19
     },
     "macroAreas": {
       "Anziani, ageing e caregiver": 18,
@@ -65,8 +65,8 @@
     },
     "relevance": {
       "Alta": 14,
-      "Bassa": 5696,
-      "Media": 97
+      "Bassa": 5697,
+      "Media": 96
     },
     "macroAreas": {
       "Anziani, ageing e caregiver": 46,
@@ -75,7 +75,7 @@
       "Dipendenze": 26,
       "Diritti, pari opportunità e contrasto alle discriminazioni": 112,
       "Disabilità e neurodiversità": 116,
-      "Famiglia e genitorialità": 49,
+      "Famiglia e genitorialità": 47,
       "Inclusione sociale e vulnerabilità": 371,
       "Lavoro, organizzazioni e occupazione": 768,
       "Migrazione, integrazione e intercultura": 17,
@@ -83,7 +83,7 @@
       "Ricerca e innovazione scientifica": 975,
       "Salute mentale e benessere": 71,
       "Salute pubblica e prevenzione": 85,
-      "Scuola, università e formazione": 1262,
+      "Scuola, università e formazione": 1261,
       "Violenza, trauma e tutela": 13
     },
     "missingDeadline": 157,

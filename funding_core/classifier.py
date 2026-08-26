@@ -53,6 +53,18 @@ NON_PSYCHOLOGY_CONTEXTS = (
     "manutenzione programmata", "sponsorizzaz", "consultazion sulla futura politica",
     "premi di laurea",
 )
+# Observed generic measures which scored through broad inclusion, disability,
+# training, or violence words without offering a concrete psychology project.
+# Keep these local and explicit; direct psychology signals still take priority.
+GENERIC_FUNDING_CONTEXTS = (
+    "housing sociale",
+    "servizi abitativi sociali",
+    "riqualificazione edilizia",
+    "occupazione di persone svantaggiate",
+    "costi salariali",
+    "contributi per l'attivita di tutoraggio",
+    "upskilling e reskilling digitale",
+)
 DIRECT_PSYCHOLOGY_SIGNALS = (
     "supporto psicologico", "psychological support", "psicolog", "salute mentale",
     "mental health", "psychosocial", "psicoterapia", "benessere psicologico",
@@ -94,6 +106,9 @@ def classify_with_relevance(text: str) -> Classification:
             score += weight
     if any(_contains(folded, context) for context in NON_PSYCHOLOGY_CONTEXTS) and not any(_contains(folded, signal) for signal in DIRECT_PSYCHOLOGY_SIGNALS):
         negative.append("non-psychology context")
+        score -= 6
+    if any(_contains(folded, context) for context in GENERIC_FUNDING_CONTEXTS) and not any(_contains(folded, signal) for signal in DIRECT_PSYCHOLOGY_SIGNALS):
+        negative.append("generic non-psychology funding")
         score -= 6
     macro_areas = tuple(
         area for area, words in MACRO_RULES.items()
