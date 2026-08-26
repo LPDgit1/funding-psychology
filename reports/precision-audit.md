@@ -1,5 +1,5 @@
 # Precision audit
 
-Campione ordinato come la home: **23** risultati Alta/Media (massimo 50).
+Campione ordinato come la home: **27** risultati Alta/Media (massimo 50).
 
 Il CSV è il supporto per la verifica manuale titolo per titolo; non viene considerato un superamento del gate finché la plausibilità non è stata revisionata.

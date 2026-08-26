@@ -1,4 +1,4 @@
-# Funding Intelligence for Psychology v0.2.2a
+# Funding Intelligence for Psychology v0.2.2b
 
 Motore locale-first di ricerca per finanziamenti destinati a progetti psicologici, con snapshot verificabile e fonti ufficiali in evidenza.
 

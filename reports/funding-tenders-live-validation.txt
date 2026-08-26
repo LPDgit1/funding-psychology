@@ -1,0 +1,5 @@
+Command: python -m funding_core.cli validate-source eu-funding-tenders
+HTTP: OK
+Items found: 1421
+Parsed: 1421
+Titles: OK

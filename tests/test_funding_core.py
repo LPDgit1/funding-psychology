@@ -2,6 +2,7 @@ from datetime import date
 import json
 from pathlib import Path
 import unittest
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 from funding_core.adapters import (
@@ -16,6 +17,8 @@ from funding_core.adapters import (
     IncentiviGovAdapter,
     InterregItalyCroatiaAdapter,
     EuFundingTendersAdapter,
+    AdapterError,
+    FetchPolicy,
     VenetoBandiAdapter,
     VenetoFesrCalendarAdapter,
     VenetoFseCalendarAdapter,
@@ -100,13 +103,20 @@ class FundingCoreTests(unittest.TestCase):
     def test_generic_funding_contexts_do_not_stay_medium(self):
         cases = (
             "Housing sociale e servizi abitativi sociali",
-            "Contributi a favore dell'occupazione di persone svantaggiate",
-            "Contributi per l'attività di tutoraggio - Provincia Autonoma di Trento",
-            "Agevolazione riferita ai costi salariali per cooperative sociali",
+            "Riqualificazione edilizia e servizi abitativi",
             "Bando per upskilling e reskilling digitale",
         )
         for text in cases:
             self.assertEqual(classify_with_relevance(text).label, "Bassa", text)
+
+    def test_social_inclusion_employment_and_tutoring_remain_medium(self):
+        cases = (
+            "Contributi per l'occupazione di persone svantaggiate e disabilità presso cooperative sociali",
+            "Contributo per tutoraggio di tirocinanti con disabilità e collocamento mirato",
+            "Agevolazione ai costi salariali per cooperative sociali di tipo B e inclusione sociale",
+        )
+        for text in cases:
+            self.assertEqual(classify_with_relevance(text).label, "Media", text)
 
     def test_discoverability_uses_the_real_default_status(self):
         item = {
@@ -197,7 +207,48 @@ class FundingCoreTests(unittest.TestCase):
         query = EuFundingTendersAdapter().build_query()
         encoded = json.dumps(query)
         self.assertIn("31094502", encoded)
-        self.assertIn('"type": ["1", "8"]', encoded)
+        self.assertIn('"type": ["1", "2", "8"]', encoded)
+
+    def test_eu_404_retry_rebuilds_multipart_request(self):
+        adapter = EuFundingTendersAdapter()
+        adapter.page_size = 2
+
+        class Response:
+            def __init__(self, payload):
+                self.payload = json.dumps(payload).encode()
+                self.headers = type("Headers", (), {"get_content_type": lambda self: "application/json"})()
+            def __enter__(self): return self
+            def __exit__(self, *args): return None
+            def read(self, limit): return self.payload
+
+        calls = []
+        def fake_urlopen(request, timeout):
+            calls.append((request.full_url, request.data))
+            if len(calls) == 1:
+                raise HTTPError(request.full_url, 404, "not found", {}, None)
+            return Response({"results": [{"metadata": {"identifier": ["RETRY-OK"], "title": ["Retry call"], "status": ["31094502"]}}], "totalResults": 1})
+
+        with patch("funding_core.adapters.urlopen", side_effect=fake_urlopen), patch("funding_core.adapters.time.sleep") as sleep:
+            payload = adapter.fetch(FetchPolicy(retries=2))
+        self.assertEqual(len(adapter.parse(payload)), 1)
+        self.assertEqual(len(calls), 2)
+        self.assertNotEqual(calls[0][1], calls[1][1])
+        self.assertEqual(sleep.call_count, 1)
+
+    def test_eu_404_retry_preserves_failure_after_three_attempts(self):
+        adapter = EuFundingTendersAdapter()
+        calls = []
+
+        def always_404(request, timeout):
+            calls.append(request.data)
+            raise HTTPError(request.full_url, 404, "not found", {}, None)
+
+        with patch("funding_core.adapters.urlopen", side_effect=always_404), patch("funding_core.adapters.time.sleep"):
+            with self.assertRaises(AdapterError) as raised:
+                adapter.fetch(FetchPolicy(retries=2))
+        self.assertEqual(raised.exception.status_code, 404)
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(len(set(calls)), 3)
 
     def test_eu_fetch_paginates_current_pages(self):
         adapter = EuFundingTendersAdapter()

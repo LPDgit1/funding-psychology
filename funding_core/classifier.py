@@ -60,9 +60,6 @@ GENERIC_FUNDING_CONTEXTS = (
     "housing sociale",
     "servizi abitativi sociali",
     "riqualificazione edilizia",
-    "occupazione di persone svantaggiate",
-    "costi salariali",
-    "contributi per l'attivita di tutoraggio",
     "upskilling e reskilling digitale",
 )
 DIRECT_PSYCHOLOGY_SIGNALS = (

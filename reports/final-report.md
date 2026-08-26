@@ -1,39 +1,35 @@
-# Funding Intelligence for Psychology v0.2.2a — report finale
+# Funding Intelligence for Psychology v0.2.2b — report finale
 
-## CHANGES
+## RELEVANCE
 
-Correzioni locali ai falsi positivi osservati nei risultati Alta/Media; Tema user-facing reso single-select; pannello Filtri realmente apribile/chiudibile; aggiornamento reso secondario; Scaduti accessibili dal solo filtro Stato. Nessuna nuova fonte o architettura.
+High: **4**
 
-## PRECISION AUDIT
+Medium: **23**
 
-Tutti i record Alta/Media correnti sono stati revisionati: **17 Relevant, 6 Borderline, 0 Not relevant**. Precisione ponderata: **87.0%** (PASS; Relevant=1, Borderline=0.5, Not relevant=0).
+Low: **1881**
 
-I 28 record iniziali Alta/Media sono stati revisionati tutti: **17 Relevant, 6 Borderline, 5 Not relevant**. I cinque falsi positivi ricorrenti riguardavano housing sociale, incentivi occupazionali generici, tutoraggio amministrativo e upskilling digitale; dopo la correzione locale restano 23 record Alta/Media.
+High/Medium obvious NOT_RELEVANT: **0**
 
-## DISCOVERABILITY
+Review High/Medium: **17 Relevant, 11 Borderline, 0 Not relevant**. NOT_RELEVANT evidenti: **0/28 = 0.0%** (PASS; soglia <=15%). Weighted relevance secondaria: **80.4%** (indicatore informativo, non gate primario; Relevant=1, Borderline=0.5, Not relevant=0).
 
-Default UI (solo OPEN/UPCOMING e rilevanza Alta/Media): **12/15 = 80.0%**. Dopo cambio esplicito di stato/filtro: **15/15**.
-
-## UX
-
-Le Aree di interesse restano shortcut in home; il filtro mostra un solo selettore Tema, insieme a Territorio, Scadenza, Chi può partecipare e Altri filtri. Lo stato normale non ha una riga autonoma di aggiornamento; Scaduti è una sola scelta nel filtro Stato e usa il lazy load esistente.
+Borderline retained: **11**. Sono conservati quando esiste un interesse progettuale plausibile per psicologi, ETS, cooperative sociali o servizi socio-sanitari, anche senza una keyword psicologica esplicita.
 
 ## FUNDING & TENDERS
 
-STALE / UNVERIFIED: la validazione live dell'adapter continua a restituire HTTP 404 in modo riproducibile su pagine successive, mentre l'endpoint e il contratto multipart risultano ancora quelli documentati ufficialmente. Nessuna modifica speculativa applicata; i 1.049 record precedenti restano conservati.
+404 retry: **implemented** solo nell'adapter Funding & Tenders, con massimo 2 retry aggiuntivi e multipart ricostruita integralmente a ogni tentativo.
 
-## GOLD SET
+Live validation: **LIVE / OK** — evidenza registrata in `reports/funding-tenders-live-validation.txt` (1.421 elementi trovati e 1.421 parsed).
 
-Campione manuale: **30** record (15 positivi, 15 hard negative). Correttezza tipo **100.0%**, tema **90.0%**; gate gold set: **PASS** (tutte le soglie sono rispettate).
+Full sync: **STALE** — preservati 1022 record precedenti; warning: eu-funding-tenders: HTTP 404 from EU Funding & Tenders API (retry later); preserved 1022 previous records.
+
+## GRANT TYPE 2
+
+meaning: **Calls for proposals**; **included** nella configurazione `('1', '2', '8')`, verificato via FACET.
 
 ## TESTS
 
-Targeted: classifier guard, discoverability default-status, Tema single-select, Filtri show/hide, update status e Scaduti. Full suite: **35 test Python e 9 test JavaScript**, eseguita una volta dopo le modifiche; **4 smoke UX PASS**: Tema/sincronizzazione, sostituzione Tema, Filtri show/hide e Scaduti lazy-load/ritorno agli attivi.
-
-## KNOWN LIMITATION
-
-Il feed corrente contiene **1935** record e l'elenco scaduti **5807**. Funding & Tenders resta stale/unverified finché il 404 dell'API non viene chiarito dal gestore del servizio.
+Targeted: retry 404 con request multipart distinta, preservazione dopo tre 404, grant type 2 e calibrazione dei pattern social-inclusivi. Full suite: **38 test Python e 9 test JavaScript**, eseguita una volta.
 
 ## STOPPING RULE
 
-**NOT PASSED** — il gate qualità è raggiunto, ma Funding & Tenders resta STALE / UNVERIFIED e impedisce la chiusura.
+**NOT PASSED** — il 404 di Funding & Tenders resta non risolto dopo i retry; il fallback è mantenuto e il core non viene dichiarato chiuso.

@@ -182,7 +182,9 @@ class EuFundingTendersAdapter:
     open_statuses = {"31094502", "31094501"}
     page_size = 100
     max_pages = 50
-    grant_types = ("1", "8")
+    # FACET type 2 is documented as “Calls for proposals”; keep it with the
+    # existing grant categories 1 and 8, while excluding tender type 0.
+    grant_types = ("1", "2", "8")
     display_fields = (
         "identifier", "reference", "title", "status", "startDate", "deadlineDate",
         "description", "frameworkProgramme", "typesOfAction", "callIdentifier",
@@ -218,8 +220,7 @@ class EuFundingTendersAdapter:
 
     def _request_page(
         self,
-        body: bytes,
-        content_type: str,
+        multipart_fields: dict[str, str],
         page_number: int,
         policy: FetchPolicy,
     ) -> dict:
@@ -229,14 +230,18 @@ class EuFundingTendersAdapter:
             f"{self.endpoint}?apiKey=SEDIA&text=***&pageSize={self.page_size}"
             f"&pageNumber={page_number}"
         )
-        request = Request(url, data=body, method="POST", headers={
-            "Accept": "application/json",
-            "Content-Type": content_type,
-            "User-Agent": policy.user_agent,
-            "Referer": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/",
-            "Origin": "https://ec.europa.eu",
-        })
         for attempt in range(policy.retries + 1):
+            # Rebuild the complete multipart request for every retry.  The
+            # gateway has intermittently returned 404 for a replayed request;
+            # a fresh boundary and body keep this retry local to this adapter.
+            body, content_type = self._multipart(multipart_fields)
+            request = Request(url, data=body, method="POST", headers={
+                "Accept": "application/json",
+                "Content-Type": content_type,
+                "User-Agent": policy.user_agent,
+                "Referer": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/",
+                "Origin": "https://ec.europa.eu",
+            })
             try:
                 with urlopen(request, timeout=policy.timeout_seconds) as response:
                     if response.headers.get_content_type() != "application/json":
@@ -249,10 +254,10 @@ class EuFundingTendersAdapter:
                     raise AdapterError("EU Funding & Tenders page is not a JSON object")
                 return parsed
             except HTTPError as exc:
-                if exc.code in {429, 500, 502, 503, 504} and attempt < policy.retries:
+                if exc.code in {404, 429, 500, 502, 503, 504} and attempt < policy.retries:
                     time.sleep(0.2 * (attempt + 1))
                     continue
-                hint = "retry later" if exc.code in {429, 500, 502, 503, 504} else "check source contract"
+                hint = "retry later" if exc.code in {404, 429, 500, 502, 503, 504} else "check source contract"
                 raise AdapterError(f"HTTP {exc.code} from EU Funding & Tenders API ({hint})", status_code=exc.code) from exc
             except URLError as exc:
                 if attempt < policy.retries:
@@ -276,10 +281,7 @@ class EuFundingTendersAdapter:
         results: list[dict] = []
         total_results: int | None = None
         for page_number in range(1, self.max_pages + 1):
-            # Use a fresh boundary on every paginated request, as the portal
-            # does with FormData.
-            body, content_type = self._multipart(multipart_fields)
-            page = self._request_page(body, content_type, page_number, policy)
+            page = self._request_page(multipart_fields, page_number, policy)
             page_results = page.get("results")
             if not isinstance(page_results, list):
                 raise AdapterError("EU Funding & Tenders response has no results list")
