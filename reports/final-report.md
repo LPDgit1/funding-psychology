@@ -28,7 +28,7 @@ Campione manuale: **30** record (15 positivi, 15 hard negative). Correttezza tip
 
 ## TESTS
 
-Targeted: classifier guard, discoverability default-status, Tema single-select, Filtri show/hide, update status e Scaduti. Full suite: **35 test Python e 9 test JavaScript**, eseguita una volta dopo le modifiche; smoke UX: ricerca diretta, Tema, Tema+Veneto, Scaduti.
+Targeted: classifier guard, discoverability default-status, Tema single-select, Filtri show/hide, update status e Scaduti. Full suite: **35 test Python e 9 test JavaScript**, eseguita una volta dopo le modifiche; **4 smoke UX PASS**: Tema/sincronizzazione, sostituzione Tema, Filtri show/hide e Scaduti lazy-load/ritorno agli attivi.
 
 ## KNOWN LIMITATION
 
@@ -36,4 +36,4 @@ Il feed corrente contiene **1935** record e l'elenco scaduti **5807**. Funding &
 
 ## STOPPING RULE
 
-**PASSED** — precisione manuale e discoverability default hanno raggiunto le soglie; nessun ampliamento dello scope.
+**NOT PASSED** — il gate qualità è raggiunto, ma Funding & Tenders resta STALE / UNVERIFIED e impedisce la chiusura.

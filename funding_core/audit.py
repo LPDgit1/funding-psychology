@@ -331,7 +331,10 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
         )
     else:
         manual_precision_line = "Audit manuale High/Medium: **da completare** nel file `reports/high-medium-manual-review.csv`."
-    overall_gate = bool(manual_precision and manual_precision["passed"] and recall["defaultDiscoverabilityRate"] >= 0.80)
+    quality_gate = bool(manual_precision and manual_precision["passed"] and recall["defaultDiscoverabilityRate"] >= 0.80)
+    funding_tenders_source = next((row for row in current.get("sources", []) if row.get("sourceId") == "eu-funding-tenders"), {})
+    funding_tenders_unresolved = funding_tenders_source.get("status") in {"STALE", "ERROR"}
+    overall_gate = quality_gate and not funding_tenders_unresolved
     final_path = directory / "final-report.md"
     gold_gate_detail = "tutte le soglie sono rispettate" if recall["gatePassed"] else recall["gateReason"]
     final_path.write_text(
@@ -350,11 +353,11 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
         "## GOLD SET\n\n"
         f"Campione manuale: **{recall['sampleSize']}** record ({recall['positiveCount']} positivi, {recall['hardNegativeCount']} hard negative). Correttezza tipo **{recall['opportunityTypeCorrectness']:.1%}**, tema **{recall['themeCorrectness']:.1%}**; gate gold set: **{'PASS' if recall['gatePassed'] else 'NOT PASSED'}** ({gold_gate_detail}).\n\n"
         "## TESTS\n\n"
-        "Targeted: classifier guard, discoverability default-status, Tema single-select, Filtri show/hide, update status e Scaduti. Full suite: **35 test Python e 9 test JavaScript**, eseguita una volta dopo le modifiche; smoke UX: ricerca diretta, Tema, Tema+Veneto, Scaduti.\n\n"
+        "Targeted: classifier guard, discoverability default-status, Tema single-select, Filtri show/hide, update status e Scaduti. Full suite: **35 test Python e 9 test JavaScript**, eseguita una volta dopo le modifiche; **4 smoke UX PASS**: Tema/sincronizzazione, sostituzione Tema, Filtri show/hide e Scaduti lazy-load/ritorno agli attivi.\n\n"
         "## KNOWN LIMITATION\n\n"
         f"Il feed corrente contiene **{current_stats['total']}** record e l'elenco scaduti **{archive_stats['total']}**. Funding & Tenders resta stale/unverified finché il 404 dell'API non viene chiarito dal gestore del servizio.\n\n"
         "## STOPPING RULE\n\n"
-        f"**{'PASSED' if overall_gate else 'NOT PASSED'}** — precisione manuale e discoverability default {'hanno raggiunto' if overall_gate else 'non raggiungono'} le soglie; nessun ampliamento dello scope.\n",
+        f"**{'PASSED' if overall_gate else 'NOT PASSED'}** — {'precisione manuale e discoverability default hanno raggiunto le soglie; nessun ampliamento dello scope.' if quality_gate and not funding_tenders_unresolved else 'il gate qualità è raggiunto, ma Funding & Tenders resta STALE / UNVERIFIED e impedisce la chiusura.' if quality_gate else 'precisione manuale o discoverability default non raggiungono le soglie; nessun ampliamento dello scope.'}\n",
         encoding="utf-8",
     )
     return {
