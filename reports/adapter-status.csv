@@ -1,5 +1,5 @@
 Source,Fetched,Parsed,Current,Archive,Missing deadline,Warnings,Status
-eu-funding-tenders,1420,1096,1096,0,519,,LIVE
+eu-funding-tenders,1419,1220,1220,0,631,,LIVE
 incentivi-gov,5816,5816,832,4984,204,,LIVE
 Erasmus+ INDIRE,10,10,1,9,0,,LIVE
 aig-opportunities,2,2,1,15,1,,LIVE
@@ -13,14 +13,14 @@ Con i Bambini,32,32,3,30,3,,LIVE
 Fondo per la Repubblica Digitale,7,7,6,1,6,,LIVE
 Dipartimento per le pari opportunità,4,4,4,0,2,,LIVE
 Dipartimento per le politiche antidroga,0,0,0,0,0,dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records,ERROR
-Programma Nazionale FAMI 2021-2027,18,18,3,15,3,all deadlines are missing,LIVE
+Programma Nazionale FAMI 2021-2027,19,19,3,16,0,,LIVE
 Programma Nazionale Scuola e Competenze 2021-2027,12,12,2,10,2,,LIVE
 Fondazione di Venezia,1,1,0,1,0,,LIVE
 Fondo di Beneficenza Intesa Sanpaolo,1,1,1,0,1,all deadlines are missing,LIVE
 Fondazione Compagnia di San Paolo,12,12,6,6,1,,LIVE
 Fondazione Cariplo,34,34,9,25,4,,LIVE
 Fondazione CON IL SUD,40,40,2,38,0,,LIVE
-Fondazione CRT,1,1,1,0,1,all deadlines are missing,LIVE
+Fondazione CRT,18,18,14,4,5,,LIVE
 Fondazione CR Firenze,11,11,2,9,0,,LIVE
 Fondazione CRC,4,4,4,0,0,,LIVE
 Fondazione di Sardegna,4,4,0,4,0,,LIVE

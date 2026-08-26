@@ -61,6 +61,17 @@ V031_NOTES: dict[str, str] = {
     "fondazione_cr_firenze": "Grandi Attrezzature is acquired as a real call despite low thematic relevance",
 }
 
+# v0.3.1a is intentionally limited to the three sources named in the final
+# adapter hardening prompt.  These are the observed v0.3.1 figures used only
+# as a human-readable before/after reference; live counts always come from the
+# snapshot being reported.
+V031A_MODIFIED_SOURCE_IDS = ("fami", "fondazione_crt", "dipendenze")
+V031A_BASELINE_COUNTS: dict[str, dict[str, int]] = {
+    "fami": {"raw": 18, "parsed": 18, "current": 3, "archive": 15},
+    "fondazione_crt": {"raw": 1, "parsed": 1, "current": 1, "archive": 0},
+    "dipendenze": {"raw": 0, "parsed": 0, "current": 0, "archive": 0},
+}
+
 
 QUALITY_QUERIES = (
     "caregiver demenza",
@@ -353,7 +364,8 @@ def write_v03_reports(current: dict[str, Any], archive: dict[str, Any], output_d
     for source_id in V03_SOURCE_IDS:
         row = source_index.get(source_id, {})
         status = str(row.get("status") or "NOT VALIDATED")
-        ready = status == "LIVE"
+        published = int(row.get("publishedRecords") or 0)
+        ready = status == "LIVE" and published > 0 and not row.get("warnings")
         warnings = [str(value) for value in (row.get("warnings") or [])]
         rows.append({
             "sourceId": source_id,
@@ -412,7 +424,7 @@ def write_v03_reports(current: dict[str, Any], archive: dict[str, Any], output_d
         "",
         "## TESTS",
         "",
-        "Targeted adapter tests: 12 test in `tests/test_v03_adapters.py`; full Python regression: 50 test OK; frontend: 9 test OK; snapshot generation: OK.",
+        "Automated test execution: see release execution output; snapshot generation: OK.",
         "",
         "## KNOWN LIMITATIONS",
         "",
@@ -482,6 +494,9 @@ def _v031_source_rows(current: dict[str, Any], archive: dict[str, Any]) -> list[
         # listing was known to be empty while the site showed open calls.
         if status != "LIVE":
             readiness = "NOT READY"
+        elif parsed <= 0 and current_count + archive_count <= 0:
+            readiness = "NOT READY"
+            warnings.append("live response has no published record to validate")
         elif source_id in {"fami", "fondazione_crc"} and parsed == 0 and current_count == 0:
             readiness = "NOT READY"
             warnings.append("live listing still shows no parsed open call")
@@ -554,6 +569,254 @@ def _v031_snapshot_checks(current: dict[str, Any], archive: dict[str, Any], rows
     ]
 
 
+def _v031a_source_rows(current: dict[str, Any], archive: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build the v0.3.1a readiness view with source-specific sanity checks."""
+    source_index = {
+        str(row.get("sourceId")): row
+        for row in current.get("sources", [])
+        if isinstance(row, dict)
+    }
+    current_items = [item for item in current.get("opportunities", []) if isinstance(item, dict)]
+    archive_items = [item for item in archive.get("opportunities", []) if isinstance(item, dict)]
+    current_by_source: dict[str, list[dict[str, Any]]] = {}
+    archive_by_source: dict[str, list[dict[str, Any]]] = {}
+    for item in current_items:
+        current_by_source.setdefault(str(item.get("sourceId") or ""), []).append(item)
+    for item in archive_items:
+        archive_by_source.setdefault(str(item.get("sourceId") or ""), []).append(item)
+
+    rows: list[dict[str, Any]] = []
+    for source_id in V03_SOURCE_IDS:
+        source = source_index.get(source_id, {})
+        technical_status = str(source.get("status") or "NOT VALIDATED")
+        current_records = current_by_source.get(source_id, [])
+        archive_records = archive_by_source.get(source_id, [])
+        parsed = int(source.get("parsedRecords") or 0)
+        published = int(source.get("publishedRecords") or 0)
+        warnings = [str(value) for value in (source.get("warnings") or [])]
+        limitation = "; ".join(warnings)
+
+        # A live transport and a non-zero parser result are necessary, never
+        # sufficient: each known fragile source receives a small structural
+        # check, while established sources still require a published record.
+        if technical_status != "LIVE":
+            readiness = "NOT READY"
+            limitation = limitation or f"technical status {technical_status}"
+        elif source_id == "fami":
+            combined = current_records + archive_records
+            has_published = any("www.interno.gov.it" in str(item.get("officialUrl") or "") for item in combined)
+            has_deadline = any(item.get("deadline") for item in combined)
+            has_known_archive = any("vulnerabilità psicosociale" in str(item.get("title") or "").casefold() for item in combined)
+            if not has_published or not has_known_archive:
+                readiness = "PARTIAL"
+                limitation = limitation or "published section or known historical notice not evidenced"
+            elif not has_deadline:
+                readiness = "PARTIAL"
+                limitation = limitation or "detail deadline enrichment not evidenced"
+            else:
+                readiness = "READY"
+        elif source_id == "fondazione_crt":
+            combined = current_records + archive_records
+            titles = [str(item.get("title") or "").casefold() for item in combined]
+            known_calls = (
+                any("bando unito" in title for title in titles),
+                any("notesipari" in title for title in titles),
+                any("orizzonti" in title and "l.i.v.e" in title for title in titles),
+                any("ordinarie" in title and "welfare" in title for title in titles),
+            )
+            projects_present = any(
+                "agenda della disabilità" in title or "european pavilion" in title
+                for title in titles
+            )
+            if projects_present:
+                readiness = "PARTIAL"
+                limitation = limitation or "known project cards still present after detail filter"
+            elif all(known_calls):
+                readiness = "READY"
+            else:
+                readiness = "PARTIAL"
+                limitation = limitation or f"known regression calls evidenced: {sum(known_calls)}/4"
+        elif source_id == "dipendenze":
+            if parsed <= 0 or not (current_records or archive_records):
+                readiness = "NOT READY"
+                limitation = limitation or "no live opportunity records after the single revalidation"
+            elif warnings:
+                readiness = "PARTIAL"
+            else:
+                readiness = "READY"
+        elif parsed <= 0 or published <= 0 or not (current_records or archive_records):
+            readiness = "NOT READY"
+            limitation = limitation or "live response has no published record to validate"
+        elif warnings:
+            readiness = "PARTIAL"
+        else:
+            readiness = "READY"
+
+        rows.append({
+            "sourceId": source_id,
+            "label": source.get("label") or source_id,
+            "technicalStatus": technical_status,
+            "readiness": readiness,
+            "raw": int(source.get("fetchedRecords") or 0),
+            "parsed": parsed,
+            "published": published,
+            "current": int(source.get("currentRecords", len(current_records)) or 0),
+            "archive": int(source.get("archiveRecords", len(archive_records)) or 0),
+            "warnings": warnings,
+            "limitation": limitation,
+        })
+    return rows
+
+
+def _v031a_snapshot_checks(current: dict[str, Any], archive: dict[str, Any]) -> list[tuple[str, bool, str]]:
+    current_items = [item for item in current.get("opportunities", []) if isinstance(item, dict)]
+    archive_items = [item for item in archive.get("opportunities", []) if isinstance(item, dict)]
+    all_items = current_items + archive_items
+    fami_items = [item for item in all_items if item.get("sourceId") == "fami"]
+    crt_items = [item for item in all_items if item.get("sourceId") == "fondazione_crt"]
+    fami_published = [item for item in fami_items if "www.interno.gov.it" in str(item.get("officialUrl") or "")]
+    fami_deadlines = [item for item in fami_published if item.get("deadline")]
+    fami_known = any("vulnerabilità psicosociale" in str(item.get("title") or "").casefold() for item in fami_items)
+    crt_titles = [str(item.get("title") or "").casefold() for item in crt_items]
+    known_call_tokens = ("bando unito", "notesipari", "orizzonti", "ordinarie")
+    known_calls = sum(any(token in title for title in crt_titles) for token in known_call_tokens)
+    projects = [title for title in crt_titles if "agenda della disabilità" in title or "european pavilion" in title]
+    welfare = next((item for item in crt_items if "ordinarie" in str(item.get("title") or "").casefold() and "welfare" in str(item.get("title") or "").casefold()), None)
+    dip_row = next((row for row in current.get("sources", []) if row.get("sourceId") == "dipendenze"), {})
+    return [
+        ("FAMI published calls present", bool(fami_published), f"{len(fami_published)} published records"),
+        ("FAMI detail deadlines populated where exposed", bool(fami_deadlines), f"{len(fami_deadlines)}/{len(fami_published)} with deadline"),
+        ("FAMI historical psychosocial notice retained", fami_known, "known title present" if fami_known else "known title missing"),
+        ("CRT known regression calls discoverable", known_calls == len(known_call_tokens), f"{known_calls}/{len(known_call_tokens)} known calls"),
+        ("CRT known project cards excluded", not projects, "no Agenda/European Pavilion" if not projects else ", ".join(projects)),
+        ("CRT multi-window Welfare deadline preserved", bool(welfare and welfare.get("deadline")), str(welfare.get("deadline") if welfare else "missing")),
+        ("Dipendenze validation status recorded", str(dip_row.get("status") or "") in {"LIVE", "ERROR", "STALE"}, str(dip_row.get("status") or "not recorded")),
+    ]
+
+
+def write_v031a_reports(current: dict[str, Any], archive: dict[str, Any], output_dir: str | Path) -> dict[str, Path]:
+    """Write the compact, truthful v0.3.1a release report."""
+    directory = Path(output_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    rows = _v031a_source_rows(current, archive)
+    row_index = {row["sourceId"]: row for row in rows}
+    checks = _v031a_snapshot_checks(current, archive)
+    fami_items = [
+        item for snapshot in (current, archive)
+        for item in snapshot.get("opportunities", [])
+        if isinstance(item, dict) and item.get("sourceId") == "fami" and "www.interno.gov.it" in str(item.get("officialUrl") or "")
+    ]
+    fami_deadlines = sum(1 for item in fami_items if item.get("deadline"))
+    crt_items = [
+        item for snapshot in (current, archive)
+        for item in snapshot.get("opportunities", [])
+        if isinstance(item, dict) and item.get("sourceId") == "fondazione_crt"
+    ]
+    crt_titles = [str(item.get("title") or "").casefold() for item in crt_items]
+    crt_calls = sum(any(token in title for title in crt_titles) for token in ("bando unito", "notesipari", "orizzonti", "ordinarie"))
+    crt_projects = sum(1 for title in crt_titles if "agenda della disabilità" in title or "european pavilion" in title)
+    dip = row_index.get("dipendenze", {})
+    ready_count = sum(row["readiness"] == "READY" for row in rows)
+    partial_count = sum(row["readiness"] == "PARTIAL" for row in rows)
+    not_ready_count = sum(row["readiness"] == "NOT READY" for row in rows)
+    stopping_passed = all(ok for label, ok, _ in checks if not label.startswith("Dipendenze"))
+
+    report_lines = [
+        "# Funding Intelligence for Psychology v0.3.1a — report finale",
+        "",
+        "## PRE-FLIGHT",
+        "",
+        "Micro-patch limitata a FAMI, Fondazione CRT, una revalidazione Dipendenze e readiness/reporting. UX, ricerca, classificatore, tassonomia, snapshot e fonti consolidate non sono stati modificati.",
+        "",
+        "## FAMI",
+        "",
+        f"before: {V031A_BASELINE_COUNTS['fami']['raw']}/{V031A_BASELINE_COUNTS['fami']['parsed']}/{V031A_BASELINE_COUNTS['fami']['current']}/{V031A_BASELINE_COUNTS['fami']['archive']} (raw/parsed/current/archive).",
+        f"after: {row_index['fami']['raw']}/{row_index['fami']['parsed']}/{row_index['fami']['current']}/{row_index['fami']['archive']}.",
+        f"deadlines: {fami_deadlines}/{len(fami_items)} published detail records have an explicit deadline; proroghe use the final labelled date.",
+        f"archive coverage: {'known psychosocial-vulnerability notice retained' if any('vulnerabilità psicosociale' in str(item.get('title') or '').casefold() for item in fami_items) else 'known notice not evidenced'}.",
+        f"status: **{row_index['fami']['readiness']}**.",
+        "",
+        "## CRT",
+        "",
+        f"before: {V031A_BASELINE_COUNTS['fondazione_crt']['raw']}/{V031A_BASELINE_COUNTS['fondazione_crt']['parsed']}/{V031A_BASELINE_COUNTS['fondazione_crt']['current']}/{V031A_BASELINE_COUNTS['fondazione_crt']['archive']}.",
+        f"after: {row_index['fondazione_crt']['raw']}/{row_index['fondazione_crt']['parsed']}/{row_index['fondazione_crt']['current']}/{row_index['fondazione_crt']['archive']}.",
+        f"real calls recovered: {crt_calls}/4 known regression calls present across current/archive (Bando Unito, NoteSipari, Orizzonti L.I.V.E., Ordinarie Welfare).",
+        f"false projects excluded: {crt_projects} known Agenda della Disabilità/European Pavilion cards present.",
+        f"status: **{row_index['fondazione_crt']['readiness']}**; archive/detail pipeline uses the official paginated route.",
+        "",
+        "## DIPENDENZE",
+        "",
+        f"live validation: {dip['technicalStatus']} — raw {dip['raw']}, parsed {dip['parsed']}, current {dip['current']}, archive {dip['archive']}.",
+        f"status: **{dip['readiness']}**; {dip['limitation'] or 'source sanity check passed'}.",
+        "",
+        "## REPORTING",
+        "",
+        "Readiness now combines technical status with a source-specific sanity check; `HTTP OK + parsed > 0` alone cannot produce READY. Test counts are not embedded in generated reports: automated execution is referenced from the release output.",
+        f"Canonical report: `reports/v0.3.1a-final-report.md`; historical v0.3.1 reports are preserved.",
+        "",
+        "## TESTS",
+        "",
+        "targeted: see release execution output.",
+        "full suite: see release execution output.",
+        "frontend: see release execution output when the existing frontend environment is available.",
+        "",
+        "## FINAL SNAPSHOT",
+        "",
+        f"result: generation completed; current {current.get('recordCount', 0)} records, archive {archive.get('recordCount', 0)} records.",
+        "",
+        "## READINESS",
+        "",
+        "| Source | Status | Current | Archive | Limitation |",
+        "|---|---|---:|---:|---|",
+    ]
+    for row in rows:
+        report_lines.append(f"| {row['label']} (`{row['sourceId']}`) | **{row['readiness']}** | {row['current']} | {row['archive']} | {row['limitation'] or '—'} |")
+    report_lines.extend([
+        "",
+        f"READY: **{ready_count}**",
+        f"PARTIAL: **{partial_count}**",
+        f"NOT READY: **{not_ready_count}**",
+        "",
+        "## STOPPING RULE",
+        "",
+        f"**{'PASSED' if stopping_passed else 'NOT PASSED'}** — FAMI/CRT structural checks, honest Dipendenze status, canonical report and final snapshot are {'coerenti' if stopping_passed else 'non ancora coerenti'}.",
+        "",
+    ])
+    report_path = directory / "v0.3.1a-final-report.md"
+    report_path.write_text("\n".join(report_lines), encoding="utf-8")
+
+    validation_lines = ["# v0.3.1a live validation", ""]
+    for source_id in V031A_MODIFIED_SOURCE_IDS:
+        row = row_index[source_id]
+        validation_lines.extend([
+            f"[{source_id}]",
+            f"Source: {row['label']}",
+            f"HTTP: {row['technicalStatus']}",
+            f"Raw: {row['raw']}",
+            f"Parsed: {row['parsed']}",
+            f"Current: {row['current']}",
+            f"Archive: {row['archive']}",
+            f"Readiness: {row['readiness']}",
+            f"Warnings: {' | '.join(row['warnings']) if row['warnings'] else '—'}",
+            "",
+        ])
+    validation_path = directory / "v0.3.1a-live-validation.txt"
+    validation_path.write_text("\n".join(validation_lines), encoding="utf-8")
+    coverage_path = directory / "v0.3.1a-incremental-coverage.json"
+    coverage_path.write_text(json.dumps({
+        "version": "0.3.1a",
+        "modifiedSources": list(V031A_MODIFIED_SOURCE_IDS),
+        "readiness": {"ready": ready_count, "partial": partial_count, "notReady": not_ready_count},
+        "sources": rows,
+        "snapshotChecks": [{"check": label, "passed": ok, "evidence": evidence} for label, ok, evidence in checks],
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {
+        "v031aFinalReport": report_path,
+        "v031aLiveValidation": validation_path,
+        "v031aIncrementalCoverage": coverage_path,
+    }
+
+
 def write_v031_reports(current: dict[str, Any], archive: dict[str, Any], output_dir: str | Path) -> dict[str, Path]:
     """Write the single canonical v0.3.1 hardening report and scoped evidence."""
     directory = Path(output_dir)
@@ -615,7 +878,7 @@ def write_v031_reports(current: dict[str, Any], archive: dict[str, Any], output_
     report_lines.extend([
         "",
         f"Readiness complessiva: **{ready_count} READY / {partial_count} PARTIAL / {len(rows) - ready_count - partial_count} NOT READY**.",
-        "La fonte `dipendenze` resta NOT READY per il precedente HTTP 503; non è stata modificata in questa fase. Le otto fonti hardenizzate risultano live e senza NOT READY.",
+        f"La readiness combina status tecnico e controllo di coerenza; Dipendenze: {row_index.get('dipendenze', {}).get('status', 'NON VALIDATA')}.",
         "",
         "## LIVE VALIDATION",
         "",
@@ -635,8 +898,8 @@ def write_v031_reports(current: dict[str, Any], archive: dict[str, Any], output_
     report_lines.extend([
         "## TESTS",
         "",
-        "Targeted v0.3.1 adapter regressions: **8 test OK** (FAMI, CRC, CRT, Venezia, Sardegna, Cariplo, CON IL SUD, CR Firenze).",
-        "Final regression evidence: **58 Python test OK** and **9 frontend test OK**; snapshot generation completed successfully.",
+        "Targeted adapter regressions: see release execution output.",
+        "Final regression evidence: see release execution output; snapshot generation completed successfully.",
         "",
         "## SNAPSHOT SANITY",
         "",
@@ -788,13 +1051,14 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
         "## GRANT TYPE 2\n\n"
         "meaning: **Calls for proposals**; **included** nella configurazione `('1', '2', '8')`, verificato via FACET.\n\n"
         "## TESTS\n\n"
-        "Targeted: retry 404 con request multipart distinta, preservazione dopo tre 404, grant type 2 e calibrazione dei pattern social-inclusivi. Full suite: **38 test Python e 9 test JavaScript**, eseguita una volta.\n\n"
+        "Automated test execution: see release execution output.\n\n"
         "## STOPPING RULE\n\n"
         f"**{'PASSED' if overall_gate else 'NOT PASSED'}** — {'gate primario NOT_RELEVANT e sync Funding & Tenders LIVE; hotfix circoscritta completata.' if overall_gate else 'il 404 di Funding & Tenders resta non risolto dopo i retry; il fallback è mantenuto e il core non viene dichiarato chiuso.' if funding_tenders_unresolved else 'il gate semantico primario o la discoverability non raggiungono la soglia.'}\n",
         encoding="utf-8",
     )
     v03 = write_v03_reports(current, archive, directory)
     v031 = write_v031_reports(current, archive, directory)
+    v031a = write_v031a_reports(current, archive, directory)
     return {
         "highRelevanceCsv": high_relevance_csv,
         "precisionAuditCsv": precision_csv,
@@ -806,4 +1070,5 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
         "finalReport": final_path,
         **v03,
         **v031,
+        **v031a,
     }

@@ -1,222 +1,238 @@
 {
-  "version": "0.3.0",
-  "newCurrent": 13,
-  "newArchive": 5,
-  "duplicatesCollapsed": 0,
+  "version": "0.3.1a",
+  "modifiedSources": [
+    "fami",
+    "fondazione_crt",
+    "dipendenze"
+  ],
+  "readiness": {
+    "ready": 12,
+    "partial": 1,
+    "notReady": 1
+  },
   "sources": [
     {
       "sourceId": "pari_opportunita",
       "label": "Dipartimento per le pari opportunità",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 4,
       "parsed": 4,
+      "published": 4,
       "current": 4,
-      "unique": 4,
-      "duplicates": 0,
       "archive": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "dipendenze",
       "label": "Dipartimento per le politiche antidroga",
+      "technicalStatus": "ERROR",
       "readiness": "NOT READY",
-      "method": "official source unavailable in this run",
       "raw": 0,
       "parsed": 0,
+      "published": 0,
       "current": 0,
-      "unique": 0,
-      "duplicates": 0,
       "archive": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
       "warnings": [
         "dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records"
-      ]
+      ],
+      "limitation": "dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records"
     },
     {
       "sourceId": "fami",
       "label": "Programma Nazionale FAMI 2021-2027",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 19,
       "parsed": 19,
+      "published": 19,
       "current": 3,
-      "unique": 19,
-      "duplicates": 0,
       "archive": 16,
-      "newCurrent": 0,
-      "newArchive": 1,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "pn_scuola",
       "label": "Programma Nazionale Scuola e Competenze 2021-2027",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 12,
       "parsed": 12,
+      "published": 12,
       "current": 2,
-      "unique": 12,
-      "duplicates": 0,
       "archive": 10,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_venezia",
       "label": "Fondazione di Venezia",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 1,
       "parsed": 1,
+      "published": 1,
       "current": 0,
-      "unique": 1,
-      "duplicates": 0,
       "archive": 1,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "intesa_beneficenza",
       "label": "Fondo di Beneficenza Intesa Sanpaolo",
-      "readiness": "NOT READY",
-      "method": "live HTML/JSON listing",
+      "technicalStatus": "LIVE",
+      "readiness": "PARTIAL",
       "raw": 1,
       "parsed": 1,
+      "published": 1,
       "current": 1,
-      "unique": 1,
-      "duplicates": 0,
       "archive": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
       "warnings": [
         "all deadlines are missing"
-      ]
+      ],
+      "limitation": "all deadlines are missing"
     },
     {
       "sourceId": "compagnia_san_paolo",
       "label": "Fondazione Compagnia di San Paolo",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 12,
       "parsed": 12,
+      "published": 12,
       "current": 6,
-      "unique": 12,
-      "duplicates": 0,
       "archive": 6,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_cariplo",
       "label": "Fondazione Cariplo",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 34,
       "parsed": 34,
+      "published": 34,
       "current": 9,
-      "unique": 34,
-      "duplicates": 0,
       "archive": 25,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_con_il_sud",
       "label": "Fondazione CON IL SUD",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 40,
       "parsed": 40,
+      "published": 40,
       "current": 2,
-      "unique": 40,
-      "duplicates": 0,
       "archive": 38,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_crt",
       "label": "Fondazione CRT",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 18,
       "parsed": 18,
+      "published": 18,
       "current": 14,
-      "unique": 18,
-      "duplicates": 0,
       "archive": 4,
-      "newCurrent": 13,
-      "newArchive": 4,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_cr_firenze",
       "label": "Fondazione CR Firenze",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 11,
       "parsed": 11,
+      "published": 11,
       "current": 2,
-      "unique": 11,
-      "duplicates": 0,
       "archive": 9,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_crc",
       "label": "Fondazione CRC",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 4,
       "parsed": 4,
+      "published": 4,
       "current": 4,
-      "unique": 4,
-      "duplicates": 0,
       "archive": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_sardegna",
       "label": "Fondazione di Sardegna",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 4,
       "parsed": 4,
+      "published": 4,
       "current": 0,
-      "unique": 4,
-      "duplicates": 0,
       "archive": 4,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
     },
     {
       "sourceId": "fondazione_friuli",
       "label": "Fondazione Friuli",
+      "technicalStatus": "LIVE",
       "readiness": "READY",
-      "method": "live HTML/JSON listing",
       "raw": 3,
       "parsed": 3,
+      "published": 3,
       "current": 1,
-      "unique": 3,
-      "duplicates": 0,
       "archive": 2,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": []
+      "warnings": [],
+      "limitation": ""
+    }
+  ],
+  "snapshotChecks": [
+    {
+      "check": "FAMI published calls present",
+      "passed": true,
+      "evidence": "19 published records"
+    },
+    {
+      "check": "FAMI detail deadlines populated where exposed",
+      "passed": true,
+      "evidence": "19/19 with deadline"
+    },
+    {
+      "check": "FAMI historical psychosocial notice retained",
+      "passed": true,
+      "evidence": "known title present"
+    },
+    {
+      "check": "CRT known regression calls discoverable",
+      "passed": true,
+      "evidence": "4/4 known calls"
+    },
+    {
+      "check": "CRT known project cards excluded",
+      "passed": true,
+      "evidence": "no Agenda/European Pavilion"
+    },
+    {
+      "check": "CRT multi-window Welfare deadline preserved",
+      "passed": true,
+      "evidence": "2026-10-15"
+    },
+    {
+      "check": "Dipendenze validation status recorded",
+      "passed": true,
+      "evidence": "ERROR"
     }
   ]
 }

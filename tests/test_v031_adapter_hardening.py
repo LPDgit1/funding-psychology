@@ -47,6 +47,19 @@ def test_fami_published_entry_point_keeps_open_and_closed_sections():
     assert len(open_records) >= 1
     assert all(record.status_authoritative for record in open_records)
     assert any("interno.gov.it" in record.official_url for record in open_records)
+    assert any("vulnerabilità psicosociale" in record.title for record in records)
+
+
+def test_fami_detail_enrichment_prefers_final_proroga_deadline():
+    adapter = FamiAdapter()
+    raw = fixture("fami_published.html") + adapter._combined_marker.encode() + fixture("fami.html")
+    records = adapter.parse(raw)
+    target = next(record for record in records if "con proroga" in record.title)
+    response = Response(fixture("fami_detail_proroga.html"))
+    with patch("funding_core.adapters.urlopen", return_value=response):
+        enriched = adapter.enrich([target])
+    assert enriched[0].deadline == date(2026, 10, 8)
+    assert enriched[0].source_status == "CLOSED"
 
 
 def test_crc_reads_current_open_card_and_detail():
@@ -60,9 +73,34 @@ def test_crc_reads_current_open_card_and_detail():
     assert enriched[0].source_status == "OPEN"
 
 
-def test_crt_keeps_application_call_and_rejects_project_cards():
-    records = FondazioneCrtAdapter().parse(fixture("fondazione_crt.html"))
-    assert [record.title for record in records] == ["Bando Unito"]
+def test_crt_detail_keeps_real_calls_and_rejects_project_cards():
+    adapter = FondazioneCrtAdapter()
+    records = adapter.parse(fixture("fondazione_crt.html"))
+    assert {record.title for record in records} >= {
+        "Bando Unito", "NoteSipari", "Orizzonti L.I.V.E.", "Ordinarie: Welfare e Territorio",
+        "Agenda della Disabilità", "European Pavilion",
+    }
+    details = {
+        "/bando-unito/": fixture("fondazione_crt_detail.html"),
+        "/note-sipari/": fixture("fondazione_crt_note_sipari_detail.html"),
+        "/orizzonti-l-i-v-e/": fixture("fondazione_crt_orizzonti_detail.html"),
+        "/welfare-ordinarie/": fixture("fondazione_crt_welfare_detail.html"),
+        "/agenda-disabilita/": b"<main><h1>Agenda della Disabilita</h1><p>Progetto e attivita gia avviata, senza candidatura corrente.</p></main>",
+        "/european-pavilion/": b"<main><h1>European Pavilion</h1><p>Programma culturale internazionale, iniziativa gia avviata.</p></main>",
+    }
+
+    def fake_urlopen(request, timeout):
+        return Response(next(payload for path, payload in details.items() if path in request.full_url))
+
+    with patch("funding_core.adapters.urlopen", side_effect=fake_urlopen):
+        enriched = adapter.enrich(records)
+    by_title = {record.title: record for record in enriched}
+    assert "Agenda della Disabilità" not in by_title
+    assert "European Pavilion" not in by_title
+    assert by_title["NoteSipari"].deadline == date(2026, 9, 15)
+    assert by_title["Orizzonti L.I.V.E."].source_status == "OPEN"
+    assert by_title["Ordinarie: Welfare e Territorio"].deadline == date(2026, 10, 15)
+    assert by_title["Ordinarie: Welfare e Territorio"].source_status == "OPEN"
 
 
 def test_venezia_detail_moves_old_2025_call_to_closed():
@@ -124,8 +162,9 @@ def test_crfirenze_keeps_non_thematic_grandi_attrezzature_call():
 def load_tests(loader, tests, pattern):
     functions = [
         test_fami_published_entry_point_keeps_open_and_closed_sections,
+        test_fami_detail_enrichment_prefers_final_proroga_deadline,
         test_crc_reads_current_open_card_and_detail,
-        test_crt_keeps_application_call_and_rejects_project_cards,
+        test_crt_detail_keeps_real_calls_and_rejects_project_cards,
         test_venezia_detail_moves_old_2025_call_to_closed,
         test_sardegna_2026_title_uses_official_pdf_deadline,
         test_cariplo_pagination_and_next_future_phase_deadline,

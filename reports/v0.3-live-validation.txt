@@ -16,10 +16,10 @@ Warning: dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; pres
 
 [fami]
 HTTP: OK
-Found: 18
-Parsed: 18
+Found: 19
+Parsed: 19
 Current: 3
-Warning: all deadlines are missing
+Warning: —
 
 [pn_scuola]
 HTTP: OK
@@ -36,7 +36,7 @@ Current: 0
 Warning: zero current
 
 [intesa_beneficenza]
-HTTP: OK
+HTTP: ERROR
 Found: 1
 Parsed: 1
 Current: 1
@@ -65,10 +65,10 @@ Warning: —
 
 [fondazione_crt]
 HTTP: OK
-Found: 1
-Parsed: 1
-Current: 1
-Warning: all deadlines are missing
+Found: 18
+Parsed: 18
+Current: 14
+Warning: —
 
 [fondazione_cr_firenze]
 HTTP: OK

@@ -15,7 +15,7 @@ Motore locale-first di ricerca per finanziamenti destinati a progetti psicologic
 - Parser fixture-verificato per il calendario FSE+ Veneto; la verifica live resta bloccata dalla catena TLS locale.
 - Parser fixture-verificato per il calendario FESR+ Veneto; la pubblicazione live resta bloccata finché il contratto ufficiale non è stabile.
 - v0.3 aggiunge 14 adapter dedicati per fonti istituzionali e fondazioni, con filtri source-specific per bandi, avvisi, calendari EARLY e standing opportunity.
-- v0.3.1 consolida gli adapter prioritari: FAMI usa Avvisi Pubblici + calendario, CRC legge Bandi aperti, CRT distingue candidature da progetti, Venezia/Sardegna arricchiscono deadline e stato, Cariplo pagina il listing e arricchisce le fasi, CON IL SUD corregge la scadenza esplicita e CR Firenze non perde bandi non tematici.
+- v0.3.1a completa l'hardening degli adapter prioritari: FAMI arricchisce le deadline delle pagine pubblicate e l'archivio storico, CRT usa l'archivio paginato e le pagine dettaglio per distinguere bandi e progetti e Dipendenze mantiene una revalidazione live esplicita.
 - Ogni nuova fonte conserva status `UNKNOWN`/`UPCOMING` e campi mancanti quando il sito ufficiale non espone una data o un territorio verificabile; non vengono trasformati news, esiti o progetti finanziati in candidature.
 - La validazione live v0.3 e il rendimento `raw/current/unique/duplicates` sono registrati nei report sotto `reports/`.
 - L'adapter Regione Veneto usa l'elenco ufficiale `Public/Elenco?Tipo=1` e non il blocco homepage limitato alle dieci card; il dettaglio viene consultato solo quando serve.
@@ -63,9 +63,9 @@ python -m funding_core.cli populate-snapshot `
   --audit-dir reports
 ```
 
-Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/precision-audit.csv`, `reports/precision-audit.md`, `reports/adapter-status.csv`, `reports/known-relevant-opportunities.json`, `reports/dataset-audit.json`, `reports/search-quality.md`, `reports/final-report.md` e il report corrente `reports/v0.3.1-final-report.md` con la validazione delle sole fonti modificate.
+Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/precision-audit.csv`, `reports/precision-audit.md`, `reports/adapter-status.csv`, `reports/known-relevant-opportunities.json`, `reports/dataset-audit.json`, `reports/search-quality.md`, `reports/final-report.md` e i report di release v0.3.1a, senza conteggi di test hardcoded.
 
-Il report canonico corrente della release v0.3.1 è [`reports/v0.3.1-final-report.md`](reports/v0.3.1-final-report.md), con evidenza live in [`reports/v0.3.1-live-validation.txt`](reports/v0.3.1-live-validation.txt) e dettaglio incrementale in [`reports/v0.3.1-incremental-coverage.json`](reports/v0.3.1-incremental-coverage.json). Il report [`reports/v0.3-source-report.md`](reports/v0.3-source-report.md) resta come storico della v0.3.0.
+Il report canonico corrente della release v0.3.1a è [`reports/v0.3.1a-final-report.md`](reports/v0.3.1a-final-report.md), con evidenza live in [`reports/v0.3.1a-live-validation.txt`](reports/v0.3.1a-live-validation.txt) e dettaglio incrementale in [`reports/v0.3.1a-incremental-coverage.json`](reports/v0.3.1a-incremental-coverage.json). I report [`reports/v0.3.1-final-report.md`](reports/v0.3.1-final-report.md) e [`reports/v0.3-source-report.md`](reports/v0.3-source-report.md) restano come storico.
 
 La classificazione espone `Alta/Media/Bassa` e resta euristica: non decide l'ammissibilità. Date, importi e destinatari mancanti restano esplicitamente non indicati.
 

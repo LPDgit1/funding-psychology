@@ -1,0 +1,31 @@
+# v0.3.1a live validation
+
+[fami]
+Source: Programma Nazionale FAMI 2021-2027
+HTTP: LIVE
+Raw: 19
+Parsed: 19
+Current: 3
+Archive: 16
+Readiness: READY
+Warnings: —
+
+[fondazione_crt]
+Source: Fondazione CRT
+HTTP: LIVE
+Raw: 18
+Parsed: 18
+Current: 14
+Archive: 4
+Readiness: READY
+Warnings: —
+
+[dipendenze]
+Source: Dipartimento per le politiche antidroga
+HTTP: ERROR
+Raw: 0
+Parsed: 0
+Current: 0
+Archive: 0
+Readiness: NOT READY
+Warnings: dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records

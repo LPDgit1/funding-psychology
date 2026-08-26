@@ -6,7 +6,7 @@ High: **5**
 
 Medium: **28**
 
-Low: **2013**
+Low: **2150**
 
 High/Medium obvious NOT_RELEVANT: **0**
 
@@ -20,7 +20,7 @@ Borderline retained: **11**. Sono conservati quando esiste un interesse progettu
 
 Live validation: **LIVE / OK** — evidenza registrata in `reports/funding-tenders-live-validation.txt` (1.421 elementi trovati e 1.421 parsed).
 
-Full sync: **LIVE** — 1420 elementi ricevuti, 1096 parsed, 1096 pubblicati; nessun fallback necessario.
+Full sync: **LIVE** — 1419 elementi ricevuti, 1220 parsed, 1220 pubblicati; nessun fallback necessario.
 
 ## GRANT TYPE 2
 
@@ -28,8 +28,8 @@ meaning: **Calls for proposals**; **included** nella configurazione `('1', '2', 
 
 ## TESTS
 
-Targeted: retry 404 con request multipart distinta, preservazione dopo tre 404, grant type 2 e calibrazione dei pattern social-inclusivi. Full suite: **38 test Python e 9 test JavaScript**, eseguita una volta.
+Automated test execution: see release execution output.
 
 ## STOPPING RULE
 
-**PASSED** — gate primario NOT_RELEVANT e sync Funding & Tenders LIVE; hotfix circoscritta completata.
+**NOT PASSED** — il gate semantico primario o la discoverability non raggiungono la soglia.

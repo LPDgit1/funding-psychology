@@ -3,11 +3,11 @@
 [fami]
 Source: Programma Nazionale FAMI 2021-2027
 HTTP: OK
-Raw: 18
-Parsed: 18
+Raw: 19
+Parsed: 19
 Current: 3
-Archive: 15
-Warnings: all deadlines are missing
+Archive: 16
+Warnings: —
 
 [fondazione_crc]
 Source: Fondazione CRC
@@ -21,11 +21,11 @@ Warnings: —
 [fondazione_crt]
 Source: Fondazione CRT
 HTTP: OK
-Raw: 1
-Parsed: 1
-Current: 1
-Archive: 0
-Warnings: all deadlines are missing
+Raw: 18
+Parsed: 18
+Current: 14
+Archive: 4
+Warnings: —
 
 [fondazione_venezia]
 Source: Fondazione di Venezia

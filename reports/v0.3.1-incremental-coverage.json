@@ -15,8 +15,8 @@
     "partial": 1,
     "notReady": 1
   },
-  "newCurrent": 2,
-  "newArchive": 0,
+  "newCurrent": 13,
+  "newArchive": 5,
   "duplicatesCollapsed": 0,
   "sources": [
     {
@@ -61,17 +61,15 @@
       "status": "LIVE",
       "readiness": "READY",
       "method": "two official HTML entry points (Avvisi Pubblici + calendario)",
-      "raw": 18,
-      "parsed": 18,
+      "raw": 19,
+      "parsed": 19,
       "current": 3,
-      "archive": 15,
-      "unique": 18,
+      "archive": 16,
+      "unique": 19,
       "duplicates": 0,
       "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": [
-        "all deadlines are missing"
-      ],
+      "newArchive": 1,
+      "warnings": [],
       "note": "published calls are authoritative OPEN/CLOSED; programmed calls remain UPCOMING only when identifiable"
     },
     {
@@ -184,17 +182,15 @@
       "status": "LIVE",
       "readiness": "READY",
       "method": "official In corso listing + application-evidence filter",
-      "raw": 1,
-      "parsed": 1,
-      "current": 1,
-      "archive": 0,
-      "unique": 1,
+      "raw": 18,
+      "parsed": 18,
+      "current": 14,
+      "archive": 4,
+      "unique": 18,
       "duplicates": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
-      "warnings": [
-        "all deadlines are missing"
-      ],
+      "newCurrent": 13,
+      "newArchive": 4,
+      "warnings": [],
       "note": "Bando Unito retained; project/program cards rejected without application evidence"
     },
     {
@@ -226,7 +222,7 @@
       "archive": 0,
       "unique": 4,
       "duplicates": 0,
-      "newCurrent": 2,
+      "newCurrent": 0,
       "newArchive": 0,
       "warnings": [],
       "note": "current Bandi aperti cards kept; deliberati/projects/events/news/esiti excluded"
