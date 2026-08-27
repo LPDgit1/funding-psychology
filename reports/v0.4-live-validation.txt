@@ -1,0 +1,85 @@
+# v0.4 live validation — seven new sources
+
+[ministero_lavoro_terzo_settore]
+Source: Ministero del Lavoro – Terzo Settore
+HTTP: OK
+Raw: 7
+Parsed: 7
+Current: 0
+Archive: 7
+Unique: 7
+Duplicates: 0
+Readiness: READY
+Warnings: —
+
+[aics]
+Source: AICS – Bandi non profit
+HTTP: OK
+Raw: 17
+Parsed: 17
+Current: 2
+Archive: 15
+Unique: 17
+Duplicates: 0
+Readiness: READY
+Warnings: —
+
+[european_youth_foundation]
+Source: European Youth Foundation
+HTTP: OK
+Raw: 6
+Parsed: 6
+Current: 4
+Archive: 2
+Unique: 6
+Duplicates: 0
+Readiness: READY
+Warnings: —
+
+[erasmus_inapp]
+Source: Erasmus+ INAPP
+HTTP: OK
+Raw: 5
+Parsed: 5
+Current: 2
+Archive: 3
+Unique: 5
+Duplicates: 0
+Readiness: READY
+Warnings: —
+
+[fondazione_cariparma]
+Source: Fondazione Cariparma
+HTTP: OK
+Raw: 11
+Parsed: 11
+Current: 4
+Archive: 7
+Unique: 11
+Duplicates: 0
+Readiness: READY
+Warnings: —
+
+[fondazione_modena]
+Source: Fondazione di Modena
+HTTP: OK
+Raw: 10
+Parsed: 10
+Current: 2
+Archive: 8
+Unique: 10
+Duplicates: 0
+Readiness: READY
+Warnings: —
+
+[fondazione_carisbo]
+Source: Fondazione Carisbo
+HTTP: OK
+Raw: 22
+Parsed: 22
+Current: 3
+Archive: 19
+Unique: 22
+Duplicates: 0
+Readiness: READY
+Warnings: —

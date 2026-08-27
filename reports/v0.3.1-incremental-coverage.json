@@ -15,8 +15,8 @@
     "partial": 1,
     "notReady": 1
   },
-  "newCurrent": 13,
-  "newArchive": 5,
+  "newCurrent": 0,
+  "newArchive": 0,
   "duplicatesCollapsed": 0,
   "sources": [
     {
@@ -68,7 +68,7 @@
       "unique": 19,
       "duplicates": 0,
       "newCurrent": 0,
-      "newArchive": 1,
+      "newArchive": 0,
       "warnings": [],
       "note": "published calls are authoritative OPEN/CLOSED; programmed calls remain UPCOMING only when identifiable"
     },
@@ -182,14 +182,14 @@
       "status": "LIVE",
       "readiness": "READY",
       "method": "official In corso listing + application-evidence filter",
-      "raw": 18,
-      "parsed": 18,
-      "current": 14,
+      "raw": 15,
+      "parsed": 15,
+      "current": 11,
       "archive": 4,
-      "unique": 18,
+      "unique": 15,
       "duplicates": 0,
-      "newCurrent": 13,
-      "newArchive": 4,
+      "newCurrent": 0,
+      "newArchive": 0,
       "warnings": [],
       "note": "Bando Unito retained; project/program cards rejected without application evidence"
     },

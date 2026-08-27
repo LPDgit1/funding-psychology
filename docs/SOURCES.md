@@ -1,4 +1,4 @@
-# Fonti e contratti v0.3.0
+# Fonti e contratti v0.4
 
 Il dataset corrente separa le opportunità operative dall'elenco dei bandi scaduti. Conteggi, stati e avvisi sono generati a ogni sync nei report sotto `reports/` e non sono duplicati nella documentazione statica.
 
@@ -32,5 +32,13 @@ Il dataset corrente separa le opportunità operative dall'elenco dei bandi scadu
 | Fondazione CRC | `FondazioneCrcAdapter` (`fondazione_crc`) | Archivio/listing Bandi HTML | Fondazione | LIVE / fixture verificata / zero server-side items | Esclude “Contributi deliberati”, progetti ed eventi; zero current è valido se non risultano bandi aperti |
 | Fondazione di Sardegna | `FondazioneSardegnaAdapter` (`fondazione_sardegna`) | Pagina Bandi-ROL HTML | Fondazione | LIVE / SNAPSHOT ACTIVE | Un record canonico annuale 2026 per settore; nessuna data inventata |
 | Fondazione Friuli | `FondazioneFriuliAdapter` (`fondazione_friuli`) | Pagina Bandi Online HTML | Fondazione | LIVE / SNAPSHOT ACTIVE | Bandi 2026 chiusi e Bando Welfare 2026 `UPCOMING` senza deadline puntuale |
+
+| Ministero Lavoro – Terzo Settore | `ministero_lavoro_terzo_settore` | Sezioni annuali ufficiali HTML + Avvisi | Istituzionale | LIVE / v0.4 SNAPSHOT ACTIVE | Fondo assistenza bambini oncologici; finestre annuali e deadline esplicite |
+| AICS – Bandi non profit | `aics` | Tabella ufficiale Trasparenza AICS | Istituzionale | LIVE / v0.4 SNAPSHOT ACTIVE | Solo contributi/progetti non profit; gare e contratti esclusi; stato ufficiale conservato |
+| European Youth Foundation | `european_youth_foundation` | Pagina Calls for proposals Council of Europe | Sovranazionale | LIVE / v0.4 SNAPSHOT ACTIVE | Sezioni OPEN/CALL TO BE ANNOUNCED/CLOSED; codice call e registrazione EYF conservati |
+| Erasmus+ INAPP | `erasmus_inapp` | Tabella ufficiale scadenze Erasmus+ | Sovranazionale | LIVE / v0.4 SNAPSHOT ACTIVE | Limitato alle righe INAPP di Formazione professionale; INDIRE e altri settori esclusi |
+| Fondazione Cariparma | `fondazione_cariparma` | Listing Bandi 2026 + dettaglio ufficiale | Fondazione | LIVE / v0.4 SNAPSHOT ACTIVE | Tutti i bandi del listing; dettaglio limitato e territorio solo quando esposto |
+| Fondazione di Modena | `fondazione_modena` | Listing Bandi + Bandi archiviati | Fondazione | LIVE / v0.4 SNAPSHOT ACTIVE | Current/archive distinti; importi e date del card ufficiale |
+| Fondazione Carisbo | `fondazione_carisbo` | REST WordPress ufficiale + dettaglio | Fondazione | LIVE / v0.4 SNAPSHOT ACTIVE | Annunci propri `Aperto/Prorogato il bando`; post esterni, esiti e domini dev esclusi |
 
 `FIXTURE VERIFIED` non equivale a sorgente live completata. Lo snapshot espone solo fonti live riuscite; i calendari FSE+/FESR+ restano disponibili per test fixture finché i contratti ufficiali non sono stabili. In caso di errore o calo anomalo, la pipeline conserva i record precedenti e marca la fonte come `STALE`.

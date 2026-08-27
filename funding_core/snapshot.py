@@ -45,6 +45,13 @@ from adapters import (
     FondazioneCrcAdapter,
     FondazioneSardegnaAdapter,
     FondazioneFriuliAdapter,
+    MinisteroLavoroTerzoSettoreAdapter,
+    AicsAdapter,
+    EuropeanYouthFoundationAdapter,
+    ErasmusInappAdapter,
+    FondazioneCariparmaAdapter,
+    FondazioneModenaAdapter,
+    FondazioneCarisboAdapter,
 )
 
 
@@ -85,6 +92,13 @@ LIVE_SOURCE_SPECS: tuple[SnapshotSourceSpec, ...] = (
     SnapshotSourceSpec("fondazione_crc", FondazioneCrcAdapter, 12_000_000),
     SnapshotSourceSpec("fondazione_sardegna", FondazioneSardegnaAdapter, 12_000_000),
     SnapshotSourceSpec("fondazione_friuli", FondazioneFriuliAdapter, 12_000_000),
+    SnapshotSourceSpec("ministero_lavoro_terzo_settore", MinisteroLavoroTerzoSettoreAdapter, 4_000_000),
+    SnapshotSourceSpec("aics", AicsAdapter, 4_000_000),
+    SnapshotSourceSpec("european_youth_foundation", EuropeanYouthFoundationAdapter, 4_000_000),
+    SnapshotSourceSpec("erasmus_inapp", ErasmusInappAdapter, 4_000_000),
+    SnapshotSourceSpec("fondazione_cariparma", FondazioneCariparmaAdapter, 6_000_000),
+    SnapshotSourceSpec("fondazione_modena", FondazioneModenaAdapter, 6_000_000),
+    SnapshotSourceSpec("fondazione_carisbo", FondazioneCarisboAdapter, 6_000_000),
 )
 
 

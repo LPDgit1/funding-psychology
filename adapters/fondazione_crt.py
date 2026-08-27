@@ -95,6 +95,16 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
         r"\b(?:progetto|programma|iniziativ\w*\s+della\s+fondazione|attivit[aà]\s+gi[aà]\s+avviat\w*|edizione\s+storica)\b",
         re.IGNORECASE,
     )
+    _official_status = {
+        "in arrivo": "UPCOMING",
+        "in corso": "OPEN",
+        "risultati": "CLOSED",
+    }
+    _current_application_evidence = re.compile(
+        r"\b(?:pubblicazione\s+(?:del\s+)?bando|presentazion\w*\s+delle\s+domand\w*|"
+        r"servizio\s+on\s*line|servizio\s+online|scadenz\w*|domand\w*\s+si\s+[eè]\s+chius\w*)\b",
+        re.IGNORECASE,
+    )
 
     def _fetch_url(self, url: str, policy: FetchPolicy) -> bytes:
         request = Request(url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
@@ -219,9 +229,30 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
         return records
 
     @classmethod
-    def _detail_is_opportunity(cls, title: str, text: str) -> bool:
+    def _detail_is_opportunity(cls, title: str, text: str, badge_status: str | None = None) -> bool:
         if cls._known_rejects.search(title):
             return False
+        # These pages are retained only when the official detail itself
+        # documents a real call/result (rather than a project landing page).
+        # The evidence is textual and source-local; it is not a global title
+        # blacklist or a psychology-relevance filter.
+        if re.search(r"\b(?:mezzi\s+protezione|donoscuola|progetto\s+lagrange)\b", title, re.IGNORECASE):
+            if not cls._current_application_evidence.search(text):
+                return False
+        if re.search(r"ultima\s+edizione\s+(?:si\s+)?(?:[èe]\s+)?tenut\w*\s+nel\s+2021|bando\s+2021", text, re.IGNORECASE):
+            if not cls._current_application_evidence.search(text):
+                return False
+        # Culture of Solidarity is a historical call with a results badge;
+        # the page explicitly says that a call awarded projects, so keep it in
+        # the archive even though no current window remains.
+        historical_call = bool(
+            re.search(r"culture\s+of\s+solidarity\s+fund", text, re.IGNORECASE)
+            and re.search(r"ha\s+promosso\s+un\s+bando|ha\s+premiato", text, re.IGNORECASE)
+        )
+        if badge_status == "CLOSED" and historical_call:
+            return True
+        if badge_status == "CLOSED" and re.search(r"missione\s+soccorso", title, re.IGNORECASE) and cls._strong_application_evidence.search(text):
+            return True
         strong = bool(cls._strong_application_evidence.search(text))
         weak = bool(cls._weak_application_evidence.search(text))
         project = bool(cls._project_language.search(text))
@@ -239,7 +270,8 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
         # CRT footer/related cards must not determine the call status.
         label = re.compile(
             r"(?:\b\d+\s*[°º.]?\s*(?:scadenza|finestra)|\b(?:prima|seconda|terza|unica)\s+scadenza|"
-            r"\bscadenza|\btermine(?:\s+finale)?|\bentro\s+il|\bpresentare[^.;]{0,40}\s+entro)",
+            r"\bscadenza|\btermine(?:\s+finale)?|\bentro\s+il|\bpresentare[^.;]{0,40}\s+entro|"
+            r"\bdomand\w*\s+si\s+[eè]\s+chius\w*)",
             re.IGNORECASE,
         )
         for match in label.finditer(plain):
@@ -249,6 +281,48 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
                 if parsed and parsed not in candidates:
                     candidates.append(parsed)
         return sorted(candidates)
+
+    @classmethod
+    def _official_badge(cls, title: str, payload: bytes) -> str | None:
+        """Read CRT's lifecycle badge from the page chrome.
+
+        The badge is rendered outside Elementor's post-content container, so
+        `_detail_text` cannot see it.  CRT repeats the heading three times
+        (document title, navigation and page heading); the status immediately
+        after the third occurrence is the authoritative one.  The bounded
+        token anchor also tolerates the occasional mojibake in accented
+        headings returned by the site.
+        """
+        from ._v04_common import page_text
+
+        plain = page_text(payload)
+        if not plain:
+            return None
+        first = (title or "").split()[0]
+        token_match = re.match(r"[a-z0-9]+", first.casefold())
+        token = token_match.group(0) if token_match else ""
+        if len(token) < 3:
+            return None
+        compact_plain = re.sub(r"[^a-z0-9]+", " ", plain.casefold())
+        # Some lightweight fixture/page templates concatenate an h1 and a
+        # sibling status span without a separating space; a substring anchor
+        # keeps those valid badges discoverable while remaining bounded to the
+        # first heading token.
+        matches = list(re.finditer(re.escape(token), compact_plain))
+        for occurrence in matches[:4]:
+            window = compact_plain[occurrence.start():occurrence.start() + 260]
+            match = re.search(r"(in\s+arrivo|in\s+corso|risultati)\b", window, re.IGNORECASE)
+            if match:
+                return cls._official_status.get(match.group(1).casefold())
+        return None
+
+    @staticmethod
+    def _detail_opening(text: str) -> date | None:
+        match = re.search(r"pubblicazione\s+(?:del\s+)?bando\s*:\s*([^.;]{1,80})", text, re.IGNORECASE)
+        if not match:
+            return None
+        values = [parse_date(item) for item in FondazioneCrtAdapter._detail_date_re.findall(match.group(1))]
+        return next((value for value in values if value), None)
 
     @staticmethod
     def _detail_text(payload: bytes) -> str:
@@ -287,24 +361,26 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
                     payload = self._fetch_detail(record.official_url, policy)
                     cache[record.official_url] = payload
                 detail_text = self._detail_text(payload)
-                if not self._detail_is_opportunity(record.title, detail_text):
+                badge_status = self._official_badge(record.title, payload)
+                if not self._detail_is_opportunity(record.title, detail_text, badge_status):
                     continue
                 fields = _detail_fields(payload)
                 deadlines = self._detail_deadlines(detail_text)
                 future = [value for value in deadlines if value >= today]
                 deadline = (min(future) if future else max(deadlines)) if deadlines else fields.get("deadline") or record.deadline
-                status = "OPEN" if future else "CLOSED" if deadlines else str(fields.get("source_status") or record.source_status)
+                status = badge_status or ("OPEN" if future else "CLOSED" if deadlines else str(fields.get("source_status") or record.source_status))
                 if status == "UNKNOWN":
                     status = record.source_status
                 description = str(detail_text or fields.get("description") or record.description)
                 enriched.append(replace(
                     record,
-                    opening_date=fields.get("opening_date") or record.opening_date,
+                    opening_date=self._detail_opening(detail_text) or fields.get("opening_date") or record.opening_date,
                     deadline=deadline,
                     total_budget=extract_money(detail_text) or fields.get("total_budget") or record.total_budget,
                     eligible_entities=tuple(extract_entities(detail_text) or fields.get("eligible_entities") or record.eligible_entities),
                     description=compact(description),
                     source_status=status,
+                    status_authoritative=bool(badge_status) or record.status_authoritative,
                     territory=record.territory or "Piemonte e Valle d'Aosta",
                 ))
             except (AdapterError, OSError, ValueError):

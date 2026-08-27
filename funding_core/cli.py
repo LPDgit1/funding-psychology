@@ -40,6 +40,13 @@ from adapters import (
     FondazioneCrcAdapter,
     FondazioneSardegnaAdapter,
     FondazioneFriuliAdapter,
+    MinisteroLavoroTerzoSettoreAdapter,
+    AicsAdapter,
+    EuropeanYouthFoundationAdapter,
+    ErasmusInappAdapter,
+    FondazioneCariparmaAdapter,
+    FondazioneModenaAdapter,
+    FondazioneCarisboAdapter,
 )
 
 
@@ -72,6 +79,13 @@ ADAPTERS = {
     "fondazione_crc": FondazioneCrcAdapter,
     "fondazione_sardegna": FondazioneSardegnaAdapter,
     "fondazione_friuli": FondazioneFriuliAdapter,
+    "ministero_lavoro_terzo_settore": MinisteroLavoroTerzoSettoreAdapter,
+    "aics": AicsAdapter,
+    "european_youth_foundation": EuropeanYouthFoundationAdapter,
+    "erasmus_inapp": ErasmusInappAdapter,
+    "fondazione_cariparma": FondazioneCariparmaAdapter,
+    "fondazione_modena": FondazioneModenaAdapter,
+    "fondazione_carisbo": FondazioneCarisboAdapter,
 }
 
 FIXTURE_PATHS = {source_id: fixture_name for source_id, _, fixture_name in FIXTURE_SOURCE_SPECS}
@@ -129,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"v0.3 source report: {reports['sourceReport']}")
         print(f"v0.3.1 final report: {reports['v031FinalReport']}")
         print(f"v0.3.1a final report: {reports['v031aFinalReport']}")
+        print(f"v0.4 final report: {reports['v04FinalReport']}")
         for warning in current["warnings"]:
             print(f"WARNING: {warning}")
         return 0 if current["recordCount"] else 1
@@ -164,6 +179,13 @@ def main(argv: list[str] | None = None) -> int:
             "fondazione-cariverona": 10_000_000,
             "con-i-bambini": 10_000_000,
             "fondo-repubblica-digitale": 10_000_000,
+            "ministero_lavoro_terzo_settore": 4_000_000,
+            "aics": 4_000_000,
+            "european_youth_foundation": 4_000_000,
+            "erasmus_inapp": 4_000_000,
+            "fondazione_cariparma": 6_000_000,
+            "fondazione_modena": 6_000_000,
+            "fondazione_carisbo": 6_000_000,
         }.get(args.source, 25_000_000)
         raw = adapter.fetch(FetchPolicy(timeout_seconds=20, max_bytes=max_bytes))
         records = adapter.parse(raw)

@@ -1,0 +1,176 @@
+{
+  "version": "0.4",
+  "newCurrent": 17,
+  "newArchive": 61,
+  "duplicatesCollapsed": 0,
+  "readiness": {
+    "ready": 7,
+    "partial": 0,
+    "notReady": 0
+  },
+  "sources": [
+    {
+      "sourceId": "ministero_lavoro_terzo_settore",
+      "label": "Ministero del Lavoro – Terzo Settore",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official MLPS Third Sector annual HTML blocks",
+      "raw": 7,
+      "parsed": 7,
+      "current": 0,
+      "archive": 7,
+      "unique": 7,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 7,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    },
+    {
+      "sourceId": "aics",
+      "label": "AICS – Bandi non profit",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official AICS non-profit transparency table",
+      "raw": 17,
+      "parsed": 17,
+      "current": 2,
+      "archive": 15,
+      "unique": 17,
+      "duplicates": 0,
+      "newCurrent": 2,
+      "newArchive": 15,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    },
+    {
+      "sourceId": "european_youth_foundation",
+      "label": "European Youth Foundation",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official Council of Europe EYF calls page",
+      "raw": 6,
+      "parsed": 6,
+      "current": 4,
+      "archive": 2,
+      "unique": 6,
+      "duplicates": 0,
+      "newCurrent": 4,
+      "newArchive": 2,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    },
+    {
+      "sourceId": "erasmus_inapp",
+      "label": "Erasmus+ INAPP",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official Erasmus+ INAPP deadline table",
+      "raw": 5,
+      "parsed": 5,
+      "current": 2,
+      "archive": 3,
+      "unique": 5,
+      "duplicates": 0,
+      "newCurrent": 2,
+      "newArchive": 3,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    },
+    {
+      "sourceId": "fondazione_cariparma",
+      "label": "Fondazione Cariparma",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official Bandi 2026 listing + bounded detail enrichment",
+      "raw": 11,
+      "parsed": 11,
+      "current": 4,
+      "archive": 7,
+      "unique": 11,
+      "duplicates": 0,
+      "newCurrent": 4,
+      "newArchive": 7,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    },
+    {
+      "sourceId": "fondazione_modena",
+      "label": "Fondazione di Modena",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official current and archive listings",
+      "raw": 10,
+      "parsed": 10,
+      "current": 2,
+      "archive": 8,
+      "unique": 10,
+      "duplicates": 0,
+      "newCurrent": 2,
+      "newArchive": 8,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    },
+    {
+      "sourceId": "fondazione_carisbo",
+      "label": "Fondazione Carisbo",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
+      "method": "official WordPress REST bando announcements + bounded detail enrichment",
+      "raw": 22,
+      "parsed": 22,
+      "current": 3,
+      "archive": 19,
+      "unique": 22,
+      "duplicates": 0,
+      "newCurrent": 3,
+      "newArchive": 19,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
+    }
+  ],
+  "crtPreflight": [
+    {
+      "check": "CRT NoteSipari is OPEN",
+      "passed": true,
+      "evidence": "OPEN"
+    },
+    {
+      "check": "CRT Ordinarie second future window is OPEN",
+      "passed": true,
+      "evidence": "2026-10-15"
+    },
+    {
+      "check": "CRT Piccoli Comuni is UPCOMING",
+      "passed": true,
+      "evidence": "UPCOMING"
+    },
+    {
+      "check": "CRT Legàmi in Comune is UPCOMING",
+      "passed": true,
+      "evidence": "UPCOMING"
+    },
+    {
+      "check": "CRT Missione Soccorso is CLOSED",
+      "passed": true,
+      "evidence": "CLOSED"
+    },
+    {
+      "check": "CRT Culture of Solidarity Fund is CLOSED",
+      "passed": true,
+      "evidence": "CLOSED"
+    },
+    {
+      "check": "CRT historical/project false positives absent",
+      "passed": true,
+      "evidence": "0 known false-positive cards"
+    }
+  ],
+  "dipendenze": {
+    "status": "ERROR",
+    "warnings": [
+      "dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records"
+    ]
+  },
+  "stoppingRule": true
+}

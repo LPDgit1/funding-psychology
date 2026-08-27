@@ -1,6 +1,6 @@
 Source,Fetched,Parsed,Current,Archive,Missing deadline,Warnings,Status
-eu-funding-tenders,1419,1220,1220,0,631,,LIVE
-incentivi-gov,5816,5816,832,4984,204,,LIVE
+eu-funding-tenders,1419,1070,1070,0,497,,LIVE
+incentivi-gov,5817,5817,833,4984,204,,LIVE
 Erasmus+ INDIRE,10,10,1,9,0,,LIVE
 aig-opportunities,2,2,1,15,1,,LIVE
 interreg-italy-croatia,1,1,1,0,0,,LIVE
@@ -20,10 +20,17 @@ Fondo di Beneficenza Intesa Sanpaolo,1,1,1,0,1,all deadlines are missing,LIVE
 Fondazione Compagnia di San Paolo,12,12,6,6,1,,LIVE
 Fondazione Cariplo,34,34,9,25,4,,LIVE
 Fondazione CON IL SUD,40,40,2,38,0,,LIVE
-Fondazione CRT,18,18,14,4,5,,LIVE
+Fondazione CRT,15,15,11,4,0,,LIVE
 Fondazione CR Firenze,11,11,2,9,0,,LIVE
 Fondazione CRC,4,4,4,0,0,,LIVE
 Fondazione di Sardegna,4,4,0,4,0,,LIVE
 Fondazione Friuli,3,3,1,2,1,,LIVE
+Ministero del Lavoro – Terzo Settore,7,7,0,7,0,,LIVE
+AICS – Bandi non profit,17,17,2,15,0,,LIVE
+European Youth Foundation,6,6,4,2,0,,LIVE
+Erasmus+ INAPP,5,5,2,3,0,,LIVE
+Fondazione Cariparma,11,11,4,7,0,,LIVE
+Fondazione di Modena,10,10,2,8,0,,LIVE
+Fondazione Carisbo,22,22,3,19,0,,LIVE
 Veneto FSE+,2,2,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY
 Veneto FESR+,1,1,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY

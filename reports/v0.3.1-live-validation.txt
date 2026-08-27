@@ -21,9 +21,9 @@ Warnings: —
 [fondazione_crt]
 Source: Fondazione CRT
 HTTP: OK
-Raw: 18
-Parsed: 18
-Current: 14
+Raw: 15
+Parsed: 15
+Current: 11
 Archive: 4
 Warnings: —
 

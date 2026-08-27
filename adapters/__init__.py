@@ -19,6 +19,13 @@ from .fondazione_cr_firenze import FondazioneCrFirenzeAdapter
 from .fondazione_crc import FondazioneCrcAdapter
 from .fondazione_sardegna import FondazioneSardegnaAdapter
 from .fondazione_friuli import FondazioneFriuliAdapter
+from .ministero_lavoro_terzo_settore import MinisteroLavoroTerzoSettoreAdapter
+from .aics import AicsAdapter
+from .european_youth_foundation import EuropeanYouthFoundationAdapter
+from .erasmus_inapp import ErasmusInappAdapter
+from .fondazione_cariparma import FondazioneCariparmaAdapter
+from .fondazione_modena import FondazioneModenaAdapter
+from .fondazione_carisbo import FondazioneCarisboAdapter
 
 __all__ = [
     "PariOpportunitaAdapter", "DipendenzeAdapter", "FamiAdapter", "PnScuolaAdapter",
@@ -26,4 +33,6 @@ __all__ = [
     "FondazioneCariploAdapter", "FondazioneConIlSudAdapter", "FondazioneCrtAdapter",
     "FondazioneCrFirenzeAdapter", "FondazioneCrcAdapter", "FondazioneSardegnaAdapter",
     "FondazioneFriuliAdapter",
+    "MinisteroLavoroTerzoSettoreAdapter", "AicsAdapter", "EuropeanYouthFoundationAdapter",
+    "ErasmusInappAdapter", "FondazioneCariparmaAdapter", "FondazioneModenaAdapter", "FondazioneCarisboAdapter",
 ]

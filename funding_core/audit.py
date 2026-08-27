@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -70,6 +71,30 @@ V031A_BASELINE_COUNTS: dict[str, dict[str, int]] = {
     "fami": {"raw": 18, "parsed": 18, "current": 3, "archive": 15},
     "fondazione_crt": {"raw": 1, "parsed": 1, "current": 1, "archive": 0},
     "dipendenze": {"raw": 0, "parsed": 0, "current": 0, "archive": 0},
+}
+
+# v0.4 is intentionally limited to the seven selective additions named in
+# the release prompt.  Keep the reporting scope explicit so the existing v0.2
+#/v0.3 audit files remain historical and the new gate cannot silently absorb
+# unrelated sources.
+V04_SOURCE_IDS = (
+    "ministero_lavoro_terzo_settore",
+    "aics",
+    "european_youth_foundation",
+    "erasmus_inapp",
+    "fondazione_cariparma",
+    "fondazione_modena",
+    "fondazione_carisbo",
+)
+
+V04_METHODS: dict[str, str] = {
+    "ministero_lavoro_terzo_settore": "official MLPS Third Sector annual HTML blocks",
+    "aics": "official AICS non-profit transparency table",
+    "european_youth_foundation": "official Council of Europe EYF calls page",
+    "erasmus_inapp": "official Erasmus+ INAPP deadline table",
+    "fondazione_cariparma": "official Bandi 2026 listing + bounded detail enrichment",
+    "fondazione_modena": "official current and archive listings",
+    "fondazione_carisbo": "official WordPress REST bando announcements + bounded detail enrichment",
 }
 
 
@@ -958,6 +983,259 @@ def write_v031_reports(current: dict[str, Any], archive: dict[str, Any], output_
     }
 
 
+def _v04_items_by_source(snapshot: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for item in snapshot.get("opportunities", []):
+        if not isinstance(item, dict):
+            continue
+        source_id = str(item.get("sourceId") or "")
+        if source_id:
+            grouped.setdefault(source_id, []).append(item)
+    return grouped
+
+
+def _v04_structural_readiness(
+    source_id: str,
+    technical_status: str,
+    parsed: int,
+    current_items: list[dict[str, Any]],
+    archive_items: list[dict[str, Any]],
+) -> tuple[str, str]:
+    """Apply a small source-specific sanity check for the seven v0.4 feeds."""
+    if technical_status != "LIVE":
+        return "NOT READY", f"technical status {technical_status}"
+    if parsed <= 0:
+        return "NOT READY", "live response parsed no opportunity"
+    combined = current_items + archive_items
+    titles = [str(item.get("title") or "") for item in combined]
+    urls = [str(item.get("officialUrl") or "") for item in combined]
+    deadlines = [item.get("deadline") for item in combined]
+    if source_id == "ministero_lavoro_terzo_settore":
+        ok = any("avviso" in title.casefold() for title in titles) and all("lavoro.gov.it" in url for url in urls)
+        if not ok:
+            return "PARTIAL", "official MLPS URL or annual Avviso title not evidenced"
+        if not any(deadlines):
+            return "PARTIAL", "annual listing parsed but no application deadline exposed"
+    elif source_id == "aics":
+        procurement = [title for title in titles if re.search(r"\b(?:gara|gare|contratt|affidament|fornitura)\b", title, re.IGNORECASE)]
+        if procurement:
+            return "NOT READY", f"procurement contamination: {', '.join(procurement[:2])}"
+        if not any("aics.gov.it" in url for url in urls):
+            return "PARTIAL", "official AICS listing URL not evidenced"
+    elif source_id == "european_youth_foundation":
+        coded = [title for title in titles if re.search(r"\(20\d{2}\.C\d+(?:\.[A-Z])?\)", title)]
+        statuses = {str(item.get("status") or "") for item in combined}
+        if not coded or not statuses.intersection({"OPEN", "UPCOMING", "CLOSED"}):
+            return "PARTIAL", "EYF call code/status structure not evidenced"
+    elif source_id == "erasmus_inapp":
+        if not any("formazione professionale" in title.casefold() for title in titles):
+            return "PARTIAL", "INAPP Formazione professionale rows not evidenced"
+        if not any("erasmusplus.it" in url for url in urls):
+            return "PARTIAL", "official Erasmus+ URL not evidenced"
+    elif source_id == "fondazione_cariparma":
+        if not all("fondazionecrp.it" in url for url in urls):
+            return "PARTIAL", "one or more records lack the official Cariparma domain"
+        if not any(item.get("deadline") for item in combined):
+            return "PARTIAL", "detail pages did not expose a deadline in this run"
+    elif source_id == "fondazione_modena":
+        if not current_items or not archive_items:
+            return "PARTIAL", "current and archive listing split not both evidenced"
+        if not all(str(item.get("status") or "") in {"OPEN", "CLOSED", "UPCOMING"} for item in combined):
+            return "PARTIAL", "listing lifecycle status not normalized"
+    elif source_id == "fondazione_carisbo":
+        if not all("fondazionecarisbo.it" in url for url in urls):
+            return "PARTIAL", "one or more records lack the official Carisbo domain"
+        if not any(item.get("deadline") for item in combined):
+            return "PARTIAL", "Carisbo detail/listing deadline not evidenced"
+    return "READY", "source-specific listing/detail sanity check passed"
+
+
+def _v04_source_rows(current: dict[str, Any], archive: dict[str, Any]) -> list[dict[str, Any]]:
+    source_index = {
+        str(row.get("sourceId")): row
+        for row in current.get("sources", [])
+        if isinstance(row, dict)
+    }
+    current_by_source = _v04_items_by_source(current)
+    archive_by_source = _v04_items_by_source(archive)
+    rows: list[dict[str, Any]] = []
+    for source_id in V04_SOURCE_IDS:
+        source = source_index.get(source_id, {})
+        technical_status = str(source.get("status") or "NOT VALIDATED")
+        parsed = int(source.get("parsedRecords") or 0)
+        current_items = current_by_source.get(source_id, [])
+        archive_items = archive_by_source.get(source_id, [])
+        readiness, note = _v04_structural_readiness(
+            source_id, technical_status, parsed, current_items, archive_items,
+        )
+        warnings = [str(value) for value in (source.get("warnings") or [])]
+        if warnings:
+            note = "; ".join([note, *warnings])
+        rows.append({
+            "sourceId": source_id,
+            "label": source.get("label") or source_id,
+            "technicalStatus": technical_status,
+            "readiness": readiness,
+            "method": V04_METHODS[source_id],
+            "raw": int(source.get("fetchedRecords") or 0),
+            "parsed": parsed,
+            "current": int(source.get("currentRecords") if source.get("currentRecords") is not None else len(current_items) or 0),
+            "archive": int(source.get("archiveRecords") if source.get("archiveRecords") is not None else len(archive_items) or 0),
+            "unique": int(source.get("uniqueRecords", source.get("publishedRecords") or 0) or 0),
+            "duplicates": int(source.get("duplicatesCollapsed") or 0),
+            # These IDs did not exist in the v0.3.1a baseline, so the v0.4
+            # incremental view reports their complete current/archive yield
+            # even when the snapshot command is re-run with the just-built
+            # v0.4 files as its previous input.
+            "newCurrent": len(current_items),
+            "newArchive": len(archive_items),
+            "warnings": warnings,
+            "note": note,
+        })
+    return rows
+
+
+def _v04_crt_checks(current: dict[str, Any], archive: dict[str, Any]) -> list[tuple[str, bool, str]]:
+    combined = [
+        item
+        for snapshot in (current, archive)
+        for item in snapshot.get("opportunities", [])
+        if isinstance(item, dict) and item.get("sourceId") == "fondazione_crt"
+    ]
+
+    def find(predicate):
+        return next((item for item in combined if predicate(str(item.get("title") or "").casefold())), None)
+
+    notesipari = find(lambda title: "notesipari" in title)
+    ordinarie = find(lambda title: "ordinarie" in title and "welfare" in title)
+    piccoli = find(lambda title: "piccoli comuni" in title)
+    legami = find(lambda title: "in comune" in title and "leg" in title)
+    missione = find(lambda title: "missione soccorso" in title)
+    culture = find(lambda title: "culture of solidarity" in title)
+    projects = [
+        item for item in combined
+        if any(token in str(item.get("title") or "").casefold() for token in ("mezzi protezione", "donoscuola", "progetto lagrange"))
+    ]
+    return [
+        ("CRT NoteSipari is OPEN", bool(notesipari and notesipari.get("status") == "OPEN"), str((notesipari or {}).get("status") or "missing")),
+        ("CRT Ordinarie second future window is OPEN", bool(ordinarie and ordinarie.get("status") == "OPEN" and ordinarie.get("deadline") == "2026-10-15"), str((ordinarie or {}).get("deadline") or "missing")),
+        ("CRT Piccoli Comuni is UPCOMING", bool(piccoli and piccoli.get("status") == "UPCOMING"), str((piccoli or {}).get("status") or "missing")),
+        ("CRT Legàmi in Comune is UPCOMING", bool(legami and legami.get("status") == "UPCOMING"), str((legami or {}).get("status") or "missing")),
+        ("CRT Missione Soccorso is CLOSED", bool(missione and missione.get("status") == "CLOSED"), str((missione or {}).get("status") or "missing")),
+        ("CRT Culture of Solidarity Fund is CLOSED", bool(culture and culture.get("status") == "CLOSED"), str((culture or {}).get("status") or "missing")),
+        ("CRT historical/project false positives absent", not projects, f"{len(projects)} known false-positive cards"),
+    ]
+
+
+def write_v04_reports(current: dict[str, Any], archive: dict[str, Any], output_dir: str | Path) -> dict[str, Path]:
+    """Write the canonical v0.4 selective-source evidence files."""
+    directory = Path(output_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    rows = _v04_source_rows(current, archive)
+    checks = _v04_crt_checks(current, archive)
+    row_index = {row["sourceId"]: row for row in rows}
+    ready_count = sum(row["readiness"] == "READY" for row in rows)
+    partial_count = sum(row["readiness"] == "PARTIAL" for row in rows)
+    not_ready_count = len(rows) - ready_count - partial_count
+    gate = all(ok for _, ok, _ in checks) and (ready_count >= 6 or (ready_count >= 5 and partial_count >= 2))
+
+    crt_source = next((row for row in current.get("sources", []) if row.get("sourceId") == "fondazione_crt"), {})
+    crt_after = (
+        int(crt_source.get("fetchedRecords") or 0),
+        int(crt_source.get("parsedRecords") or 0),
+        int(crt_source.get("currentRecords") or 0),
+        int(crt_source.get("archiveRecords") or 0),
+    )
+    dip = next((row for row in current.get("sources", []) if row.get("sourceId") == "dipendenze"), {})
+    dip_status = str(dip.get("status") or "NOT VALIDATED")
+    dip_warnings = "; ".join(str(value) for value in (dip.get("warnings") or [])) or "nessun warning"
+
+    report_lines = [
+        "# Funding Intelligence for Psychology v0.4 — report finale",
+        "",
+        "## PRE-FLIGHT",
+        "",
+        f"CRT: before {V031A_BASELINE_COUNTS['fondazione_crt']['raw']}/{V031A_BASELINE_COUNTS['fondazione_crt']['parsed']}/{V031A_BASELINE_COUNTS['fondazione_crt']['current']}/{V031A_BASELINE_COUNTS['fondazione_crt']['archive']} → after {crt_after[0]}/{crt_after[1]}/{crt_after[2]}/{crt_after[3]} (raw/parsed/current/archive).",
+        f"CRT status: **{'PASS' if all(ok for label, ok, _ in checks if label.startswith('CRT ')) else 'NOT PASSED'}** — badge ufficiale, apertura futura, finestre multiple e storici/progetti verificati.",
+        f"Dipendenze: validation **{dip_status}**; status: **{'NOT READY' if dip_status in {'ERROR', 'STALE'} else dip_status}** — {dip_warnings}.",
+        "",
+        "## NEW SOURCES",
+        "",
+        "| Source | Readiness | Method | Current | Archive | Unique | Notes |",
+        "|---|---|---|---:|---:|---:|---|",
+    ]
+    for row in rows:
+        report_lines.append(
+            f"| {row['label']} (`{row['sourceId']}`) | **{row['readiness']}** | {row['method']} | "
+            f"{row['current']} | {row['archive']} | {row['unique']} | {row['note'] or '—'} |"
+        )
+    report_lines.extend([
+        "",
+        "## INCREMENTAL COVERAGE",
+        "",
+        f"new current: **{sum(row['newCurrent'] for row in rows)}**",
+        "",
+        f"new archive: **{sum(row['newArchive'] for row in rows)}**",
+        "",
+        f"duplicates collapsed: **{sum(row['duplicates'] for row in rows)}**",
+        "",
+        "## TESTS",
+        "",
+        "targeted adapters + CRT preflight: see release execution output.",
+        "full Python: see release execution output.",
+        "frontend: see release execution output when the existing environment is available.",
+        "snapshot: generated successfully by `populate-snapshot`.",
+        "",
+        "## KNOWN LIMITATIONS",
+        "",
+        "Dipendenze resta NOT READY se l'endpoint ufficiale risponde HTTP 503. Le pagine Cariparma/Carisbo sono arricchite solo entro un limite di detail fetch; date o territori non esposti restano NULL. EYF può richiedere la registrazione preventiva dell'organizzazione. I calendari INAPP espongono scadenze, non un esito di ammissibilità.",
+        "",
+        "## STOPPING RULE",
+        "",
+        f"**{'PASSED' if gate else 'NOT PASSED'}** — {ready_count} READY / {partial_count} PARTIAL / {not_ready_count} NOT READY; CRT preflight {'passa' if all(ok for _, ok, _ in checks) else 'non passa'}.",
+        "",
+    ])
+    report_path = directory / "v0.4-final-report.md"
+    report_path.write_text("\n".join(report_lines), encoding="utf-8")
+
+    validation_lines = ["# v0.4 live validation — seven new sources", ""]
+    for row in rows:
+        validation_lines.extend([
+            f"[{row['sourceId']}]",
+            f"Source: {row['label']}",
+            f"HTTP: {'OK' if row['technicalStatus'] == 'LIVE' else row['technicalStatus']}",
+            f"Raw: {row['raw']}",
+            f"Parsed: {row['parsed']}",
+            f"Current: {row['current']}",
+            f"Archive: {row['archive']}",
+            f"Unique: {row['unique']}",
+            f"Duplicates: {row['duplicates']}",
+            f"Readiness: {row['readiness']}",
+            f"Warnings: {' | '.join(row['warnings']) if row['warnings'] else '—'}",
+            "",
+        ])
+    validation_path = directory / "v0.4-live-validation.txt"
+    validation_path.write_text("\n".join(validation_lines), encoding="utf-8")
+
+    coverage_path = directory / "v0.4-incremental-coverage.json"
+    coverage_path.write_text(json.dumps({
+        "version": "0.4",
+        "newCurrent": sum(row["newCurrent"] for row in rows),
+        "newArchive": sum(row["newArchive"] for row in rows),
+        "duplicatesCollapsed": sum(row["duplicates"] for row in rows),
+        "readiness": {"ready": ready_count, "partial": partial_count, "notReady": not_ready_count},
+        "sources": rows,
+        "crtPreflight": [{"check": label, "passed": ok, "evidence": evidence} for label, ok, evidence in checks],
+        "dipendenze": {"status": dip_status, "warnings": dip.get("warnings") or []},
+        "stoppingRule": gate,
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {
+        "v04FinalReport": report_path,
+        "v04LiveValidation": validation_path,
+        "v04IncrementalCoverage": coverage_path,
+    }
+
+
 def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output_dir: str | Path) -> dict[str, Path]:
     directory = Path(output_dir)
     directory.mkdir(parents=True, exist_ok=True)
@@ -1059,6 +1337,7 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
     v03 = write_v03_reports(current, archive, directory)
     v031 = write_v031_reports(current, archive, directory)
     v031a = write_v031a_reports(current, archive, directory)
+    v04 = write_v04_reports(current, archive, directory)
     return {
         "highRelevanceCsv": high_relevance_csv,
         "precisionAuditCsv": precision_csv,
@@ -1071,4 +1350,5 @@ def write_audit_reports(current: dict[str, Any], archive: dict[str, Any], output
         **v03,
         **v031,
         **v031a,
+        **v04,
     }

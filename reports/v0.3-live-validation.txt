@@ -65,9 +65,9 @@ Warning: —
 
 [fondazione_crt]
 HTTP: OK
-Found: 18
-Parsed: 18
-Current: 14
+Found: 15
+Parsed: 15
+Current: 11
 Warning: —
 
 [fondazione_cr_firenze]
