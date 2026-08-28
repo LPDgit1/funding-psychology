@@ -1347,8 +1347,12 @@ def _v05_source_rows(current: dict[str, Any], archive: dict[str, Any]) -> list[d
             "archive": int(source.get("archiveRecords") if source.get("archiveRecords") is not None else len(archive_items)),
             "unique": int(source.get("uniqueRecords", source.get("publishedRecords") or 0) or 0),
             "duplicates": int(source.get("duplicatesCollapsed") or 0),
-            "newCurrent": int(source.get("newCurrent") if source.get("newCurrent") is not None else len(current_items)),
-            "newArchive": int(source.get("newArchive") if source.get("newArchive") is not None else len(archive_items)),
+            # The seven v0.5 source IDs did not exist in the v0.4 baseline.
+            # Report their complete current/archive coverage even when a
+            # later validation reruns against an already-populated v0.5
+            # snapshot (whose per-run delta would otherwise be zero).
+            "newCurrent": len(current_items),
+            "newArchive": len(archive_items),
             "warnings": warnings,
             "note": note,
         })

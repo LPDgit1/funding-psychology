@@ -74,5 +74,6 @@ La classificazione espone `Alta/Media/Bassa` e resta euristica: non decide l'amm
 Il report canonico della release v0.4 è [`reports/v0.4-final-report.md`](reports/v0.4-final-report.md), con validazione live in [`reports/v0.4-live-validation.txt`](reports/v0.4-live-validation.txt) e copertura incrementale in [`reports/v0.4-incremental-coverage.json`](reports/v0.4-incremental-coverage.json).
 
 Il report canonico della release v0.5 è [`reports/v0.5-final-report.md`](reports/v0.5-final-report.md), con validazione live in [`reports/v0.5-live-validation.txt`](reports/v0.5-live-validation.txt) e copertura incrementale in [`reports/v0.5-incremental-coverage.json`](reports/v0.5-incremental-coverage.json).
+L'esecuzione riproducibile di test e snapshot è annotata in [`reports/v0.5-execution-log.md`](reports/v0.5-execution-log.md).
 
 Vedi `docs/SOURCES.md` per lo stato puntuale delle fonti e `docs/ADDING_SOURCE.md` per il contratto minimo di un adapter.

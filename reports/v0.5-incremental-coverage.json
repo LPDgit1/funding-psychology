@@ -1,7 +1,7 @@
 {
   "version": "0.5",
-  "newCurrent": 0,
-  "newArchive": 0,
+  "newCurrent": 7,
+  "newArchive": 215,
   "duplicatesCollapsed": 0,
   "readiness": {
     "ready": 6,
@@ -38,8 +38,8 @@
       "archive": 7,
       "unique": 9,
       "duplicates": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
+      "newCurrent": 2,
+      "newArchive": 7,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     },
@@ -56,7 +56,7 @@
       "unique": 8,
       "duplicates": 0,
       "newCurrent": 0,
-      "newArchive": 0,
+      "newArchive": 8,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     },
@@ -72,8 +72,8 @@
       "archive": 10,
       "unique": 12,
       "duplicates": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
+      "newCurrent": 2,
+      "newArchive": 10,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     },
@@ -89,8 +89,8 @@
       "archive": 97,
       "unique": 99,
       "duplicates": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
+      "newCurrent": 2,
+      "newArchive": 97,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     },
@@ -107,7 +107,7 @@
       "unique": 73,
       "duplicates": 0,
       "newCurrent": 0,
-      "newArchive": 0,
+      "newArchive": 73,
       "warnings": [
         "all deadlines are missing"
       ],
@@ -125,8 +125,8 @@
       "archive": 20,
       "unique": 21,
       "duplicates": 0,
-      "newCurrent": 0,
-      "newArchive": 0,
+      "newCurrent": 1,
+      "newArchive": 20,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     }
