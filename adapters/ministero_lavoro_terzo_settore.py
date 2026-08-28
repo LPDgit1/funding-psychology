@@ -21,13 +21,24 @@ class MinisteroLavoroTerzoSettoreAdapter:
 
     source_id = "ministero_lavoro_terzo_settore"
     page_url = "https://www.lavoro.gov.it/temi-e-priorita/terzo-settore-e-responsabilita-sociale-imprese/focus-on/volontariato/pagine/fondo-assistenza-bambini-affetti-da-malattia-oncologica"
+    # The Ministry maintains a separate official entry point for the annual
+    # art. 72/73 CTS fund.  It is intentionally listed explicitly rather than
+    # discovered through a broad site crawl.
+    secondary_page_url = "https://lavoro.gov.it/temi-e-priorita/terzo-settore-e-responsabilita-sociale-delle-imprese/focus/riforma-terzo-settore/pagine/avviso-2-2025"
     source_label = "Ministero del Lavoro – Terzo Settore"
     funder = "Ministero del Lavoro e delle Politiche Sociali"
     programme = "Fondo per l'assistenza dei bambini affetti da malattia oncologica"
     max_bytes = 3_000_000
+    _combined_marker = "\n<!-- FUNDING-INTELLIGENCE-MLPS-ART72 -->\n"
 
     def fetch(self, policy: FetchPolicy | None = None) -> bytes:
-        return fetch_bytes(self.page_url, policy or FetchPolicy(max_bytes=self.max_bytes), label=self.source_label)
+        policy = policy or FetchPolicy(max_bytes=self.max_bytes)
+        oncology = fetch_bytes(self.page_url, policy, label=self.source_label)
+        art72 = fetch_bytes(self.secondary_page_url, policy, label=f"{self.source_label} art.72/73")
+        combined = oncology + self._combined_marker.encode("utf-8") + art72
+        if len(combined) > policy.max_bytes:
+            raise ValueError(f"{self.source_label} combined response exceeds size limit")
+        return combined
 
     @staticmethod
     def _annual_blocks(text: str) -> list[tuple[int, str]]:
@@ -38,8 +49,7 @@ class MinisteroLavoroTerzoSettoreAdapter:
             blocks.append((int(match.group(1)), text[match.end():end]))
         return blocks
 
-    def parse(self, raw: bytes | str) -> list[SourceRecord]:
-        text = page_text(raw)
+    def _parse_oncology(self, text: str) -> list[SourceRecord]:
         records: list[SourceRecord] = []
         for year, block in self._annual_blocks(text):
             call = re.search(r"\bAvviso\s+(\d+)\s*/\s*(20\d{2})\b", block, re.IGNORECASE)
@@ -88,4 +98,57 @@ class MinisteroLavoroTerzoSettoreAdapter:
                 description=compact(f"{self.source_label}: Avviso {call.group(1)}/{call_year}. {block}"),
                 source_status="OPEN" if deadline and deadline >= date.today() else "CLOSED" if deadline else "UNKNOWN",
             ))
+        return records
+
+    def _parse_art72(self, text: str) -> list[SourceRecord]:
+        """Parse the canonical Avviso entry without turning its updates into records."""
+        call = re.search(r"\bAvviso\s+n?\.??\s*(\d+)\s*/\s*(20\d{2})\b", text, re.IGNORECASE)
+        if not call or not re.search(r"art(?:icolo|icoli|\.)\s*72|art(?:icolo|icoli|\.)\s*73", text, re.IGNORECASE):
+            return []
+        year = int(call.group(2))
+        # Keep the first canonical submission window.  Later “riapertura”,
+        # commission, graduatoria and rendicontazione paragraphs are updates,
+        # not additional opportunities.
+        window = re.search(
+            r"(?:Periodo\s+di\s+apertura|Modalit[aà]\s+e\s+termini\s+domanda).*?(?=Data\s+di\s+scadenza|Focus\s+Modello|$)",
+            text,
+            re.IGNORECASE | re.DOTALL,
+        )
+        window_text = window.group(0) if window else text[:5000]
+        dates = dates_in(window_text, default_year=year)
+        opening = dates[0] if dates else None
+        deadline = dates[1] if len(dates) > 1 else (dates[-1] if dates else None)
+        amount = extract_money(text)
+        entities = (
+            "Organizzazioni di volontariato (ODV) iscritte al RUNTS",
+            "Associazioni di promozione sociale (APS) iscritte al RUNTS",
+            "Fondazioni del Terzo settore",
+            "Reti associative ai sensi dell'art. 41 CTS",
+        )
+        return [SourceRecord(
+            external_id=f"art72-avviso-{call.group(1)}-{year}",
+            title=f"Fondo iniziative e progetti di interesse generale nel Terzo settore — Avviso {call.group(1)}/{year}",
+            official_url=self.secondary_page_url,
+            funder=self.funder,
+            programme="Fondo art. 72-73 CTS per iniziative e progetti di interesse generale",
+            opening_date=opening,
+            deadline=deadline,
+            total_budget=amount,
+            eligible_entities=entities,
+            description=compact(f"{self.source_label}: Avviso {call.group(1)}/{year} per il finanziamento di iniziative e progetti di rilevanza nazionale ai sensi degli artt. 72 e 73 CTS. {window_text}"),
+            source_status="OPEN" if deadline and deadline >= date.today() else "CLOSED" if deadline else "UNKNOWN",
+        )]
+
+    def parse(self, raw: bytes | str) -> list[SourceRecord]:
+        # Split the transport payload before extracting text: the combined
+        # marker is an HTML comment and is intentionally omitted by
+        # ``page_text``.
+        if isinstance(raw, bytes):
+            raw_parts = raw.split(self._combined_marker.encode("utf-8"))
+        else:
+            raw_parts = raw.split(self._combined_marker)
+        parts = [page_text(part) for part in raw_parts]
+        records = self._parse_oncology(parts[0])
+        if len(parts) > 1:
+            records.extend(self._parse_art72(parts[1]))
         return records

@@ -11,11 +11,11 @@
     "fondazione_cr_firenze"
   ],
   "readiness": {
-    "ready": 12,
+    "ready": 8,
     "partial": 1,
-    "notReady": 1
+    "notReady": 5
   },
-  "newCurrent": 0,
+  "newCurrent": 1,
   "newArchive": 0,
   "duplicatesCollapsed": 0,
   "sources": [
@@ -182,13 +182,13 @@
       "status": "LIVE",
       "readiness": "READY",
       "method": "official In corso listing + application-evidence filter",
-      "raw": 15,
-      "parsed": 15,
+      "raw": 16,
+      "parsed": 16,
       "current": 11,
-      "archive": 4,
-      "unique": 15,
+      "archive": 5,
+      "unique": 16,
       "duplicates": 0,
-      "newCurrent": 0,
+      "newCurrent": 1,
       "newArchive": 0,
       "warnings": [],
       "note": "Bando Unito retained; project/program cards rejected without application evidence"
@@ -196,69 +196,77 @@
     {
       "sourceId": "fondazione_cr_firenze",
       "label": "Fondazione CR Firenze",
-      "status": "LIVE",
-      "readiness": "READY",
+      "status": "STALE",
+      "readiness": "NOT READY",
       "method": "official /bandi/ listing (non-thematic)",
-      "raw": 11,
-      "parsed": 11,
+      "raw": 0,
+      "parsed": 0,
       "current": 2,
       "archive": 9,
       "unique": 11,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [],
+      "warnings": [
+        "fondazione_cr_firenze: The read operation timed out; preserved 11 previous records"
+      ],
       "note": "Grandi Attrezzature is acquired as a real call despite low thematic relevance"
     },
     {
       "sourceId": "fondazione_crc",
       "label": "Fondazione CRC",
-      "status": "LIVE",
-      "readiness": "READY",
+      "status": "STALE",
+      "readiness": "NOT READY",
       "method": "official Bandi aperti cards + detail enrichment",
-      "raw": 4,
-      "parsed": 4,
+      "raw": 0,
+      "parsed": 0,
       "current": 4,
       "archive": 0,
       "unique": 4,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [],
+      "warnings": [
+        "fondazione_crc: connection failed for Fondazione CRC: [Errno 11001] getaddrinfo failed; preserved 4 previous records"
+      ],
       "note": "current Bandi aperti cards kept; deliberati/projects/events/news/esiti excluded"
     },
     {
       "sourceId": "fondazione_sardegna",
       "label": "Fondazione di Sardegna",
-      "status": "LIVE",
-      "readiness": "READY",
+      "status": "STALE",
+      "readiness": "NOT READY",
       "method": "official sector listing + official 2026 PDF deadline",
-      "raw": 4,
-      "parsed": 4,
+      "raw": 0,
+      "parsed": 0,
       "current": 0,
       "archive": 4,
       "unique": 4,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [],
+      "warnings": [
+        "fondazione_sardegna: connection failed for Fondazione di Sardegna: [Errno 11001] getaddrinfo failed; preserved 4 previous records"
+      ],
       "note": "annual 2026 titles use the real 5 December 2025 ROL deadline from official PDFs"
     },
     {
       "sourceId": "fondazione_friuli",
       "label": "Fondazione Friuli",
-      "status": "LIVE",
-      "readiness": "READY",
+      "status": "STALE",
+      "readiness": "NOT READY",
       "method": "existing v0.3 live adapter",
-      "raw": 3,
-      "parsed": 3,
+      "raw": 0,
+      "parsed": 0,
       "current": 1,
       "archive": 2,
       "unique": 3,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [],
+      "warnings": [
+        "fondazione_friuli: connection failed for Fondazione Friuli: [Errno 11001] getaddrinfo failed; preserved 3 previous records"
+      ],
       "note": ""
     }
   ],

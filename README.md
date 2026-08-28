@@ -1,4 +1,4 @@
-# Funding Intelligence for Psychology v0.4
+# Funding Intelligence for Psychology v0.5
 
 Motore locale-first di ricerca per finanziamenti destinati a progetti psicologici, con snapshot verificabile e fonti ufficiali in evidenza.
 
@@ -17,6 +17,7 @@ Motore locale-first di ricerca per finanziamenti destinati a progetti psicologic
 - v0.3 aggiunge 14 adapter dedicati per fonti istituzionali e fondazioni, con filtri source-specific per bandi, avvisi, calendari EARLY e standing opportunity.
 - v0.3.1a completa l'hardening degli adapter prioritari: FAMI arricchisce le deadline delle pagine pubblicate e l'archivio storico, CRT usa l'archivio paginato e le pagine dettaglio per distinguere bandi e progetti e Dipendenze mantiene una revalidazione live esplicita.
 - v0.4 aggiunge sette adapter dedicati (Terzo Settore MLPS, AICS, European Youth Foundation, Erasmus+ INAPP, Fondazione Cariparma, Fondazione di Modena e Fondazione Carisbo) con fixture, test, validazione live e snapshot current/archive; il preflight CRT privilegia i badge ufficiali `In arrivo`/`In corso`/`Risultati`.
+- v0.5 aggiunge esattamente sette adapter dedicati per ricerca e welfare (Ministero della Salute Ricerca Finalizzata, MUR PRIN, INAIL BRIC, Fondazione del Monte, Fondazione CR Lucca, Fondazione Carispezia e Fondazione MPS), con fixture, test, validazione live e snapshot current/archive; il preflight conserva le precedenze CRT, amplia MLPS ad art. 72/73 CTS e verifica la codifica AICS.
 - Ogni nuova fonte conserva status `UNKNOWN`/`UPCOMING` e campi mancanti quando il sito ufficiale non espone una data o un territorio verificabile; non vengono trasformati news, esiti o progetti finanziati in candidature.
 - La validazione live v0.3 e il rendimento `raw/current/unique/duplicates` sono registrati nei report sotto `reports/`.
 - L'adapter Regione Veneto usa l'elenco ufficiale `Public/Elenco?Tipo=1` e non il blocco homepage limitato alle dieci card; il dettaglio viene consultato solo quando serve.
@@ -64,12 +65,14 @@ python -m funding_core.cli populate-snapshot `
   --audit-dir reports
 ```
 
-Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/precision-audit.csv`, `reports/precision-audit.md`, `reports/adapter-status.csv`, `reports/known-relevant-opportunities.json`, `reports/dataset-audit.json`, `reports/search-quality.md`, `reports/final-report.md` e i report di release v0.3.1a/v0.4, senza conteggi di test hardcoded.
+Il comando usa automaticamente lo snapshot precedente come fallback. Produce anche `reports/precision-audit.csv`, `reports/precision-audit.md`, `reports/adapter-status.csv`, `reports/known-relevant-opportunities.json`, `reports/dataset-audit.json`, `reports/search-quality.md`, `reports/final-report.md` e i report di release v0.3.1a/v0.4/v0.5, senza conteggi di test hardcoded.
 
 Il report canonico corrente della release v0.3.1a è [`reports/v0.3.1a-final-report.md`](reports/v0.3.1a-final-report.md), con evidenza live in [`reports/v0.3.1a-live-validation.txt`](reports/v0.3.1a-live-validation.txt) e dettaglio incrementale in [`reports/v0.3.1a-incremental-coverage.json`](reports/v0.3.1a-incremental-coverage.json). I report [`reports/v0.3.1-final-report.md`](reports/v0.3.1-final-report.md) e [`reports/v0.3-source-report.md`](reports/v0.3-source-report.md) restano come storico.
 
 La classificazione espone `Alta/Media/Bassa` e resta euristica: non decide l'ammissibilità. Date, importi e destinatari mancanti restano esplicitamente non indicati.
 
 Il report canonico della release v0.4 è [`reports/v0.4-final-report.md`](reports/v0.4-final-report.md), con validazione live in [`reports/v0.4-live-validation.txt`](reports/v0.4-live-validation.txt) e copertura incrementale in [`reports/v0.4-incremental-coverage.json`](reports/v0.4-incremental-coverage.json).
+
+Il report canonico della release v0.5 è [`reports/v0.5-final-report.md`](reports/v0.5-final-report.md), con validazione live in [`reports/v0.5-live-validation.txt`](reports/v0.5-live-validation.txt) e copertura incrementale in [`reports/v0.5-incremental-coverage.json`](reports/v0.5-incremental-coverage.json).
 
 Vedi `docs/SOURCES.md` per lo stato puntuale delle fonti e `docs/ADDING_SOURCE.md` per il contratto minimo di un adapter.

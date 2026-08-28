@@ -6,9 +6,9 @@
     "dipendenze"
   ],
   "readiness": {
-    "ready": 12,
+    "ready": 8,
     "partial": 1,
-    "notReady": 1
+    "notReady": 5
   },
   "sources": [
     {
@@ -137,65 +137,73 @@
       "label": "Fondazione CRT",
       "technicalStatus": "LIVE",
       "readiness": "READY",
-      "raw": 15,
-      "parsed": 15,
-      "published": 15,
+      "raw": 16,
+      "parsed": 16,
+      "published": 16,
       "current": 11,
-      "archive": 4,
+      "archive": 5,
       "warnings": [],
       "limitation": ""
     },
     {
       "sourceId": "fondazione_cr_firenze",
       "label": "Fondazione CR Firenze",
-      "technicalStatus": "LIVE",
-      "readiness": "READY",
-      "raw": 11,
-      "parsed": 11,
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "raw": 0,
+      "parsed": 0,
       "published": 11,
       "current": 2,
       "archive": 9,
-      "warnings": [],
-      "limitation": ""
+      "warnings": [
+        "fondazione_cr_firenze: The read operation timed out; preserved 11 previous records"
+      ],
+      "limitation": "fondazione_cr_firenze: The read operation timed out; preserved 11 previous records"
     },
     {
       "sourceId": "fondazione_crc",
       "label": "Fondazione CRC",
-      "technicalStatus": "LIVE",
-      "readiness": "READY",
-      "raw": 4,
-      "parsed": 4,
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "raw": 0,
+      "parsed": 0,
       "published": 4,
       "current": 4,
       "archive": 0,
-      "warnings": [],
-      "limitation": ""
+      "warnings": [
+        "fondazione_crc: connection failed for Fondazione CRC: [Errno 11001] getaddrinfo failed; preserved 4 previous records"
+      ],
+      "limitation": "fondazione_crc: connection failed for Fondazione CRC: [Errno 11001] getaddrinfo failed; preserved 4 previous records"
     },
     {
       "sourceId": "fondazione_sardegna",
       "label": "Fondazione di Sardegna",
-      "technicalStatus": "LIVE",
-      "readiness": "READY",
-      "raw": 4,
-      "parsed": 4,
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "raw": 0,
+      "parsed": 0,
       "published": 4,
       "current": 0,
       "archive": 4,
-      "warnings": [],
-      "limitation": ""
+      "warnings": [
+        "fondazione_sardegna: connection failed for Fondazione di Sardegna: [Errno 11001] getaddrinfo failed; preserved 4 previous records"
+      ],
+      "limitation": "fondazione_sardegna: connection failed for Fondazione di Sardegna: [Errno 11001] getaddrinfo failed; preserved 4 previous records"
     },
     {
       "sourceId": "fondazione_friuli",
       "label": "Fondazione Friuli",
-      "technicalStatus": "LIVE",
-      "readiness": "READY",
-      "raw": 3,
-      "parsed": 3,
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "raw": 0,
+      "parsed": 0,
       "published": 3,
       "current": 1,
       "archive": 2,
-      "warnings": [],
-      "limitation": ""
+      "warnings": [
+        "fondazione_friuli: connection failed for Fondazione Friuli: [Errno 11001] getaddrinfo failed; preserved 3 previous records"
+      ],
+      "limitation": "fondazione_friuli: connection failed for Fondazione Friuli: [Errno 11001] getaddrinfo failed; preserved 3 previous records"
     }
   ],
   "snapshotChecks": [

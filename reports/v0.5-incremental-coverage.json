@@ -1,0 +1,184 @@
+{
+  "version": "0.5",
+  "newCurrent": 0,
+  "newArchive": 0,
+  "duplicatesCollapsed": 0,
+  "readiness": {
+    "ready": 0,
+    "partial": 0,
+    "notReady": 7
+  },
+  "sources": [
+    {
+      "sourceId": "ministero_salute_ricerca_finalizzata",
+      "label": "Ministero della Salute – Ricerca Finalizzata",
+      "technicalStatus": "ERROR",
+      "readiness": "NOT READY",
+      "method": "official Ministero Salute Ricerca Finalizzata HTML entry",
+      "raw": 0,
+      "parsed": 0,
+      "current": 0,
+      "archive": 0,
+      "unique": 0,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records"
+      ],
+      "note": "technical status ERROR; ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records"
+    },
+    {
+      "sourceId": "mur_prin",
+      "label": "MUR – PRIN",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "method": "official MUR PRIN initiative catalogue HTML",
+      "raw": 0,
+      "parsed": 0,
+      "current": 2,
+      "archive": 7,
+      "unique": 9,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records"
+      ],
+      "note": "technical status STALE; mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records"
+    },
+    {
+      "sourceId": "inail_bric",
+      "label": "INAIL – Bandi BRIC",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "method": "official INAIL BRIC listing + bounded detail enrichment",
+      "raw": 0,
+      "parsed": 0,
+      "current": 0,
+      "archive": 8,
+      "unique": 8,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records"
+      ],
+      "note": "technical status STALE; inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records"
+    },
+    {
+      "sourceId": "fondazione_del_monte",
+      "label": "Fondazione del Monte di Bologna e Ravenna",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "method": "official Fondazione del Monte bandi listing + bounded detail enrichment",
+      "raw": 0,
+      "parsed": 0,
+      "current": 2,
+      "archive": 8,
+      "unique": 10,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records"
+      ],
+      "note": "technical status STALE; fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records"
+    },
+    {
+      "sourceId": "fondazione_cr_lucca",
+      "label": "Fondazione Cassa di Risparmio di Lucca",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "method": "official current/archive JSON-LD Grant graph",
+      "raw": 0,
+      "parsed": 0,
+      "current": 2,
+      "archive": 97,
+      "unique": 99,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records"
+      ],
+      "note": "technical status STALE; fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records"
+    },
+    {
+      "sourceId": "fondazione_carispezia",
+      "label": "Fondazione Carispezia",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "method": "official active/archive Bandi di erogazione cards",
+      "raw": 0,
+      "parsed": 0,
+      "current": 0,
+      "archive": 16,
+      "unique": 16,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records"
+      ],
+      "note": "technical status STALE; fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records"
+    },
+    {
+      "sourceId": "fondazione_mps",
+      "label": "Fondazione MPS",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
+      "method": "official contributi listing + bounded detail status/deadline enrichment",
+      "raw": 0,
+      "parsed": 0,
+      "current": 1,
+      "archive": 20,
+      "unique": 21,
+      "duplicates": 0,
+      "newCurrent": 0,
+      "newArchive": 0,
+      "warnings": [
+        "fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records"
+      ],
+      "note": "technical status STALE; fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records"
+    }
+  ],
+  "preflight": [
+    {
+      "check": "CRT Vivomeglio is CLOSED",
+      "passed": true,
+      "evidence": "CLOSED"
+    },
+    {
+      "check": "CRT BeST – Beni Senza Tempo is CLOSED",
+      "passed": false,
+      "evidence": "UNKNOWN"
+    },
+    {
+      "check": "CRT NoteSipari is OPEN",
+      "passed": false,
+      "evidence": "UNKNOWN"
+    },
+    {
+      "check": "CRT Ordinarie second future window is OPEN",
+      "passed": true,
+      "evidence": "2026-10-15"
+    },
+    {
+      "check": "CRT Legàmi in Comune before publication is UPCOMING",
+      "passed": true,
+      "evidence": "UPCOMING"
+    },
+    {
+      "check": "MLPS covers oncology and art. 72/73 CTS",
+      "passed": true,
+      "evidence": "8 records"
+    },
+    {
+      "check": "AICS encoding has no replacement characters",
+      "passed": true,
+      "evidence": "17 records; accented text preserved"
+    }
+  ],
+  "stoppingRule": false
+}

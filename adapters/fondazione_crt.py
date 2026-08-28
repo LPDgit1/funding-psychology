@@ -105,6 +105,17 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
         r"servizio\s+on\s*line|servizio\s+online|scadenz\w*|domand\w*\s+si\s+[eè]\s+chius\w*)\b",
         re.IGNORECASE,
     )
+    # Used only when the official badge says “In corso” but the detail does
+    # not expose a parseable application deadline.  A generic mention of a
+    # past deadline is not enough to keep a record OPEN; the page must expose
+    # an actual current application channel or an explicit open-submission
+    # statement.
+    _explicit_current_application_evidence = re.compile(
+        r"\b(?:servizio\s+on\s*line|servizio\s+online|presentazion\w*\s+(?:delle\s+)?domand\w*\s+(?:[eè]\s+)?(?:apert\w*|possibil\w*)|"
+        r"domand\w*\s+(?:apert\w*|possibil\w*)|candidatur\w*\s+(?:apert\w*|possibil\w*)|"
+        r"presentare\s+(?:la\s+)?domand\w*\s+entro)\b",
+        re.IGNORECASE,
+    )
 
     def _fetch_url(self, url: str, policy: FetchPolicy) -> bytes:
         request = Request(url, headers={"Accept": "text/html", "User-Agent": policy.user_agent})
@@ -368,8 +379,28 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
                 deadlines = self._detail_deadlines(detail_text)
                 future = [value for value in deadlines if value >= today]
                 deadline = (min(future) if future else max(deadlines)) if deadlines else fields.get("deadline") or record.deadline
-                status = badge_status or ("OPEN" if future else "CLOSED" if deadlines else str(fields.get("source_status") or record.source_status))
-                if status == "UNKNOWN":
+                # CRT's badge is authoritative only after applying the
+                # application-window precedence required by the source
+                # contract.  In particular, an “In corso” card with every
+                # application deadline in the past is CLOSED; an OPEN card
+                # without a deadline stays OPEN only when the detail exposes
+                # an explicit current application channel.
+                if badge_status == "CLOSED":
+                    status = "CLOSED"
+                elif badge_status == "UPCOMING":
+                    status = "UPCOMING"
+                elif badge_status == "OPEN":
+                    if future:
+                        status = "OPEN"
+                    elif deadlines:
+                        status = "CLOSED"
+                    elif self._explicit_current_application_evidence.search(detail_text):
+                        status = "OPEN"
+                    else:
+                        status = "UNKNOWN"
+                else:
+                    status = "OPEN" if future else "CLOSED" if deadlines else str(fields.get("source_status") or record.source_status)
+                if status == "UNKNOWN" and not badge_status:
                     status = record.source_status
                 description = str(detail_text or fields.get("description") or record.description)
                 enriched.append(replace(

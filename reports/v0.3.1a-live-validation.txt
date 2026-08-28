@@ -13,10 +13,10 @@ Warnings: —
 [fondazione_crt]
 Source: Fondazione CRT
 HTTP: LIVE
-Raw: 15
-Parsed: 15
+Raw: 16
+Parsed: 16
 Current: 11
-Archive: 4
+Archive: 5
 Readiness: READY
 Warnings: —
 

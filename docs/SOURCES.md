@@ -1,4 +1,4 @@
-# Fonti e contratti v0.4
+# Fonti e contratti v0.5
 
 Il dataset corrente separa le opportunità operative dall'elenco dei bandi scaduti. Conteggi, stati e avvisi sono generati a ogni sync nei report sotto `reports/` e non sono duplicati nella documentazione statica.
 
@@ -40,5 +40,12 @@ Il dataset corrente separa le opportunità operative dall'elenco dei bandi scadu
 | Fondazione Cariparma | `fondazione_cariparma` | Listing Bandi 2026 + dettaglio ufficiale | Fondazione | LIVE / v0.4 SNAPSHOT ACTIVE | Tutti i bandi del listing; dettaglio limitato e territorio solo quando esposto |
 | Fondazione di Modena | `fondazione_modena` | Listing Bandi + Bandi archiviati | Fondazione | LIVE / v0.4 SNAPSHOT ACTIVE | Current/archive distinti; importi e date del card ufficiale |
 | Fondazione Carisbo | `fondazione_carisbo` | REST WordPress ufficiale + dettaglio | Fondazione | LIVE / v0.4 SNAPSHOT ACTIVE | Annunci propri `Aperto/Prorogato il bando`; post esterni, esiti e domini dev esclusi |
+| Ministero della Salute – Ricerca Finalizzata | `MinisteroSaluteRicercaFinalizzataAdapter` (`ministero_salute_ricerca_finalizzata`) | Pagina HTML ufficiale Ricerca Finalizzata | Istituzionale | LIVE / v0.5 SNAPSHOT ACTIVE | Un record canonico per bando; destinatari istituzionali SSN preservati; challenge del sito non produce dati inventati |
+| MUR – PRIN | `MurPrinAdapter` (`mur_prin`) | Catalogo HTML ufficiale PRIN | Istituzionale | LIVE / v0.5 SNAPSHOT ACTIVE | Iniziative `/Iniziative/Detail` year-scoped; finestre PRIN 2026/Hybrid e archivio AFAM |
+| INAIL – Bandi BRIC | `InailBricAdapter` (`inail_bric`) | Listing HTML ufficiale + dettaglio bounded | Istituzionale | LIVE / v0.5 SNAPSHOT ACTIVE | Un record per anno BRIC; graduatorie, esiti e FAQ non sono record |
+| Fondazione del Monte | `FondazioneDelMonteAdapter` (`fondazione_del_monte`) | Listing ufficiale bandi + dettaglio bounded | Fondazione | LIVE / v0.5 SNAPSHOT ACTIVE | Bandi reali distinti da call for papers/progetti; prossime finestre ACCCADE/ECCCO mantenute UPCOMING |
+| Fondazione CR Lucca | `FondazioneCrLuccaAdapter` (`fondazione_cr_lucca`) | JSON-LD `Grant` current/archive | Fondazione | LIVE / v0.5 SNAPSHOT ACTIVE | Usa il grafo strutturato ufficiale; `SCADUTO PER ESAURIMENTO FONDI` prevale sulla scadenza |
+| Fondazione Carispezia | `FondazioneCarispeziaAdapter` (`fondazione_carispezia`) | Card HTML Bandi attivi/archivio | Fondazione | LIVE / v0.5 SNAPSHOT ACTIVE | Pagina attiva vuota accettata; archivio limitato alle card `bando-archivio-data`, senza PDF non necessari |
+| Fondazione MPS | `FondazioneMpsAdapter` (`fondazione_mps`) | Listing contributi + dettaglio bounded | Fondazione | LIVE / v0.5 SNAPSHOT ACTIVE | RA/RSA, Social Gym ETS, Siena Plurale e altre call vere; status del dettaglio prevale sulla sezione listing |
 
 `FIXTURE VERIFIED` non equivale a sorgente live completata. Lo snapshot espone solo fonti live riuscite; i calendari FSE+/FESR+ restano disponibili per test fixture finché i contratti ufficiali non sono stabili. In caso di errore o calo anomalo, la pipeline conserva i record precedenti e marca la fonte come `STALE`.

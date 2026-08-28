@@ -2,11 +2,11 @@
 
 ## RELEVANCE
 
-High: **4**
+High: **5**
 
 Medium: **28**
 
-Low: **2016**
+Low: **2108**
 
 High/Medium obvious NOT_RELEVANT: **0**
 
@@ -20,7 +20,7 @@ Borderline retained: **11**. Sono conservati quando esiste un interesse progettu
 
 Live validation: **LIVE / OK** — evidenza registrata in `reports/funding-tenders-live-validation.txt` (1.421 elementi trovati e 1.421 parsed).
 
-Full sync: **LIVE** — 1419 elementi ricevuti, 1070 parsed, 1070 pubblicati; nessun fallback necessario.
+Full sync: **LIVE** — 1417 elementi ricevuti, 1159 parsed, 1159 pubblicati; nessun fallback necessario.
 
 ## GRANT TYPE 2
 

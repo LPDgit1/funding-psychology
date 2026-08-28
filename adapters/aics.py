@@ -9,6 +9,7 @@ from funding_core.adapters import FetchPolicy
 from funding_core.dates import parse_date
 from funding_core.models import SourceRecord
 
+from ._common import decode_html
 from ._v04_common import clean, fetch_bytes
 
 
@@ -86,7 +87,11 @@ class AicsAdapter:
 
     def parse(self, raw: bytes | str) -> list[SourceRecord]:
         parser = _AicsTableParser()
-        parser.feed(raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else raw)
+        # The transparency host has historically served this table as
+        # Windows-1252 despite an incomplete/incorrect charset declaration.
+        # Use the shared bounded decoder so accented applicant names survive
+        # unchanged instead of becoming U+FFFD replacement characters.
+        parser.feed(decode_html(raw))
         records: list[SourceRecord] = []
         seen: set[str] = set()
         for cells, href in parser.rows:
@@ -115,4 +120,3 @@ class AicsAdapter:
                 territory="Internazionale / Paesi partner",
             ))
         return records
-

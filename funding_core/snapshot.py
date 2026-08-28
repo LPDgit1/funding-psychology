@@ -52,6 +52,13 @@ from adapters import (
     FondazioneCariparmaAdapter,
     FondazioneModenaAdapter,
     FondazioneCarisboAdapter,
+    MinisteroSaluteRicercaFinalizzataAdapter,
+    MurPrinAdapter,
+    InailBricAdapter,
+    FondazioneDelMonteAdapter,
+    FondazioneCrLuccaAdapter,
+    FondazioneCarispeziaAdapter,
+    FondazioneMpsAdapter,
 )
 
 
@@ -99,6 +106,13 @@ LIVE_SOURCE_SPECS: tuple[SnapshotSourceSpec, ...] = (
     SnapshotSourceSpec("fondazione_cariparma", FondazioneCariparmaAdapter, 6_000_000),
     SnapshotSourceSpec("fondazione_modena", FondazioneModenaAdapter, 6_000_000),
     SnapshotSourceSpec("fondazione_carisbo", FondazioneCarisboAdapter, 6_000_000),
+    SnapshotSourceSpec("ministero_salute_ricerca_finalizzata", MinisteroSaluteRicercaFinalizzataAdapter, 8_000_000),
+    SnapshotSourceSpec("mur_prin", MurPrinAdapter, 10_000_000),
+    SnapshotSourceSpec("inail_bric", InailBricAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_del_monte", FondazioneDelMonteAdapter, 8_000_000),
+    SnapshotSourceSpec("fondazione_cr_lucca", FondazioneCrLuccaAdapter, 12_000_000),
+    SnapshotSourceSpec("fondazione_carispezia", FondazioneCarispeziaAdapter, 10_000_000),
+    SnapshotSourceSpec("fondazione_mps", FondazioneMpsAdapter, 16_000_000),
 )
 
 

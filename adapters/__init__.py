@@ -26,6 +26,13 @@ from .erasmus_inapp import ErasmusInappAdapter
 from .fondazione_cariparma import FondazioneCariparmaAdapter
 from .fondazione_modena import FondazioneModenaAdapter
 from .fondazione_carisbo import FondazioneCarisboAdapter
+from .ministero_salute_ricerca_finalizzata import MinisteroSaluteRicercaFinalizzataAdapter
+from .mur_prin import MurPrinAdapter
+from .inail_bric import InailBricAdapter
+from .fondazione_del_monte import FondazioneDelMonteAdapter
+from .fondazione_cr_lucca import FondazioneCrLuccaAdapter
+from .fondazione_carispezia import FondazioneCarispeziaAdapter
+from .fondazione_mps import FondazioneMpsAdapter
 
 __all__ = [
     "PariOpportunitaAdapter", "DipendenzeAdapter", "FamiAdapter", "PnScuolaAdapter",
@@ -35,4 +42,6 @@ __all__ = [
     "FondazioneFriuliAdapter",
     "MinisteroLavoroTerzoSettoreAdapter", "AicsAdapter", "EuropeanYouthFoundationAdapter",
     "ErasmusInappAdapter", "FondazioneCariparmaAdapter", "FondazioneModenaAdapter", "FondazioneCarisboAdapter",
+    "MinisteroSaluteRicercaFinalizzataAdapter", "MurPrinAdapter", "InailBricAdapter", "FondazioneDelMonteAdapter",
+    "FondazioneCrLuccaAdapter", "FondazioneCarispeziaAdapter", "FondazioneMpsAdapter",
 ]

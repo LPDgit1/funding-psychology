@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-27T07:27:01.912329Z",
+  "generatedAt": "2026-08-27T21:57:45.568288Z",
   "sampleSize": 30,
   "positiveCount": 15,
   "hardNegativeCount": 15,
@@ -16,11 +16,11 @@
   "defaultDiscoverableCount": 10,
   "defaultDiscoverabilityRate": 0.6667,
   "discoverableAfterFilterChangeCount": 13,
-  "opportunityTypeCorrectness": 0.9333,
+  "opportunityTypeCorrectness": 0.9,
   "themeCorrectness": 0.8333,
   "manualReviewRequired": false,
   "gatePassed": false,
-  "gateReason": "discoverability 66.7% < 80%; correttezza tipo 93.3% < 100%",
+  "gateReason": "discoverability 66.7% < 80%; correttezza tipo 90.0% < 100%",
   "cases": [
     {
       "id": "eu-funding-tenders:HORIZON-MISS-2026-02-CANCER-05",
@@ -470,15 +470,15 @@
     {
       "id": "eu-funding-tenders:DIGITAL-EUROHPC-JU-2023-ACADEMY-02-01",
       "label": "hard_negative",
-      "title": "EuroHPC Virtual Training Academy",
+      "title": "Technical training academy.",
       "query": "virtual training",
       "expectedThemes": [],
-      "found": true,
+      "found": false,
       "predictedRelevant": false,
       "discoverableByQuery": false,
       "discoverableByTheme": false,
       "discoverableAfterFilterChange": false,
-      "typeCorrect": true,
+      "typeCorrect": false,
       "themeCorrect": true,
       "note": "Technical training academy."
     },

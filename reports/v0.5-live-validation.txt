@@ -1,0 +1,85 @@
+# v0.5 live validation — seven new sources
+
+[ministero_salute_ricerca_finalizzata]
+Source: Ministero della Salute – Ricerca Finalizzata
+HTTP: ERROR
+Raw: 0
+Parsed: 0
+Current: 0
+Archive: 0
+Unique: 0
+Duplicates: 0
+Readiness: NOT READY
+Warnings: ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records
+
+[mur_prin]
+Source: MUR – PRIN
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 2
+Archive: 7
+Unique: 9
+Duplicates: 0
+Readiness: NOT READY
+Warnings: mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records
+
+[inail_bric]
+Source: INAIL – Bandi BRIC
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 0
+Archive: 8
+Unique: 8
+Duplicates: 0
+Readiness: NOT READY
+Warnings: inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records
+
+[fondazione_del_monte]
+Source: Fondazione del Monte di Bologna e Ravenna
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 2
+Archive: 8
+Unique: 10
+Duplicates: 0
+Readiness: NOT READY
+Warnings: fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records
+
+[fondazione_cr_lucca]
+Source: Fondazione Cassa di Risparmio di Lucca
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 2
+Archive: 97
+Unique: 99
+Duplicates: 0
+Readiness: NOT READY
+Warnings: fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records
+
+[fondazione_carispezia]
+Source: Fondazione Carispezia
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 0
+Archive: 16
+Unique: 16
+Duplicates: 0
+Readiness: NOT READY
+Warnings: fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records
+
+[fondazione_mps]
+Source: Fondazione MPS
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 1
+Archive: 20
+Unique: 21
+Duplicates: 0
+Readiness: NOT READY
+Warnings: fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records
