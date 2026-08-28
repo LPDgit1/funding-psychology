@@ -65,35 +65,35 @@ Warning: —
 
 [fondazione_crt]
 HTTP: OK
-Found: 16
-Parsed: 16
-Current: 11
+Found: 15
+Parsed: 15
+Current: 9
 Warning: —
 
 [fondazione_cr_firenze]
-HTTP: ERROR
-Found: 0
-Parsed: 0
+HTTP: OK
+Found: 11
+Parsed: 11
 Current: 2
-Warning: fondazione_cr_firenze: The read operation timed out; preserved 11 previous records
+Warning: —
 
 [fondazione_crc]
-HTTP: ERROR
-Found: 0
-Parsed: 0
+HTTP: OK
+Found: 4
+Parsed: 4
 Current: 4
-Warning: fondazione_crc: connection failed for Fondazione CRC: [Errno 11001] getaddrinfo failed; preserved 4 previous records
+Warning: —
 
 [fondazione_sardegna]
-HTTP: ERROR
-Found: 0
-Parsed: 0
+HTTP: OK
+Found: 4
+Parsed: 4
 Current: 0
-Warning: fondazione_sardegna: connection failed for Fondazione di Sardegna: [Errno 11001] getaddrinfo failed; preserved 4 previous records
+Warning: zero current
 
 [fondazione_friuli]
-HTTP: ERROR
-Found: 0
-Parsed: 0
+HTTP: OK
+Found: 3
+Parsed: 3
 Current: 1
-Warning: fondazione_friuli: connection failed for Fondazione Friuli: [Errno 11001] getaddrinfo failed; preserved 3 previous records
+Warning: —

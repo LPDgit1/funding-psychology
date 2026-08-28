@@ -1,153 +1,141 @@
 {
   "version": "0.4",
-  "newCurrent": 14,
-  "newArchive": 61,
+  "newCurrent": 13,
+  "newArchive": 62,
   "duplicatesCollapsed": 0,
   "readiness": {
-    "ready": 0,
+    "ready": 6,
     "partial": 0,
-    "notReady": 7
+    "notReady": 1
   },
   "sources": [
     {
       "sourceId": "ministero_lavoro_terzo_settore",
       "label": "Ministero del Lavoro – Terzo Settore",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official MLPS Third Sector annual HTML blocks",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 8,
+      "parsed": 8,
       "current": 0,
       "archive": 8,
       "unique": 8,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 8,
-      "warnings": [
-        "ministero_lavoro_terzo_settore: connection failed for Ministero del Lavoro – Terzo Settore: [Errno 11001] getaddrinfo failed; preserved 8 previous records"
-      ],
-      "note": "technical status STALE; ministero_lavoro_terzo_settore: connection failed for Ministero del Lavoro – Terzo Settore: [Errno 11001] getaddrinfo failed; preserved 8 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "aics",
       "label": "AICS – Bandi non profit",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official AICS non-profit transparency table",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 17,
+      "parsed": 17,
       "current": 2,
       "archive": 15,
       "unique": 17,
       "duplicates": 0,
       "newCurrent": 2,
       "newArchive": 15,
-      "warnings": [
-        "aics: connection failed for AICS – Bandi non profit: [Errno 11001] getaddrinfo failed; preserved 17 previous records"
-      ],
-      "note": "technical status STALE; aics: connection failed for AICS – Bandi non profit: [Errno 11001] getaddrinfo failed; preserved 17 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "european_youth_foundation",
       "label": "European Youth Foundation",
-      "technicalStatus": "STALE",
+      "technicalStatus": "LIVE",
       "readiness": "NOT READY",
       "method": "official Council of Europe EYF calls page",
       "raw": 0,
       "parsed": 0,
       "current": 0,
       "archive": 2,
-      "unique": 2,
+      "unique": 0,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 2,
       "warnings": [
-        "european_youth_foundation: connection failed for European Youth Foundation: [Errno 11001] getaddrinfo failed; preserved 2 previous records"
+        "zero records after a previously populated run"
       ],
-      "note": "technical status STALE; european_youth_foundation: connection failed for European Youth Foundation: [Errno 11001] getaddrinfo failed; preserved 2 previous records"
+      "note": "live response parsed no opportunity; zero records after a previously populated run"
     },
     {
       "sourceId": "erasmus_inapp",
       "label": "Erasmus+ INAPP",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official Erasmus+ INAPP deadline table",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 5,
+      "parsed": 5,
       "current": 2,
       "archive": 3,
       "unique": 5,
       "duplicates": 0,
       "newCurrent": 2,
       "newArchive": 3,
-      "warnings": [
-        "erasmus_inapp: connection failed for Erasmus+ INAPP: [Errno 11001] getaddrinfo failed; preserved 5 previous records"
-      ],
-      "note": "technical status STALE; erasmus_inapp: connection failed for Erasmus+ INAPP: [Errno 11001] getaddrinfo failed; preserved 5 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "fondazione_cariparma",
       "label": "Fondazione Cariparma",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official Bandi 2026 listing + bounded detail enrichment",
-      "raw": 0,
-      "parsed": 0,
-      "current": 5,
-      "archive": 6,
+      "raw": 11,
+      "parsed": 11,
+      "current": 4,
+      "archive": 7,
       "unique": 11,
       "duplicates": 0,
-      "newCurrent": 5,
-      "newArchive": 6,
-      "warnings": [
-        "fondazione_cariparma: connection failed for Fondazione Cariparma: [Errno 11001] getaddrinfo failed; preserved 11 previous records"
-      ],
-      "note": "technical status STALE; fondazione_cariparma: connection failed for Fondazione Cariparma: [Errno 11001] getaddrinfo failed; preserved 11 previous records"
+      "newCurrent": 4,
+      "newArchive": 7,
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "fondazione_modena",
       "label": "Fondazione di Modena",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official current and archive listings",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 10,
+      "parsed": 10,
       "current": 2,
       "archive": 8,
       "unique": 10,
       "duplicates": 0,
       "newCurrent": 2,
       "newArchive": 8,
-      "warnings": [
-        "fondazione_modena: connection failed for Fondazione di Modena: [Errno 11001] getaddrinfo failed; preserved 10 previous records"
-      ],
-      "note": "technical status STALE; fondazione_modena: connection failed for Fondazione di Modena: [Errno 11001] getaddrinfo failed; preserved 10 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "fondazione_carisbo",
       "label": "Fondazione Carisbo",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official WordPress REST bando announcements + bounded detail enrichment",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 22,
+      "parsed": 22,
       "current": 3,
       "archive": 19,
       "unique": 22,
       "duplicates": 0,
       "newCurrent": 3,
       "newArchive": 19,
-      "warnings": [
-        "fondazione_carisbo: connection failed for Fondazione Carisbo: [Errno 11001] getaddrinfo failed; preserved 22 previous records"
-      ],
-      "note": "technical status STALE; fondazione_carisbo: connection failed for Fondazione Carisbo: [Errno 11001] getaddrinfo failed; preserved 22 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     }
   ],
   "crtPreflight": [
     {
       "check": "CRT NoteSipari is OPEN",
-      "passed": false,
-      "evidence": "UNKNOWN"
+      "passed": true,
+      "evidence": "OPEN"
     },
     {
       "check": "CRT Ordinarie second future window is OPEN",
@@ -186,5 +174,5 @@
       "dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records"
     ]
   },
-  "stoppingRule": false
+  "stoppingRule": true
 }

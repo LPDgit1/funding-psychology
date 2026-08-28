@@ -3,13 +3,49 @@ from __future__ import annotations
 import re
 from dataclasses import replace
 from datetime import date
+from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
-from funding_core.adapters import AdapterError, FetchPolicy, _AnchorTextParser
+from funding_core.adapters import AdapterError, FetchPolicy, _AnchorTextParser, _DetailTextParser
 from funding_core.models import SourceRecord
 
 from ._common import _context, compact, decode_html, extract_entities, extract_money
 from ._v04_common import clean, dates_in, fetch_bytes, page_text
+
+
+class _MpsPostContentParser(HTMLParser):
+    """Extract the Divi ``et_pb_post_content`` container, not site chrome."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._depth = 0
+        self._skip = 0
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        classes = (dict(attrs).get("class") or "")
+        if self._depth == 0 and "et_pb_post_content" in classes.split():
+            self._depth = 1
+            return
+        if self._depth:
+            self._depth += 1
+            if tag in {"script", "style", "noscript", "template"}:
+                self._skip += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if not self._depth:
+            return
+        if tag in {"script", "style", "noscript", "template"} and self._skip:
+            self._skip -= 1
+        self._depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self._depth and not self._skip:
+            self._parts.append(data)
+
+    @property
+    def text(self) -> str:
+        return re.sub(r"\s+", " ", " ".join(self._parts)).strip()
 
 
 class FondazioneMpsAdapter:
@@ -71,17 +107,13 @@ class FondazioneMpsAdapter:
     @staticmethod
     def _detail_text(raw: bytes) -> str:
         decoded = decode_html(raw)
-        match = re.search(r"<main\b[^>]*>(.*?)</main>", decoded, re.IGNORECASE | re.DOTALL)
-        if match:
-            text = page_text(match.group(0))
-            if text:
-                return text
-        match = re.search(r"<article\b[^>]*>(.*?)</article>", decoded, re.IGNORECASE | re.DOTALL)
-        if match:
-            text = page_text(match.group(0))
-            if text:
-                return text
-        return page_text(raw)
+        content = _MpsPostContentParser()
+        content.feed(decoded)
+        if content.text:
+            return content.text
+        parser = _DetailTextParser()
+        parser.feed(decoded)
+        return parser.text or page_text(raw)
 
     def enrich(self, records: list[SourceRecord], policy: FetchPolicy | None = None, *, max_details: int = 30) -> list[SourceRecord]:
         policy = policy or FetchPolicy(timeout_seconds=12, max_bytes=2_000_000, retries=1)
@@ -96,8 +128,13 @@ class FondazioneMpsAdapter:
                 if not text:
                     enriched.append(record)
                     continue
-                closed = bool(re.search(r"#(?:bando|avviso)chius[oa]|\b(?:bando|avviso)\s+chius[oa]|scadut\w*", text, re.IGNORECASE))
-                open_tag = bool(re.search(r"#bandiaperti|\b(?:bando|avviso)\s+apert[oi]\b", text, re.IGNORECASE))
+                # MPS renders the lifecycle hashtag in the page chrome, just
+                # outside ``et_pb_post_content``.  Read it from the full
+                # bounded page text while keeping description/entities scoped
+                # to the post-content parser above.
+                chrome = page_text(payload)
+                closed = bool(re.search(r"#(?:bando|avviso)chius[oa]|\b(?:bando|avviso)\s+chius[oa]|scadut\w*", chrome, re.IGNORECASE))
+                open_tag = bool(re.search(r"#bandiaperti|\b(?:bando|avviso)\s+apert[oi]\b", chrome, re.IGNORECASE))
                 deadline = self._labelled_date(text, r"scadenza|termine|entro il|chiusura") or record.deadline
                 opening = self._labelled_date(text, r"apertura|dal giorno|pubblicazione") or record.opening_date
                 if closed:

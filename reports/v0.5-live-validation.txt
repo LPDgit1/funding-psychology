@@ -2,84 +2,84 @@
 
 [ministero_salute_ricerca_finalizzata]
 Source: Ministero della Salute – Ricerca Finalizzata
-HTTP: ERROR
+HTTP: OK
 Raw: 0
 Parsed: 0
 Current: 0
 Archive: 0
 Unique: 0
 Duplicates: 0
-Readiness: NOT READY
-Warnings: ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records
+Readiness: PARTIAL
+Warnings: —
 
 [mur_prin]
 Source: MUR – PRIN
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 9
+Parsed: 9
 Current: 2
 Archive: 7
 Unique: 9
 Duplicates: 0
-Readiness: NOT READY
-Warnings: mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records
+Readiness: READY
+Warnings: —
 
 [inail_bric]
 Source: INAIL – Bandi BRIC
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 8
+Parsed: 8
 Current: 0
 Archive: 8
 Unique: 8
 Duplicates: 0
-Readiness: NOT READY
-Warnings: inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records
+Readiness: READY
+Warnings: —
 
 [fondazione_del_monte]
 Source: Fondazione del Monte di Bologna e Ravenna
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 12
+Parsed: 12
 Current: 2
-Archive: 8
-Unique: 10
+Archive: 10
+Unique: 12
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records
+Readiness: READY
+Warnings: —
 
 [fondazione_cr_lucca]
 Source: Fondazione Cassa di Risparmio di Lucca
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 99
+Parsed: 99
 Current: 2
 Archive: 97
 Unique: 99
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records
+Readiness: READY
+Warnings: —
 
 [fondazione_carispezia]
 Source: Fondazione Carispezia
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 73
+Parsed: 73
 Current: 0
-Archive: 16
-Unique: 16
+Archive: 73
+Unique: 73
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records
+Readiness: READY
+Warnings: all deadlines are missing
 
 [fondazione_mps]
 Source: Fondazione MPS
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 21
+Parsed: 21
 Current: 1
 Archive: 20
 Unique: 21
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records
+Readiness: READY
+Warnings: —

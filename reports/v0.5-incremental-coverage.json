@@ -4,16 +4,16 @@
   "newArchive": 0,
   "duplicatesCollapsed": 0,
   "readiness": {
-    "ready": 0,
-    "partial": 0,
-    "notReady": 7
+    "ready": 6,
+    "partial": 1,
+    "notReady": 0
   },
   "sources": [
     {
       "sourceId": "ministero_salute_ricerca_finalizzata",
       "label": "Ministero della Salute – Ricerca Finalizzata",
-      "technicalStatus": "ERROR",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "PARTIAL",
       "method": "official Ministero Salute Ricerca Finalizzata HTML entry",
       "raw": 0,
       "parsed": 0,
@@ -23,124 +23,112 @@
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [
-        "ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records"
-      ],
-      "note": "technical status ERROR; ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records"
+      "warnings": [],
+      "note": "official page is protected by a site-verification challenge in this run"
     },
     {
       "sourceId": "mur_prin",
       "label": "MUR – PRIN",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official MUR PRIN initiative catalogue HTML",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 9,
+      "parsed": 9,
       "current": 2,
       "archive": 7,
       "unique": 9,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [
-        "mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records"
-      ],
-      "note": "technical status STALE; mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "inail_bric",
       "label": "INAIL – Bandi BRIC",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official INAIL BRIC listing + bounded detail enrichment",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 8,
+      "parsed": 8,
       "current": 0,
       "archive": 8,
       "unique": 8,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [
-        "inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records"
-      ],
-      "note": "technical status STALE; inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "fondazione_del_monte",
       "label": "Fondazione del Monte di Bologna e Ravenna",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official Fondazione del Monte bandi listing + bounded detail enrichment",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 12,
+      "parsed": 12,
       "current": 2,
-      "archive": 8,
-      "unique": 10,
+      "archive": 10,
+      "unique": 12,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [
-        "fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records"
-      ],
-      "note": "technical status STALE; fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "fondazione_cr_lucca",
       "label": "Fondazione Cassa di Risparmio di Lucca",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official current/archive JSON-LD Grant graph",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 99,
+      "parsed": 99,
       "current": 2,
       "archive": 97,
       "unique": 99,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [
-        "fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records"
-      ],
-      "note": "technical status STALE; fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     },
     {
       "sourceId": "fondazione_carispezia",
       "label": "Fondazione Carispezia",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official active/archive Bandi di erogazione cards",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 73,
+      "parsed": 73,
       "current": 0,
-      "archive": 16,
-      "unique": 16,
+      "archive": 73,
+      "unique": 73,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
       "warnings": [
-        "fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records"
+        "all deadlines are missing"
       ],
-      "note": "technical status STALE; fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records"
+      "note": "source-specific listing/detail sanity check passed; all deadlines are missing"
     },
     {
       "sourceId": "fondazione_mps",
       "label": "Fondazione MPS",
-      "technicalStatus": "STALE",
-      "readiness": "NOT READY",
+      "technicalStatus": "LIVE",
+      "readiness": "READY",
       "method": "official contributi listing + bounded detail status/deadline enrichment",
-      "raw": 0,
-      "parsed": 0,
+      "raw": 21,
+      "parsed": 21,
       "current": 1,
       "archive": 20,
       "unique": 21,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [
-        "fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records"
-      ],
-      "note": "technical status STALE; fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records"
+      "warnings": [],
+      "note": "source-specific listing/detail sanity check passed"
     }
   ],
   "preflight": [
@@ -151,13 +139,13 @@
     },
     {
       "check": "CRT BeST – Beni Senza Tempo is CLOSED",
-      "passed": false,
-      "evidence": "UNKNOWN"
+      "passed": true,
+      "evidence": "CLOSED"
     },
     {
       "check": "CRT NoteSipari is OPEN",
-      "passed": false,
-      "evidence": "UNKNOWN"
+      "passed": true,
+      "evidence": "OPEN"
     },
     {
       "check": "CRT Ordinarie second future window is OPEN",
@@ -180,5 +168,5 @@
       "evidence": "17 records; accented text preserved"
     }
   ],
-  "stoppingRule": false
+  "stoppingRule": true
 }

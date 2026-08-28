@@ -2,84 +2,84 @@
 
 [ministero_lavoro_terzo_settore]
 Source: Ministero del Lavoro – Terzo Settore
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 8
+Parsed: 8
 Current: 0
 Archive: 8
 Unique: 8
 Duplicates: 0
-Readiness: NOT READY
-Warnings: ministero_lavoro_terzo_settore: connection failed for Ministero del Lavoro – Terzo Settore: [Errno 11001] getaddrinfo failed; preserved 8 previous records
+Readiness: READY
+Warnings: —
 
 [aics]
 Source: AICS – Bandi non profit
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 17
+Parsed: 17
 Current: 2
 Archive: 15
 Unique: 17
 Duplicates: 0
-Readiness: NOT READY
-Warnings: aics: connection failed for AICS – Bandi non profit: [Errno 11001] getaddrinfo failed; preserved 17 previous records
+Readiness: READY
+Warnings: —
 
 [european_youth_foundation]
 Source: European Youth Foundation
-HTTP: STALE
+HTTP: OK
 Raw: 0
 Parsed: 0
 Current: 0
 Archive: 2
-Unique: 2
+Unique: 0
 Duplicates: 0
 Readiness: NOT READY
-Warnings: european_youth_foundation: connection failed for European Youth Foundation: [Errno 11001] getaddrinfo failed; preserved 2 previous records
+Warnings: zero records after a previously populated run
 
 [erasmus_inapp]
 Source: Erasmus+ INAPP
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 5
+Parsed: 5
 Current: 2
 Archive: 3
 Unique: 5
 Duplicates: 0
-Readiness: NOT READY
-Warnings: erasmus_inapp: connection failed for Erasmus+ INAPP: [Errno 11001] getaddrinfo failed; preserved 5 previous records
+Readiness: READY
+Warnings: —
 
 [fondazione_cariparma]
 Source: Fondazione Cariparma
-HTTP: STALE
-Raw: 0
-Parsed: 0
-Current: 5
-Archive: 6
+HTTP: OK
+Raw: 11
+Parsed: 11
+Current: 4
+Archive: 7
 Unique: 11
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_cariparma: connection failed for Fondazione Cariparma: [Errno 11001] getaddrinfo failed; preserved 11 previous records
+Readiness: READY
+Warnings: —
 
 [fondazione_modena]
 Source: Fondazione di Modena
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 10
+Parsed: 10
 Current: 2
 Archive: 8
 Unique: 10
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_modena: connection failed for Fondazione di Modena: [Errno 11001] getaddrinfo failed; preserved 10 previous records
+Readiness: READY
+Warnings: —
 
 [fondazione_carisbo]
 Source: Fondazione Carisbo
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 22
+Parsed: 22
 Current: 3
 Archive: 19
 Unique: 22
 Duplicates: 0
-Readiness: NOT READY
-Warnings: fondazione_carisbo: connection failed for Fondazione Carisbo: [Errno 11001] getaddrinfo failed; preserved 22 previous records
+Readiness: READY
+Warnings: —

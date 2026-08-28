@@ -96,13 +96,20 @@ class FondazioneDelMonteAdapter:
         # links.  They are genuine upcoming application windows and therefore
         # need explicit canonical records rather than being dropped as prose.
         records: list[SourceRecord] = []
-        pattern = re.compile(
-            r"AREA\s+(CULTURA|SOCIALE)\s+BANDO\s+([A-ZÀ-ÖØ-Ý]+)\s*[-–]\s*([^|]+?)\s*\|\s*"
-            r"Apertura:\s*([^\-]+?)\s*-\s*Chiusura:\s*([^|]+?)(?=AREA\s+|$)",
+        section_pattern = re.compile(
+            r"AREA\s+(CULTURA|SOCIALE)\s+BANDO\s+(.+?)(?=AREA\s+(?:CULTURA|SOCIALE)\s+BANDO|Bando\s+scaduto|$)",
             re.IGNORECASE,
         )
-        for match in pattern.finditer(text):
-            area, code, edition, opening_text, closing_text = match.groups()
+        for section in section_pattern.finditer(text):
+            area, body = section.groups()
+            match = re.search(
+                r"([A-ZÀ-ÖØ-Ý]+)\s*[-–]\s*(.*?)\s*\|\s*Apertura:\s*([^\-]+?)\s*-\s*Chiusura:\s*(.+)",
+                body,
+                re.IGNORECASE,
+            )
+            if not match:
+                continue
+            code, edition, opening_text, closing_text = match.groups()
             opening = FondazioneDelMonteAdapter._dates(opening_text, default_year=2026)
             closing = FondazioneDelMonteAdapter._dates(closing_text, default_year=2026)
             title = clean(f"Bando {code.upper()} – {edition}")
@@ -125,7 +132,7 @@ class FondazioneDelMonteAdapter:
     def parse(self, raw: bytes | str) -> list[SourceRecord]:
         text = decode_html(raw)
         records = self._listing_records(text)
-        records.extend(self._future_records(text))
+        records.extend(self._future_records(page_text(raw)))
         seen: set[str] = set()
         return [record for record in records if not (record.external_id in seen or seen.add(record.external_id))]
 

@@ -1,10 +1,10 @@
 Source,Fetched,Parsed,Current,Archive,Missing deadline,Warnings,Status
-eu-funding-tenders,1417,1159,1159,0,563,,LIVE
-incentivi-gov,5818,5818,833,4985,204,,LIVE
+eu-funding-tenders,1418,1227,1227,0,630,,LIVE
+incentivi-gov,5825,5825,836,4989,204,,LIVE
 Erasmus+ INDIRE,10,10,1,9,0,,LIVE
 aig-opportunities,2,2,1,15,1,,LIVE
 interreg-italy-croatia,1,1,1,0,0,,LIVE
-"Regione Veneto — Bandi, Avvisi e Concorsi",813,813,40,774,7,,LIVE
+"Regione Veneto — Bandi, Avvisi e Concorsi",808,808,40,774,7,,LIVE
 Dipartimento per le politiche della famiglia,21,21,20,1,20,,LIVE
 Dipartimento per le politiche in favore delle persone con disabilità,2,2,1,1,1,,LIVE
 Fondazione Cariparo,5,5,4,1,4,,LIVE
@@ -20,24 +20,24 @@ Fondo di Beneficenza Intesa Sanpaolo,1,1,1,0,1,all deadlines are missing,LIVE
 Fondazione Compagnia di San Paolo,12,12,6,6,1,,LIVE
 Fondazione Cariplo,34,34,9,25,4,,LIVE
 Fondazione CON IL SUD,40,40,2,38,0,,LIVE
-Fondazione CRT,16,16,11,5,5,,LIVE
-Fondazione CR Firenze,0,0,2,9,0,fondazione_cr_firenze: The read operation timed out; preserved 11 previous records,STALE
-Fondazione CRC,0,0,4,0,0,fondazione_crc: connection failed for Fondazione CRC: [Errno 11001] getaddrinfo failed; preserved 4 previous records,STALE
-Fondazione di Sardegna,0,0,0,4,0,fondazione_sardegna: connection failed for Fondazione di Sardegna: [Errno 11001] getaddrinfo failed; preserved 4 previous records,STALE
-Fondazione Friuli,0,0,1,2,1,fondazione_friuli: connection failed for Fondazione Friuli: [Errno 11001] getaddrinfo failed; preserved 3 previous records,STALE
-Ministero del Lavoro – Terzo Settore,0,0,0,8,0,ministero_lavoro_terzo_settore: connection failed for Ministero del Lavoro – Terzo Settore: [Errno 11001] getaddrinfo failed; preserved 8 previous records,STALE
-AICS – Bandi non profit,0,0,2,15,0,aics: connection failed for AICS – Bandi non profit: [Errno 11001] getaddrinfo failed; preserved 17 previous records,STALE
-European Youth Foundation,0,0,0,2,0,european_youth_foundation: connection failed for European Youth Foundation: [Errno 11001] getaddrinfo failed; preserved 2 previous records,STALE
-Erasmus+ INAPP,0,0,2,3,0,erasmus_inapp: connection failed for Erasmus+ INAPP: [Errno 11001] getaddrinfo failed; preserved 5 previous records,STALE
-Fondazione Cariparma,0,0,5,6,2,fondazione_cariparma: connection failed for Fondazione Cariparma: [Errno 11001] getaddrinfo failed; preserved 11 previous records,STALE
-Fondazione di Modena,0,0,2,8,0,fondazione_modena: connection failed for Fondazione di Modena: [Errno 11001] getaddrinfo failed; preserved 10 previous records,STALE
-Fondazione Carisbo,0,0,3,19,0,fondazione_carisbo: connection failed for Fondazione Carisbo: [Errno 11001] getaddrinfo failed; preserved 22 previous records,STALE
-Ministero della Salute – Ricerca Finalizzata,0,0,0,0,0,ministero_salute_ricerca_finalizzata: connection failed for Ministero della Salute – Ricerca Finalizzata: [Errno 11001] getaddrinfo failed; preserved 0 previous records,ERROR
-MUR – PRIN,0,0,2,7,2,mur_prin: connection failed for MUR – PRIN: [Errno 11001] getaddrinfo failed; preserved 9 previous records,STALE
-INAIL – Bandi BRIC,0,0,0,8,0,inail_bric: connection failed for INAIL – Bandi BRIC: [Errno 11001] getaddrinfo failed; preserved 8 previous records,STALE
-Fondazione del Monte di Bologna e Ravenna,0,0,2,8,0,fondazione_del_monte: connection failed for Fondazione del Monte di Bologna e Ravenna: [Errno 11001] getaddrinfo failed; preserved 10 previous records,STALE
-Fondazione Cassa di Risparmio di Lucca,0,0,2,97,0,fondazione_cr_lucca: connection failed for Fondazione Cassa di Risparmio di Lucca: [Errno 11001] getaddrinfo failed; preserved 99 previous records,STALE
-Fondazione Carispezia,0,0,0,16,0,fondazione_carispezia: connection failed for Fondazione Carispezia: [Errno 11001] getaddrinfo failed; preserved 73 previous records,STALE
-Fondazione MPS,0,0,1,20,0,fondazione_mps: connection failed for Fondazione MPS: [Errno 11001] getaddrinfo failed; preserved 21 previous records,STALE
+Fondazione CRT,15,15,9,6,0,,LIVE
+Fondazione CR Firenze,11,11,2,9,0,,LIVE
+Fondazione CRC,4,4,4,0,0,,LIVE
+Fondazione di Sardegna,4,4,0,4,0,,LIVE
+Fondazione Friuli,3,3,1,2,1,,LIVE
+Ministero del Lavoro – Terzo Settore,8,8,0,8,0,,LIVE
+AICS – Bandi non profit,17,17,2,15,0,,LIVE
+European Youth Foundation,0,0,0,2,0,zero records after a previously populated run,LIVE
+Erasmus+ INAPP,5,5,2,3,0,,LIVE
+Fondazione Cariparma,11,11,4,7,0,,LIVE
+Fondazione di Modena,10,10,2,8,0,,LIVE
+Fondazione Carisbo,22,22,3,19,0,,LIVE
+Ministero della Salute – Ricerca Finalizzata,0,0,0,0,0,,LIVE
+MUR – PRIN,9,9,2,7,2,,LIVE
+INAIL – Bandi BRIC,8,8,0,8,0,,LIVE
+Fondazione del Monte di Bologna e Ravenna,12,12,2,10,0,,LIVE
+Fondazione Cassa di Risparmio di Lucca,99,99,2,97,0,,LIVE
+Fondazione Carispezia,73,73,0,73,0,all deadlines are missing,LIVE
+Fondazione MPS,21,21,1,20,0,,LIVE
 Veneto FSE+,2,2,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY
 Veneto FESR+,1,1,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY

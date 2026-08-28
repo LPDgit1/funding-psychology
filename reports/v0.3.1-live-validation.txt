@@ -11,20 +11,20 @@ Warnings: —
 
 [fondazione_crc]
 Source: Fondazione CRC
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 4
+Parsed: 4
 Current: 4
 Archive: 0
-Warnings: fondazione_crc: connection failed for Fondazione CRC: [Errno 11001] getaddrinfo failed; preserved 4 previous records
+Warnings: —
 
 [fondazione_crt]
 Source: Fondazione CRT
 HTTP: OK
-Raw: 16
-Parsed: 16
-Current: 11
-Archive: 5
+Raw: 15
+Parsed: 15
+Current: 9
+Archive: 6
 Warnings: —
 
 [fondazione_venezia]
@@ -38,12 +38,12 @@ Warnings: —
 
 [fondazione_sardegna]
 Source: Fondazione di Sardegna
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 4
+Parsed: 4
 Current: 0
 Archive: 4
-Warnings: fondazione_sardegna: connection failed for Fondazione di Sardegna: [Errno 11001] getaddrinfo failed; preserved 4 previous records
+Warnings: —
 
 [fondazione_cariplo]
 Source: Fondazione Cariplo
@@ -65,9 +65,9 @@ Warnings: —
 
 [fondazione_cr_firenze]
 Source: Fondazione CR Firenze
-HTTP: STALE
-Raw: 0
-Parsed: 0
+HTTP: OK
+Raw: 11
+Parsed: 11
 Current: 2
 Archive: 9
-Warnings: fondazione_cr_firenze: The read operation timed out; preserved 11 previous records
+Warnings: —

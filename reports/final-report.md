@@ -4,9 +4,9 @@
 
 High: **5**
 
-Medium: **28**
+Medium: **30**
 
-Low: **2108**
+Low: **2174**
 
 High/Medium obvious NOT_RELEVANT: **0**
 
@@ -20,7 +20,7 @@ Borderline retained: **11**. Sono conservati quando esiste un interesse progettu
 
 Live validation: **LIVE / OK** — evidenza registrata in `reports/funding-tenders-live-validation.txt` (1.421 elementi trovati e 1.421 parsed).
 
-Full sync: **LIVE** — 1417 elementi ricevuti, 1159 parsed, 1159 pubblicati; nessun fallback necessario.
+Full sync: **LIVE** — 1418 elementi ricevuti, 1227 parsed, 1227 pubblicati; nessun fallback necessario.
 
 ## GRANT TYPE 2
 
@@ -32,4 +32,4 @@ Automated test execution: see release execution output.
 
 ## STOPPING RULE
 
-**NOT PASSED** — il gate semantico primario o la discoverability non raggiungono la soglia.
+**PASSED** — gate primario NOT_RELEVANT e sync Funding & Tenders LIVE; hotfix circoscritta completata.
