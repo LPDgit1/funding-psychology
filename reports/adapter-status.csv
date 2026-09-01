@@ -1,17 +1,17 @@
 Source,Fetched,Parsed,Current,Archive,Missing deadline,Warnings,Status
-eu-funding-tenders,1418,1227,1227,0,630,,LIVE
-incentivi-gov,5825,5825,836,4989,204,,LIVE
+eu-funding-tenders,1422,1097,1097,0,453,,LIVE
+incentivi-gov,0,0,836,4986,204,incentivi-gov: The read operation timed out; preserved 5825 previous records,STALE
 Erasmus+ INDIRE,10,10,1,9,0,,LIVE
 aig-opportunities,2,2,1,15,1,,LIVE
 interreg-italy-croatia,1,1,1,0,0,,LIVE
-"Regione Veneto — Bandi, Avvisi e Concorsi",808,808,40,774,7,,LIVE
+"Regione Veneto — Bandi, Avvisi e Concorsi",809,809,41,774,8,,LIVE
 Dipartimento per le politiche della famiglia,21,21,20,1,20,,LIVE
 Dipartimento per le politiche in favore delle persone con disabilità,2,2,1,1,1,,LIVE
 Fondazione Cariparo,5,5,4,1,4,,LIVE
 Fondazione Cariverona,6,6,6,0,6,all deadlines are missing,LIVE
 Con i Bambini,32,32,3,30,3,,LIVE
 Fondo per la Repubblica Digitale,7,7,6,1,6,,LIVE
-Dipartimento per le pari opportunità,4,4,4,0,2,,LIVE
+Dipartimento per le pari opportunità,5,5,4,1,3,,LIVE
 Dipartimento per le politiche antidroga,0,0,0,0,0,dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records,ERROR
 Programma Nazionale FAMI 2021-2027,19,19,3,16,0,,LIVE
 Programma Nazionale Scuola e Competenze 2021-2027,12,12,2,10,2,,LIVE
@@ -27,7 +27,7 @@ Fondazione di Sardegna,4,4,0,4,0,,LIVE
 Fondazione Friuli,3,3,1,2,1,,LIVE
 Ministero del Lavoro – Terzo Settore,8,8,0,8,0,,LIVE
 AICS – Bandi non profit,17,17,2,15,0,,LIVE
-European Youth Foundation,0,0,0,2,0,zero records after a previously populated run,LIVE
+European Youth Foundation,0,0,0,2,0,european_youth_foundation: HTTP 403 from European Youth Foundation; preserved 2 previous records,STALE
 Erasmus+ INAPP,5,5,2,3,0,,LIVE
 Fondazione Cariparma,11,11,4,7,0,,LIVE
 Fondazione di Modena,10,10,2,8,0,,LIVE
@@ -38,6 +38,6 @@ INAIL – Bandi BRIC,8,8,0,8,0,,LIVE
 Fondazione del Monte di Bologna e Ravenna,12,12,2,10,0,,LIVE
 Fondazione Cassa di Risparmio di Lucca,99,99,2,97,0,,LIVE
 Fondazione Carispezia,73,73,0,73,0,all deadlines are missing,LIVE
-Fondazione MPS,21,21,1,20,0,,LIVE
+Fondazione MPS,21,21,2,19,1,,LIVE
 Veneto FSE+,2,2,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY
 Veneto FESR+,1,1,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY

@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
-  "newCurrent": 0,
+  "newCurrent": 1,
   "newArchive": 0,
   "duplicatesCollapsed": 0,
   "sources": [
@@ -9,13 +9,13 @@
       "label": "Dipartimento per le pari opportunità",
       "readiness": "READY",
       "method": "live HTML/JSON listing",
-      "raw": 4,
-      "parsed": 4,
+      "raw": 5,
+      "parsed": 5,
       "current": 4,
-      "unique": 4,
+      "unique": 5,
       "duplicates": 0,
-      "archive": 0,
-      "newCurrent": 0,
+      "archive": 1,
+      "newCurrent": 1,
       "newArchive": 0,
       "warnings": []
     },

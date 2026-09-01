@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .adapters import (
@@ -24,6 +26,7 @@ from .adapters import (
 )
 from .pipeline import anomaly_warnings, process
 from .audit import write_audit_reports
+from .operational import assess_anomaly, snapshot_validation_errors, update_daily_sync_deployment_status, write_daily_sync_report
 from .snapshot import ALL_SOURCE_IDS, FIXTURE_SOURCE_SPECS, LIVE_SOURCE_SPECS, build_snapshot_set, write_snapshot
 from adapters import (
     PariOpportunitaAdapter,
@@ -105,6 +108,99 @@ ADAPTERS = {
 FIXTURE_PATHS = {source_id: fixture_name for source_id, _, fixture_name in FIXTURE_SOURCE_SPECS}
 
 
+def _read_previous(path_value: str | None) -> dict | None:
+    if not path_value:
+        return None
+    path = Path(path_value)
+    if not path.exists():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def _snapshot_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--output", default="public/data/opportunities-current.json")
+    parser.add_argument("--archive-output", default="public/data/opportunities-archive.json")
+    parser.add_argument("--previous")
+    parser.add_argument("--previous-archive")
+    parser.add_argument("--audit-dir", default="reports")
+    parser.add_argument("--daily-report", default="reports/daily-sync-latest.json")
+
+
+def _run_snapshot_sync(args: argparse.Namespace) -> int:
+    started_at = datetime.now(timezone.utc)
+    previous_path = args.previous or args.output
+    previous_archive_path = args.previous_archive or args.archive_output
+    previous_current = _read_previous(previous_path)
+    previous_archive = _read_previous(previous_archive_path)
+    snapshots = build_snapshot_set(previous_current=previous_current, previous_archive=previous_archive)
+    current = snapshots["current"]
+    archive = snapshots["archive"]
+    validation_errors = [
+        *snapshot_validation_errors(current, expected_dataset="current"),
+        *snapshot_validation_errors(archive, expected_dataset="archive"),
+    ]
+    anomaly = assess_anomaly(current, previous_current)
+    if not current.get("recordCount"):
+        validation_errors.append("current snapshot contains no opportunities")
+    completed_at = datetime.now(timezone.utc)
+    if validation_errors or anomaly["status"] == "BLOCKED":
+        report = write_daily_sync_report(
+            args.daily_report,
+            started_at=started_at,
+            completed_at=completed_at,
+            snapshot_generated_at=current.get("generatedAt"),
+            source_results=current.get("sources", []),
+            current_records=current.get("recordCount", 0),
+            archive_records=archive.get("recordCount", 0),
+            anomaly={**anomaly, "status": "BLOCKED" if anomaly["status"] == "BLOCKED" else "INVALID", "validationErrors": validation_errors},
+            snapshot_valid=False,
+            deployment_status="NOT_ATTEMPTED",
+        )
+        print(f"Daily sync FAILED; last known good snapshot preserved. Report: {report}", file=sys.stderr)
+        for error in [*validation_errors, *anomaly.get("reasons", [])]:
+            print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+
+    target = write_snapshot(args.output, current)
+    archive_target = write_snapshot(args.archive_output, archive)
+    # Keep the original route as a compatibility alias for old deployments.
+    if Path(args.output).name != "opportunities.json":
+        write_snapshot(Path(args.output).with_name("opportunities.json"), current)
+    reports = write_audit_reports(current, archive, args.audit_dir)
+    report = write_daily_sync_report(
+        args.daily_report,
+        started_at=started_at,
+        completed_at=completed_at,
+        snapshot_generated_at=current.get("generatedAt"),
+        source_results=current.get("sources", []),
+        current_records=current.get("recordCount", 0),
+        archive_records=archive.get("recordCount", 0),
+        anomaly=anomaly,
+        snapshot_valid=True,
+        deployment_status="NOT_ATTEMPTED",
+    )
+    health = current.get("sourceHealth", {})
+    print(f"Snapshot current: {target}")
+    print(f"Snapshot archive: {archive_target}")
+    print(f"Published current records: {current['recordCount']}")
+    print(f"Archived records: {archive['recordCount']}")
+    print(f"Sources LIVE: {health.get('successfulSourceCount', current['liveSourceCount'])}/{health.get('liveConfiguredSourceCount', len(LIVE_SOURCE_SPECS))}")
+    print(f"Source health report: {report}")
+    print(f"Audit: {reports['highRelevanceCsv']}")
+    print(f"v0.3 source report: {reports['sourceReport']}")
+    print(f"v0.3.1 final report: {reports['v031FinalReport']}")
+    print(f"v0.3.1a final report: {reports['v031aFinalReport']}")
+    print(f"v0.4 final report: {reports['v04FinalReport']}")
+    print(f"v0.5 final report: {reports['v05FinalReport']}")
+    for warning in current["warnings"]:
+        print(f"WARNING: {warning}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Diagnostica gli adapter Funding Intelligence")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -113,55 +209,42 @@ def main(argv: list[str] | None = None) -> int:
     sync = subparsers.add_parser("sync")
     sync.add_argument("source", choices=ALL_SOURCE_IDS)
     populate = subparsers.add_parser("populate-snapshot")
-    populate.add_argument("--output", default="public/data/opportunities-current.json")
-    populate.add_argument("--archive-output", default="public/data/opportunities-archive.json")
-    populate.add_argument("--previous")
-    populate.add_argument("--previous-archive")
-    populate.add_argument("--audit-dir", default="reports")
+    _snapshot_arguments(populate)
+    daily = subparsers.add_parser("daily-sync", help="Esegue la stessa sync di produzione usata dal job giornaliero")
+    _snapshot_arguments(daily)
+    validate_snapshot = subparsers.add_parser("validate-snapshot", help="Valida gli snapshot current/archive senza riscriverli")
+    validate_snapshot.add_argument("--current", default="public/data/opportunities-current.json")
+    validate_snapshot.add_argument("--archive", default="public/data/opportunities-archive.json")
+    mark_deployment = subparsers.add_parser("mark-deployment", help="Registra l'esito post-build nel report latest")
+    mark_deployment.add_argument("--report", default="reports/daily-sync-latest.json")
+    mark_deployment.add_argument("--status", choices=("NOT_CONFIGURED", "DEPLOY_TRIGGERED", "DEPLOY_FAILED", "DEPLOY_VERIFIED"), required=True)
     args = parser.parse_args(argv)
 
-    if args.command == "populate-snapshot":
-        def read_previous(path_value: str | None) -> dict | None:
-            if not path_value:
-                return None
-            path = Path(path_value)
-            if not path.exists():
-                return None
-            try:
-                import json
-                value = json.loads(path.read_text(encoding="utf-8"))
-                return value if isinstance(value, dict) else None
-            except (OSError, ValueError):
-                return None
+    if args.command in {"populate-snapshot", "daily-sync"}:
+        return _run_snapshot_sync(args)
 
-        previous_path = args.previous or args.output
-        previous_archive_path = args.previous_archive or args.archive_output
-        snapshots = build_snapshot_set(
-            previous_current=read_previous(previous_path),
-            previous_archive=read_previous(previous_archive_path),
-        )
-        current = snapshots["current"]
-        archive = snapshots["archive"]
-        target = write_snapshot(args.output, current)
-        archive_target = write_snapshot(args.archive_output, archive)
-        # Keep the original route as a compatibility alias for old deployments.
-        if Path(args.output).name != "opportunities.json":
-            write_snapshot(Path(args.output).with_name("opportunities.json"), current)
-        reports = write_audit_reports(current, archive, args.audit_dir)
-        print(f"Snapshot current: {target}")
-        print(f"Snapshot archive: {archive_target}")
-        print(f"Published current records: {current['recordCount']}")
-        print(f"Archived records: {archive['recordCount']}")
-        print(f"Live sources: {current['liveSourceCount']}/{len(LIVE_SOURCE_SPECS)}")
-        print(f"Audit: {reports['highRelevanceCsv']}")
-        print(f"v0.3 source report: {reports['sourceReport']}")
-        print(f"v0.3.1 final report: {reports['v031FinalReport']}")
-        print(f"v0.3.1a final report: {reports['v031aFinalReport']}")
-        print(f"v0.4 final report: {reports['v04FinalReport']}")
-        print(f"v0.5 final report: {reports['v05FinalReport']}")
-        for warning in current["warnings"]:
-            print(f"WARNING: {warning}")
-        return 0 if current["recordCount"] else 1
+    if args.command == "validate-snapshot":
+        current = _read_previous(args.current)
+        archive = _read_previous(args.archive)
+        errors = [
+            *snapshot_validation_errors(current, expected_dataset="current"),
+            *snapshot_validation_errors(archive, expected_dataset="archive"),
+        ]
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}", file=sys.stderr)
+            return 1
+        print(f"Snapshot valid: current={current['recordCount']} archive={archive['recordCount']}")
+        return 0
+
+    if args.command == "mark-deployment":
+        try:
+            target = update_daily_sync_deployment_status(args.report, args.status)
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print(f"Deployment status recorded: {args.status} ({target})")
+        return 0
 
     adapter = ADAPTERS[args.source]()
     if args.source in FIXTURE_PATHS:

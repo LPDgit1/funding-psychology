@@ -15,7 +15,7 @@
     "partial": 1,
     "notReady": 1
   },
-  "newCurrent": 0,
+  "newCurrent": 1,
   "newArchive": 0,
   "duplicatesCollapsed": 0,
   "sources": [
@@ -25,13 +25,13 @@
       "status": "LIVE",
       "readiness": "READY",
       "method": "existing v0.3 live adapter",
-      "raw": 4,
-      "parsed": 4,
+      "raw": 5,
+      "parsed": 5,
       "current": 4,
-      "archive": 0,
-      "unique": 4,
+      "archive": 1,
+      "unique": 5,
       "duplicates": 0,
-      "newCurrent": 0,
+      "newCurrent": 1,
       "newArchive": 0,
       "warnings": [],
       "note": ""

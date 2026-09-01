@@ -29,6 +29,7 @@ from .adapters import (
 )
 from .classifier import classify_with_relevance
 from .models import Opportunity, SourceRecord
+from .operational import source_health
 from .pipeline import anomaly_warnings, process
 from adapters import (
     PariOpportunitaAdapter,
@@ -294,6 +295,7 @@ def _envelope(
     warnings: list[str],
 ) -> dict[str, Any]:
     _sort_public(opportunities)
+    health = source_health(source_results)
     return {
         "schemaVersion": 2,
         "dataset": dataset,
@@ -305,6 +307,7 @@ def _envelope(
         "recordCountArchive": len(opportunities) if dataset == "archive" else 0,
         "liveSourceCount": sum(1 for item in source_results if item["kind"] == "live" and item["status"] == "LIVE"),
         "sourceCount": len(source_results),
+        "sourceHealth": health,
         "sources": source_results,
         "warnings": warnings,
         "notImplemented": [],

@@ -30,6 +30,10 @@ python -m unittest discover -s tests -p "test_*.py"
 pnpm test
 ```
 
+## Aggiornamento operativo
+
+Il workflow GitHub Actions [`daily-funding-sync.yml`](.github/workflows/daily-funding-sync.yml) tenta tutte le fonti live una volta al giorno alle 04:00 UTC, cioè circa 05:00 in inverno e 06:00 in estate in Europe/Rome; è disponibile anche il trigger manuale `workflow_dispatch`. Il percorso manuale equivalente è `python -m funding_core.cli populate-snapshot` (o `python -m funding_core.cli daily-sync`). Ogni run valida current/archive, preserva i dati precedenti per fonti temporaneamente indisponibili e aggiorna [`reports/daily-sync-latest.json`](reports/daily-sync-latest.json); i contatori sono inoltre nel campo `sourceHealth` degli snapshot. Il workflow pubblica gli asset sul branch `github-ready`, registra l'esito e usa `SITES_DEPLOY_HOOK_URL` se configurato (`DEPLOY_TRIGGERED`, `DEPLOY_FAILED` o `NOT_CONFIGURED`); senza quel secret il report distingue correttamente sincronizzazione/build riusciti da deploy Sites ancora pendente e la job termina non riuscita. Il percorso completo è descritto in [`docs/OPERATIONAL_PREFLIGHT.md`](docs/OPERATIONAL_PREFLIGHT.md).
+
 Validazione manuale degli adapter e rigenerazione dello snapshot current/archive:
 
 ```powershell

@@ -7,3 +7,4 @@
 @media(max-width:520px){.other-filters{grid-template-columns:1fr}.theme-filter>div{display:grid;grid-template-columns:1fr 1fr}.theme-filter button{text-align:left}.expired-note{font-size:13px}}
 .filter-panel{display:none}.filter-panel.open{display:grid}.theme-filter select{max-width:520px}.result-updated{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--muted);font-size:12px;font-weight:650;letter-spacing:0}
 .other-filters-title{grid-column:1/-1;margin:0;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.source-summary{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.45}

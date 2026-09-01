@@ -1,0 +1,76 @@
+{
+  "startedAt": "2026-09-01T21:05:06.905923Z",
+  "completedAt": "2026-09-01T21:33:13.458188Z",
+  "snapshotGeneratedAt": "2026-09-01T21:05:06.979323Z",
+  "sourcesAttempted": 40,
+  "LIVE": [
+    "aics",
+    "aig-opportunities",
+    "compagnia_san_paolo",
+    "con-i-bambini",
+    "dipartimento-disabilita",
+    "dipartimento-famiglia",
+    "erasmus-indire",
+    "erasmus_inapp",
+    "eu-funding-tenders",
+    "fami",
+    "fondazione-cariparo",
+    "fondazione-cariverona",
+    "fondazione_cariparma",
+    "fondazione_cariplo",
+    "fondazione_carisbo",
+    "fondazione_carispezia",
+    "fondazione_con_il_sud",
+    "fondazione_cr_firenze",
+    "fondazione_cr_lucca",
+    "fondazione_crc",
+    "fondazione_crt",
+    "fondazione_del_monte",
+    "fondazione_friuli",
+    "fondazione_modena",
+    "fondazione_mps",
+    "fondazione_sardegna",
+    "fondazione_venezia",
+    "fondo-repubblica-digitale",
+    "inail_bric",
+    "interreg-italy-croatia",
+    "intesa_beneficenza",
+    "ministero_lavoro_terzo_settore",
+    "ministero_salute_ricerca_finalizzata",
+    "mur_prin",
+    "pari_opportunita",
+    "pn_scuola",
+    "veneto-bandi"
+  ],
+  "STALE": [
+    "european_youth_foundation",
+    "incentivi-gov"
+  ],
+  "ERROR": [
+    "dipendenze"
+  ],
+  "FIXTURE_ONLY": [
+    "veneto-fesr-calendar",
+    "veneto-fse-calendar"
+  ],
+  "sourceCounts": {
+    "totalSourceCount": 42,
+    "liveConfiguredSourceCount": 40,
+    "successfulSourceCount": 37,
+    "staleSourceCount": 2,
+    "errorSourceCount": 1,
+    "fixtureOnlySourceCount": 2
+  },
+  "currentRecords": 2081,
+  "archiveRecords": 6212,
+  "snapshotValid": true,
+  "anomaly": {
+    "status": "PASS",
+    "reasons": [],
+    "comparedToPrevious": true,
+    "previousCurrentRecords": 2209,
+    "candidateCurrentRecords": 2081
+  },
+  "syncStatus": "DATA_SYNC_OK",
+  "deploymentStatus": "NOT_ATTEMPTED"
+}

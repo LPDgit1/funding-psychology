@@ -17,6 +17,11 @@ test("public snapshot contains live adapter data and explicit fixture boundaries
   assert.ok(snapshot.recordCount < 2500);
   assert.equal(new Set(snapshot.opportunities.map((item) => item.id)).size, snapshot.recordCount);
   assert.ok(snapshot.liveSourceCount >= 10);
+  assert.equal(snapshot.sourceHealth.totalSourceCount, snapshot.sourceCount);
+  assert.equal(snapshot.sourceHealth.successfulSourceCount, snapshot.liveSourceCount);
+  assert.equal(snapshot.sourceHealth.staleSourceCount, snapshot.sources.filter((source) => source.status === "STALE").length);
+  assert.equal(snapshot.sourceHealth.errorSourceCount, snapshot.sources.filter((source) => source.status === "ERROR").length);
+  assert.equal(snapshot.sourceHealth.fixtureOnlySourceCount, snapshot.sources.filter((source) => source.status === "FIXTURE_ONLY").length);
   assert.equal(snapshot.sources.find((source) => source.sourceId === "veneto-fse-calendar").status, "FIXTURE_ONLY");
   assert.equal(snapshot.opportunities.every((item) => item.demo === false), true);
   assert.equal(snapshot.opportunities.every((item) => item.officialUrl.startsWith("https://")), true);

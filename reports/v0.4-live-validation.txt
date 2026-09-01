@@ -26,15 +26,15 @@ Warnings: —
 
 [european_youth_foundation]
 Source: European Youth Foundation
-HTTP: OK
+HTTP: STALE
 Raw: 0
 Parsed: 0
 Current: 0
 Archive: 2
-Unique: 0
+Unique: 2
 Duplicates: 0
 Readiness: NOT READY
-Warnings: zero records after a previously populated run
+Warnings: european_youth_foundation: HTTP 403 from European Youth Foundation; preserved 2 previous records
 
 [erasmus_inapp]
 Source: Erasmus+ INAPP

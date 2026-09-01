@@ -1,0 +1,104 @@
+name: Daily funding sync
+
+on:
+  # GitHub cron is UTC: 04:00 UTC is approximately 05:00 CET / 06:00 CEST
+  # in Europe/Rome.  The exact minute is intentionally not significant.
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-funding-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-build-publish:
+    runs-on: ubuntu-latest
+    # The live run includes bounded detail enrichment and can take roughly
+    # half an hour on a slow upstream day; keep a finite one-hour ceiling.
+    timeout-minutes: 60
+    steps:
+      - name: Check out the public source branch
+        uses: actions/checkout@v4
+        with:
+          ref: github-ready
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Fetch, normalize, validate and write the latest snapshot
+        run: python -m funding_core.cli daily-sync
+
+      - name: Validate the written snapshot envelopes
+        run: python -m funding_core.cli validate-snapshot
+
+      - name: Build the Sites/Vinext application
+        run: npm run build
+
+      - name: Check deployable Sites output
+        shell: bash
+        run: |
+          test -f dist/server/index.js
+          test -f dist/.openai/hosting.json
+
+      - name: Publish generated data to the source branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/opportunities-current.json \
+            public/data/opportunities-archive.json \
+            public/data/opportunities.json \
+            reports/daily-sync-latest.json
+          if git diff --cached --quiet; then
+            echo "No generated data changes to commit."
+          else
+            git commit -m "chore(data): daily funding sync [skip ci]"
+            git push origin HEAD:github-ready
+          fi
+
+      - name: Trigger the configured Sites deployment hook and record the outcome
+        env:
+          SITES_DEPLOY_HOOK_URL: ${{ secrets.SITES_DEPLOY_HOOK_URL }}
+        shell: bash
+        run: |
+          deployment_status="NOT_CONFIGURED"
+          hook_exit=0
+          if [[ -z "$SITES_DEPLOY_HOOK_URL" ]]; then
+            echo "::warning::SITES_DEPLOY_HOOK_URL is not configured; data sync and source publication succeeded, but public Sites deployment remains pending."
+            # Do not report a successful daily job when only local/source data
+            # publication completed and the public Site was not updated.
+            hook_exit=1
+          elif curl --fail-with-body --retry 2 --max-time 60 \
+              -X POST "$SITES_DEPLOY_HOOK_URL" \
+              -H "Content-Type: application/json" \
+              --data "{\"commit\":\"$(git rev-parse HEAD)\",\"branch\":\"github-ready\"}"; then
+            deployment_status="DEPLOY_TRIGGERED"
+          else
+            deployment_status="DEPLOY_FAILED"
+            hook_exit=1
+          fi
+          python -m funding_core.cli mark-deployment --status "$deployment_status"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/daily-sync-latest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(data): record Sites deployment status [skip ci]"
+            git push origin HEAD:github-ready
+          fi
+          exit "$hook_exit"

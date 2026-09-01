@@ -9,6 +9,7 @@ import {
   userFacingThemes,
   type Opportunity,
 } from "./funding-domain";
+import { freshnessWarning, sourceSummary, updatedLabel } from "./operational-metadata";
 
 type SnapshotSource = {
   sourceId: string;
@@ -36,6 +37,14 @@ type SnapshotEnvelope = {
   recordCountArchive?: number;
   liveSourceCount: number;
   sourceCount: number;
+  sourceHealth?: {
+    totalSourceCount?: number;
+    liveConfiguredSourceCount?: number;
+    successfulSourceCount?: number;
+    staleSourceCount?: number;
+    errorSourceCount?: number;
+    fixtureOnlySourceCount?: number;
+  };
   sources: SnapshotSource[];
   warnings: string[];
   notImplemented: string[];
@@ -47,20 +56,14 @@ function isSnapshotEnvelope(value: unknown): value is SnapshotEnvelope {
   const candidate = value as Partial<SnapshotEnvelope>;
   return Array.isArray(candidate.opportunities)
     && typeof candidate.recordCount === "number"
+    && typeof candidate.generatedAt === "string"
+    && typeof candidate.sourceCount === "number"
+    && typeof candidate.liveSourceCount === "number"
     && Array.isArray(candidate.sources);
 }
 
 function statusLabel(status: Opportunity["status"]) {
   return { OPEN: "Aperti", UPCOMING: "In arrivo", CLOSED: "Scaduti", UNKNOWN: "Da verificare" }[status];
-}
-
-function updatedLabel(data: SnapshotEnvelope | null) {
-  if (!data) return "Caricamento dati…";
-  const stamp = new Date(data.generatedAt);
-  if (!Number.isFinite(stamp.getTime())) return "Dati aggiornati di recente";
-  const today = new Date();
-  const sameDay = stamp.toLocaleDateString("it-IT") === today.toLocaleDateString("it-IT");
-  return sameDay ? "Aggiornato oggi" : `Ultimo aggiornamento: ${stamp.toLocaleDateString("it-IT")}`;
 }
 
 function sortResults(items: Opportunity[]) {
@@ -198,7 +201,7 @@ export function FundingExplorer() {
     setIncludeLowRelevance(false);
   }
 
-  const warning = snapshotError || (snapshot && !snapshot.complete
+  const warning = snapshotError || freshnessWarning(snapshot) || (snapshot && !snapshot.complete
     ? "Alcune fonti non sono state aggiornate oggi. I dati precedentemente verificati restano disponibili."
     : null);
 
@@ -215,7 +218,7 @@ export function FundingExplorer() {
 
     <section className="macro-browser" aria-labelledby="theme-title"><div className="section-title"><div><p className="eyebrow">Parti dal tuo ambito</p><h2 id="theme-title">Scegli un’area di interesse</h2></div><p>Scegli un tema per affinare la consultazione; puoi sempre rimuoverlo dai criteri attivi.</p></div><div className="macro-grid">{USER_FACING_THEMES.map((candidate) => <button className={theme === candidate ? "selected" : ""} key={candidate} onClick={() => toggleTheme(candidate)}>{candidate}{theme === candidate && <span aria-hidden="true">✓</span>}</button>)}</div></section>
 
-    <section className="results" id="bandi"><div className="results-heading"><div><p className="eyebrow">{viewMode === "archive" ? "Scaduti" : "Opportunità"}</p><h2>{results.length} {results.length === 1 ? "risultato" : "risultati"} {!warning && <small className="result-updated">· {updatedLabel(snapshot)}</small>}</h2>{viewMode === "archive" && <p className="expired-note">Questi bandi non sono più aperti, ma possono essere utili per individuare programmi ricorrenti e opportunità future.</p>}</div><div><button className="filter-toggle" aria-expanded={showFilters} aria-controls="results-filters" onClick={() => setShowFilters((value) => !value)}>Filtri {activeCount > 0 && <span>{activeCount}</span>}</button>{viewMode === "archive" && <button className="filter-toggle" onClick={returnToCurrent}>Torna agli aperti</button>}</div></div>
+    <section className="results" id="bandi"><div className="results-heading"><div><p className="eyebrow">{viewMode === "archive" ? "Scaduti" : "Opportunità"}</p><h2>{results.length} {results.length === 1 ? "risultato" : "risultati"} {snapshot && <small className="result-updated">· {updatedLabel(snapshot)}</small>}</h2>{snapshot && <p className="source-summary">{sourceSummary(snapshot)}</p>}{viewMode === "archive" && <p className="expired-note">Questi bandi non sono più aperti, ma possono essere utili per individuare programmi ricorrenti e opportunità future.</p>}</div><div><button className="filter-toggle" aria-expanded={showFilters} aria-controls="results-filters" onClick={() => setShowFilters((value) => !value)}>Filtri {activeCount > 0 && <span>{activeCount}</span>}</button>{viewMode === "archive" && <button className="filter-toggle" onClick={returnToCurrent}>Torna agli aperti</button>}</div></div>
       {warning && <div className="update-row warning" role="status">{warning}</div>}
       <div id="results-filters" className={`filter-panel ${showFilters ? "open" : ""}`}>
         <label className="theme-filter"><span>Tema</span><select value={theme} onChange={(event) => setTheme(event.target.value)}><option value="">Tutti i temi</option>{USER_FACING_THEMES.map((candidate) => <option key={candidate} value={candidate}>{candidate}</option>)}</select></label>
@@ -231,7 +234,7 @@ export function FundingExplorer() {
       {results.length === 0 && <div className="empty"><strong>Non abbiamo trovato opportunità con questi criteri.</strong><p>Prova ad ampliare il territorio, rimuovere un filtro o includere anche i bandi in arrivo.</p><button onClick={reset}>Azzera filtri</button></div>}
     </section>
 
-    <section className="info" id="info"><p className="eyebrow">Trasparenza</p><h2>La fonte ufficiale viene prima di tutto.</h2>{snapshot ? <p>La consultazione usa dati raccolti il {new Date(snapshot.generatedAt).toLocaleString("it-IT")} da {snapshot.liveSourceCount} fonti ufficiali. La rilevanza psicologica è una classificazione testuale, non un giudizio di ammissibilità: per requisiti, scadenze e importi vale sempre il testo ufficiale.</p> : <p>La consultazione separa la rilevanza psicologica dalla possibilità di partecipare. Per requisiti, scadenze e importi vale sempre il testo ufficiale della fonte.</p>}</section>
+    <section className="info" id="info"><p className="eyebrow">Trasparenza</p><h2>La fonte ufficiale viene prima di tutto.</h2>{snapshot ? <p>{updatedLabel(snapshot)} · {sourceSummary(snapshot)}. La rilevanza psicologica è una classificazione testuale, non un giudizio di ammissibilità: per requisiti, scadenze e importi vale sempre il testo ufficiale.</p> : <p>La consultazione separa la rilevanza psicologica dalla possibilità di partecipare. Per requisiti, scadenze e importi vale sempre il testo ufficiale della fonte.</p>}</section>
     <footer><strong>Funding Intelligence for Psychology</strong><span>Fonti ufficiali</span></footer>
 
     {active && <div className="modal-backdrop" onMouseDown={() => setActive(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="detail-title" onMouseDown={(event) => event.stopPropagation()}><button className="close" onClick={() => setActive(null)} aria-label="Chiudi">×</button><span className={`status ${active.status.toLowerCase()}`}>{statusLabel(active.status)}</span><h2 id="detail-title">{active.title}</h2><div className="brief"><div><small>Cosa finanzia</small><p>{active.summary}</p></div><div><small>Chi può partecipare</small><p>{active.eligibleEntities.length ? active.eligibleEntities.join(", ") : "Non indicato nella fonte acquisita"}</p></div><div><small>Quanto</small><p>{active.amount ?? "Non indicato nella fonte acquisita"}</p></div><div><small>Dove</small><p>{active.territory}{active.regions?.length ? ` · ${active.regions.join(", ")}` : ""}</p></div><div><small>{active.status === "UPCOMING" ? "Apertura prevista" : active.status === "OPEN" ? "Scadenza" : "Stato"}</small><p>{active.status === "UPCOMING" ? active.openingDate ?? "Da definire" : active.status === "OPEN" ? active.deadline ?? "Da verificare" : statusLabel(active.status)}</p></div></div><h3>Perché può essere interessante</h3><p><strong>Rilevanza {active.relevance.toLowerCase()}.</strong> {active.relevanceWhy}</p><h3>Aree di interesse</h3><div className="tags">{userFacingThemes(active).length ? userFacingThemes(active).map((theme) => <span key={theme}>{theme}</span>) : <span>Nessuna area rilevata automaticamente</span>}</div><div className="eligibility"><strong>Possibilità di partecipare: da verificare</strong><p>Consulta sempre i requisiti nel testo ufficiale. La classificazione non interpreta l’ammissibilità.</p></div><div className="source"><span>{active.demo ? "Scheda locale" : `Fonte dati: ${active.sourceLabel ?? active.sourceId ?? "ufficiale"}`} · ultimo controllo: {active.lastVerified}</span><span>{active.aggregatorUrl && active.aggregatorUrl !== active.officialUrl ? <a href={active.aggregatorUrl} target="_blank" rel="noreferrer">Fonte dati aggregata ↗</a> : null} <a href={active.officialUrl} target="_blank" rel="noreferrer">Apri la pagina ufficiale ↗</a></span></div></section></div>}

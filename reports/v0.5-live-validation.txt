@@ -77,8 +77,8 @@ Source: Fondazione MPS
 HTTP: OK
 Raw: 21
 Parsed: 21
-Current: 1
-Archive: 20
+Current: 2
+Archive: 19
 Unique: 21
 Duplicates: 0
 Readiness: READY

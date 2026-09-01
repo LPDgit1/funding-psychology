@@ -1,7 +1,7 @@
 {
   "version": "0.5",
-  "newCurrent": 7,
-  "newArchive": 215,
+  "newCurrent": 8,
+  "newArchive": 214,
   "duplicatesCollapsed": 0,
   "readiness": {
     "ready": 6,
@@ -121,12 +121,12 @@
       "method": "official contributi listing + bounded detail status/deadline enrichment",
       "raw": 21,
       "parsed": 21,
-      "current": 1,
-      "archive": 20,
+      "current": 2,
+      "archive": 19,
       "unique": 21,
       "duplicates": 0,
-      "newCurrent": 1,
-      "newArchive": 20,
+      "newCurrent": 2,
+      "newArchive": 19,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     }

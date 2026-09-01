@@ -46,21 +46,21 @@
     {
       "sourceId": "european_youth_foundation",
       "label": "European Youth Foundation",
-      "technicalStatus": "LIVE",
+      "technicalStatus": "STALE",
       "readiness": "NOT READY",
       "method": "official Council of Europe EYF calls page",
       "raw": 0,
       "parsed": 0,
       "current": 0,
       "archive": 2,
-      "unique": 0,
+      "unique": 2,
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 2,
       "warnings": [
-        "zero records after a previously populated run"
+        "european_youth_foundation: HTTP 403 from European Youth Foundation; preserved 2 previous records"
       ],
-      "note": "live response parsed no opportunity; zero records after a previously populated run"
+      "note": "technical status STALE; european_youth_foundation: HTTP 403 from European Youth Foundation; preserved 2 previous records"
     },
     {
       "sourceId": "erasmus_inapp",
