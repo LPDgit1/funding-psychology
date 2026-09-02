@@ -9,58 +9,12 @@ import {
   userFacingThemes,
   type Opportunity,
 } from "./funding-domain";
+import {
+  loadArchiveSnapshot,
+  loadCurrentSnapshot,
+  type SnapshotEnvelope,
+} from "./data-loader";
 import { freshnessWarning, sourceSummary, updatedLabel } from "./operational-metadata";
-
-type SnapshotSource = {
-  sourceId: string;
-  label: string;
-  kind: "live" | "fixture";
-  status: "LIVE" | "FIXTURE_ONLY" | "ERROR" | "STALE";
-  fetchedRecords: number;
-  publishedRecords: number;
-  currentRecords?: number;
-  archiveRecords?: number;
-  new?: number;
-  updated?: number;
-  unchanged?: number;
-  warnings: string[];
-};
-
-type SnapshotEnvelope = {
-  schemaVersion: number;
-  dataset?: "current" | "archive";
-  generatedAt: string;
-  asOfDate: string;
-  complete: boolean;
-  recordCount: number;
-  recordCountCurrent?: number;
-  recordCountArchive?: number;
-  liveSourceCount: number;
-  sourceCount: number;
-  sourceHealth?: {
-    totalSourceCount?: number;
-    liveConfiguredSourceCount?: number;
-    successfulSourceCount?: number;
-    staleSourceCount?: number;
-    errorSourceCount?: number;
-    fixtureOnlySourceCount?: number;
-  };
-  sources: SnapshotSource[];
-  warnings: string[];
-  notImplemented: string[];
-  opportunities: Opportunity[];
-};
-
-function isSnapshotEnvelope(value: unknown): value is SnapshotEnvelope {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<SnapshotEnvelope>;
-  return Array.isArray(candidate.opportunities)
-    && typeof candidate.recordCount === "number"
-    && typeof candidate.generatedAt === "string"
-    && typeof candidate.sourceCount === "number"
-    && typeof candidate.liveSourceCount === "number"
-    && Array.isArray(candidate.sources);
-}
 
 function statusLabel(status: Opportunity["status"]) {
   return { OPEN: "Aperti", UPCOMING: "In arrivo", CLOSED: "Scaduti", UNKNOWN: "Da verificare" }[status];
@@ -95,19 +49,18 @@ export function FundingExplorer() {
   const [archive, setArchive] = useState<SnapshotEnvelope | null>(null);
   const [viewMode, setViewMode] = useState<"current" | "archive">("current");
   const [snapshotError, setSnapshotError] = useState<string | null>(null);
+  const [remoteVersion, setRemoteVersion] = useState<string | undefined>();
   const [visibleCount, setVisibleCount] = useState(60);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/data/opportunities-current.json", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error(`Dati HTTP ${response.status}`)))
-      .then((payload: unknown) => {
+    loadCurrentSnapshot()
+      .then((loaded) => {
         if (cancelled) return;
-        if (!isSnapshotEnvelope(payload) || payload.opportunities.some((item) => typeof item.id !== "string" || typeof item.title !== "string")) {
-          throw new Error("Dati non validi");
-        }
-        setCurrentOpportunities(payload.opportunities);
-        setSnapshot(payload);
+        setCurrentOpportunities(loaded.snapshot.opportunities);
+        setSnapshot(loaded.snapshot);
+        setRemoteVersion(loaded.remoteVersion);
+        setSnapshotError(null);
       })
       .catch((error: unknown) => {
         if (!cancelled) setSnapshotError(error instanceof Error ? error.message : "Dati non disponibili");
@@ -123,11 +76,8 @@ export function FundingExplorer() {
       return;
     }
     try {
-      const response = await fetch("/data/opportunities-archive.json", { cache: "no-store" });
-      if (!response.ok) throw new Error(`Dati scaduti HTTP ${response.status}`);
-      const payload: unknown = await response.json();
-      if (!isSnapshotEnvelope(payload)) throw new Error("Dati scaduti non validi");
-      setArchive(payload);
+      const loaded = await loadArchiveSnapshot(remoteVersion ?? snapshot?.generatedAt);
+      setArchive(loaded.snapshot);
       setViewMode("archive");
       setStatus("all");
       setIncludeLowRelevance(true);
