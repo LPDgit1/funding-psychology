@@ -72,5 +72,5 @@
     "candidateCurrentRecords": 2056
   },
   "syncStatus": "DATA_SYNC_OK",
-  "deploymentStatus": "NOT_ATTEMPTED"
+  "deploymentStatus": "NOT_CONFIGURED"
 }
