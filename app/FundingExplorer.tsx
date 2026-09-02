@@ -151,9 +151,7 @@ export function FundingExplorer() {
     setIncludeLowRelevance(false);
   }
 
-  const warning = snapshotError || freshnessWarning(snapshot) || (snapshot && !snapshot.complete
-    ? "Alcune fonti non sono state aggiornate oggi. I dati precedentemente verificati restano disponibili."
-    : null);
+  const warning = snapshotError || freshnessWarning(snapshot);
 
   return <main>
     <header className="topbar"><a href="#top" className="brand"><span>FIP</span><strong>Funding Intelligence<br />for Psychology</strong></a><nav><a href="#bandi">Bandi</a><button onClick={activateNew}>Nuovi</button><button onClick={activateUpcoming}>In arrivo</button><button onClick={() => { setFavoritesOnly((value) => !value); setStatus("current"); }}>{favoritesOnly ? "Tutti" : "Preferiti"} <small>{favorites.length}</small></button><a href="#info">Informazioni</a></nav></header>

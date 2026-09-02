@@ -25,6 +25,7 @@ test("home presents the simplified public vocabulary", async () => {
   assert.match(html, /Tutti i temi/);
   assert.match(html, /Altri filtri/);
   assert.doesNotMatch(html, /Consulta anche i bandi scaduti/);
+  assert.doesNotMatch(html, /temporaneamente non disponibili|non ancora automatizzate|Alcune fonti non sono state aggiornate oggi/);
   assert.match(html, /In arrivo/);
   assert.match(html, /fonte ufficiale/i);
 });

@@ -16,14 +16,22 @@ test("freshness warning has 36h and 72h thresholds", () => {
   assert.equal(freshnessWarning({ generatedAt: "2026-08-27T05:00:00Z" }, now), "Ultimo aggiornamento disponibile: 5 giorni fa. Alcune opportunità potrebbero essere cambiate.");
 });
 
-test("source summary derives monitored, updated and unavailable counts", () => {
+test("source summary uses consulted live-source count", () => {
   assert.equal(sourceSummary({
     sourceHealth: {
       totalSourceCount: 42,
+      liveConfiguredSourceCount: 40,
       successfulSourceCount: 39,
       staleSourceCount: 1,
       errorSourceCount: 0,
       fixtureOnlySourceCount: 2,
     },
-  }), "42 fonti monitorate · 39 aggiornate · 1 temporaneamente non disponibili · 2 non ancora automatizzate");
+  }), "40 fonti consultate");
+});
+
+test("source summary falls back to live rows and handles the singular", () => {
+  assert.equal(sourceSummary({
+    sources: [{ kind: "live" }],
+    sourceHealth: { successfulSourceCount: 0 },
+  }), "1 fonte consultata");
 });

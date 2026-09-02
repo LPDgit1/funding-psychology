@@ -76,20 +76,15 @@ export function freshnessWarning(data: SnapshotMetadata | null, now = new Date()
   return `Ultimo aggiornamento disponibile: ${days} ${days === 1 ? "giorno" : "giorni"} fa. Alcune opportunità potrebbero essere cambiate.`;
 }
 
-/** Compact user-facing health summary; fixture-only sources are monitored but not live updates. */
+/** Compact user-facing count of live sources that were consulted. */
 export function sourceSummary(data: SnapshotMetadata | null): string {
   if (!data) return "Verifica delle fonti in corso.";
   const rows = Array.isArray(data.sources) ? data.sources : [];
   const liveRows = rows.filter((row) => row.kind === "live");
   const health = data.sourceHealth ?? {};
-  const monitored = numberOrFallback(health.totalSourceCount, numberOrFallback(data.sourceCount, rows.length));
-  const updated = numberOrFallback(health.successfulSourceCount, numberOrFallback(data.liveSourceCount, liveRows.filter((row) => row.status === "LIVE").length));
-  const stale = numberOrFallback(health.staleSourceCount, liveRows.filter((row) => row.status === "STALE").length);
-  const errors = numberOrFallback(health.errorSourceCount, liveRows.filter((row) => row.status === "ERROR").length);
-  const fixtureOnly = numberOrFallback(health.fixtureOnlySourceCount, rows.filter((row) => row.status === "FIXTURE_ONLY" || row.kind === "fixture").length);
-  const unavailable = stale + errors;
-  let summary = `${monitored} fonti monitorate · ${updated} aggiornate`;
-  if (unavailable > 0) summary += ` · ${unavailable} temporaneamente non disponibili`;
-  if (fixtureOnly > 0) summary += ` · ${fixtureOnly} non ancora automatizzate`;
-  return summary;
+  const consulted = numberOrFallback(
+    health.liveConfiguredSourceCount,
+    liveRows.length || numberOrFallback(data.liveSourceCount, 0),
+  );
+  return `${consulted} ${consulted === 1 ? "fonte consultata" : "fonti consultate"}`;
 }
