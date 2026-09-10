@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from funding_core.adapters import FetchPolicy
+from funding_core.adapters import AdapterError, FetchPolicy
 from funding_core.models import SourceRecord
 
 from ._v04_common import amount, clean, dates_in, fetch_bytes, page_text
@@ -35,7 +35,7 @@ class MinisteroSaluteRicercaFinalizzataAdapter:
     def parse(self, raw: bytes | str) -> list[SourceRecord]:
         text = page_text(raw)
         if not text or self._challenge.search(text):
-            return []
+            raise AdapterError("Ministero Salute: pagina vuota o verifica automatica, elenco non acquisito")
         matches = list(self._call.finditer(text))
         records: list[SourceRecord] = []
         seen: set[int] = set()

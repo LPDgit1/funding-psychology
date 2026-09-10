@@ -189,13 +189,14 @@ def test_crt_v04_badges_and_opening_dates_drive_authoritative_status():
     def fake_urlopen(request, timeout):
         return Response(next(payload for path, payload in details.items() if path in request.full_url))
 
-    with patch("funding_core.adapters.urlopen", side_effect=fake_urlopen):
+    with patch("funding_core.adapters.urlopen", side_effect=fake_urlopen), patch("adapters.fondazione_crt.date") as clock:
+        clock.today.return_value = date(2026, 9, 7)
         enriched = adapter.enrich(records, max_details=40)
     by_title = {record.title: record for record in enriched}
     assert by_title["NoteSipari"].source_status == "OPEN"
     assert by_title["Ordinarie: Welfare e Territorio"].source_status == "OPEN"
     assert by_title["Ordinarie: Welfare e Territorio"].deadline == date(2026, 10, 15)
-    assert by_title["Piccoli comuni - cantieri per l'ambiente e il territorio"].source_status == "UPCOMING"
+    assert by_title["Piccoli comuni - cantieri per l'ambiente e il territorio"].source_status == "OPEN"
     assert by_title["Piccoli comuni - cantieri per l'ambiente e il territorio"].opening_date == date(2026, 9, 1)
     assert by_title["Legàmi in Comune"].source_status == "UPCOMING"
     assert by_title["Missione Soccorso"].source_status == "CLOSED"

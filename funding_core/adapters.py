@@ -16,6 +16,7 @@ from urllib.request import Request, urlopen
 
 from .models import SourceRecord
 from .dates import parse_date
+from .money import parse_money, extract_money
 from .territories import normalize_territory, split_regions
 
 
@@ -323,9 +324,9 @@ class EuFundingTendersAdapter:
     @staticmethod
     def _money(values: list[str]) -> int | None:
         for value in values:
-            digits = re.sub(r"[^0-9]", "", value)
-            if digits:
-                return int(digits)
+            parsed = parse_money(value)
+            if parsed is not None:
+                return parsed
         return None
 
     @staticmethod
@@ -1182,28 +1183,13 @@ def _detail_fields(raw: bytes | str) -> dict[str, object]:
         return None
 
     deadline = first_date((
-        r"(?:scadenza|scade|termine|chiusura|deadline|entro il)\s*[:\-]?\s*([^.;]{1,80})",
-        r"(?:presentare[^.;]{0,35}|domande[^.;]{0,35})\s+entro\s+([^.;]{1,80})",
+        r"(?:scadenza|scade|termine|chiusura|deadline|entro)\s*[:\-]?\s*([^;]{1,100})",
+        r"(?:presentare[^.;]{0,35}|domande[^.;]{0,35})\s+entro\s+([^;]{1,100})",
     ))
     opening = first_date((
         r"(?:apertura|apre|opening|dal)\s*[:\-]?\s*([^.;]{1,80})",
     ))
-    amount: int | None = None
-    amount_match = re.search(
-        r"(?:budget|dotazione|stanziamento|finanziamento|importo)[^€$0-9]{0,40}(?:€|eur)?\s*([0-9][0-9. ,]{2,})",
-        plain,
-        re.IGNORECASE,
-    )
-    if amount_match:
-        digits = re.sub(r"[^0-9]", "", amount_match.group(1))
-        if digits:
-            amount = int(digits)
-    if amount is None:
-        bare_amount = re.search(r"(?:€|eur)\s*([0-9][0-9. ,]{2,})", plain, re.IGNORECASE)
-        if bare_amount:
-            digits = re.sub(r"[^0-9]", "", bare_amount.group(1))
-            if digits:
-                amount = int(digits)
+    amount = extract_money(plain)
     eligible = ""
     eligible_match = re.search(
         r"(?:destinatari|beneficiari|soggetti ammissibili|chi può partecipare|a chi è rivolto)[^:]{0,20}:?\s*([^.;]{1,220})",
@@ -1406,6 +1392,14 @@ class FondazioneCariparoAdapter(_HtmlOpportunityListAdapter):
     url_tokens = ("/2026/", "/2025/")
     excluded_tokens = ("/wp-", "/bandi/", "/iniziative/")
 
+    def enrich(self, records, policy=None, *, max_details: int = 40):
+        records = super().enrich(records, policy, max_details=max_details)
+        # A repost is not evidence that Cariparo is the grant maker.
+        return [replace(record, funder="Con i Bambini",
+                        programme="Fondo per il contrasto della povertà educativa minorile")
+                if re.search(r"promosso\s+da\s+Con\s+i\s+bambini", record.description, re.IGNORECASE)
+                else record for record in records]
+
 
 class FondazioneCariveronaAdapter(_HtmlOpportunityListAdapter):
     source_id = "fondazione-cariverona"
@@ -1596,9 +1590,9 @@ class IncentiviGovAdapter:
     @staticmethod
     def _money(values: list[str]) -> int | None:
         for value in values:
-            digits = re.sub(r"[^0-9]", "", value)
-            if digits:
-                return int(digits)
+            parsed = parse_money(value)
+            if parsed is not None:
+                return parsed
         return None
 
     def _catalog_url(self, document: dict) -> str:
@@ -1666,5 +1660,4 @@ class IncentiviGovAdapter:
 
 
 def _money(value: str) -> int | None:
-    digits = "".join(character for character in value if character.isdigit())
-    return int(digits) if digits else None
+    return parse_money(value)

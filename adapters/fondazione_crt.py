@@ -372,6 +372,11 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
                     payload = self._fetch_detail(record.official_url, policy)
                     cache[record.official_url] = payload
                 detail_text = self._detail_text(payload)
+                # Historical cumulative spending and descriptions of sibling
+                # calls must not become the current call's budget or purpose.
+                current_section = re.search(r"\bBANDO\s+20\d{2}\b", detail_text, re.IGNORECASE)
+                if current_section:
+                    detail_text = detail_text[current_section.start():]
                 badge_status = self._official_badge(record.title, payload)
                 if not self._detail_is_opportunity(record.title, detail_text, badge_status):
                     continue
@@ -388,7 +393,8 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
                 if badge_status == "CLOSED":
                     status = "CLOSED"
                 elif badge_status == "UPCOMING":
-                    status = "UPCOMING"
+                    opening = self._detail_opening(detail_text)
+                    status = "OPEN" if opening and opening <= today and future else "CLOSED" if deadlines and not future else "UPCOMING"
                 elif badge_status == "OPEN":
                     if future:
                         status = "OPEN"
@@ -407,7 +413,7 @@ class FondazioneCrtAdapter(DedicatedHtmlAdapter):
                     record,
                     opening_date=self._detail_opening(detail_text) or fields.get("opening_date") or record.opening_date,
                     deadline=deadline,
-                    total_budget=extract_money(detail_text) or fields.get("total_budget") or record.total_budget,
+                    total_budget=extract_money(detail_text) if current_section else extract_money(detail_text) or fields.get("total_budget") or record.total_budget,
                     eligible_entities=tuple(extract_entities(detail_text) or fields.get("eligible_entities") or record.eligible_entities),
                     description=compact(description),
                     source_status=status,

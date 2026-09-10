@@ -1,19 +1,19 @@
 {
   "version": "0.5",
-  "newCurrent": 8,
-  "newArchive": 214,
+  "newCurrent": 11,
+  "newArchive": 211,
   "duplicatesCollapsed": 0,
   "readiness": {
-    "ready": 6,
-    "partial": 1,
-    "notReady": 0
+    "ready": 5,
+    "partial": 0,
+    "notReady": 2
   },
   "sources": [
     {
       "sourceId": "ministero_salute_ricerca_finalizzata",
       "label": "Ministero della Salute – Ricerca Finalizzata",
-      "technicalStatus": "LIVE",
-      "readiness": "PARTIAL",
+      "technicalStatus": "ERROR",
+      "readiness": "NOT READY",
       "method": "official Ministero Salute Ricerca Finalizzata HTML entry",
       "raw": 0,
       "parsed": 0,
@@ -23,8 +23,10 @@
       "duplicates": 0,
       "newCurrent": 0,
       "newArchive": 0,
-      "warnings": [],
-      "note": "official page is protected by a site-verification challenge in this run"
+      "warnings": [
+        "ministero_salute_ricerca_finalizzata: Ministero Salute: pagina vuota o verifica automatica, elenco non acquisito; preserved 0 previous records"
+      ],
+      "note": "technical status ERROR; ministero_salute_ricerca_finalizzata: Ministero Salute: pagina vuota o verifica automatica, elenco non acquisito; preserved 0 previous records"
     },
     {
       "sourceId": "mur_prin",
@@ -51,12 +53,12 @@
       "method": "official INAIL BRIC listing + bounded detail enrichment",
       "raw": 8,
       "parsed": 8,
-      "current": 0,
-      "archive": 8,
+      "current": 4,
+      "archive": 4,
       "unique": 8,
       "duplicates": 0,
-      "newCurrent": 0,
-      "newArchive": 8,
+      "newCurrent": 4,
+      "newArchive": 4,
       "warnings": [],
       "note": "source-specific listing/detail sanity check passed"
     },
@@ -116,19 +118,21 @@
     {
       "sourceId": "fondazione_mps",
       "label": "Fondazione MPS",
-      "technicalStatus": "LIVE",
-      "readiness": "READY",
+      "technicalStatus": "STALE",
+      "readiness": "NOT READY",
       "method": "official contributi listing + bounded detail status/deadline enrichment",
-      "raw": 21,
-      "parsed": 21,
-      "current": 2,
-      "archive": 19,
+      "raw": 0,
+      "parsed": 0,
+      "current": 1,
+      "archive": 20,
       "unique": 21,
       "duplicates": 0,
-      "newCurrent": 2,
-      "newArchive": 19,
-      "warnings": [],
-      "note": "source-specific listing/detail sanity check passed"
+      "newCurrent": 1,
+      "newArchive": 20,
+      "warnings": [
+        "fondazione_mps: IncompleteRead(0 bytes read); preserved 21 previous records"
+      ],
+      "note": "technical status STALE; fondazione_mps: IncompleteRead(0 bytes read); preserved 21 previous records"
     }
   ],
   "preflight": [
@@ -168,5 +172,5 @@
       "evidence": "17 records; accented text preserved"
     }
   ],
-  "stoppingRule": true
+  "stoppingRule": false
 }

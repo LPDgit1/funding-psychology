@@ -1,17 +1,17 @@
 Source,Fetched,Parsed,Current,Archive,Missing deadline,Warnings,Status
-eu-funding-tenders,1422,1097,1097,0,453,,LIVE
-incentivi-gov,0,0,836,4986,204,incentivi-gov: The read operation timed out; preserved 5825 previous records,STALE
+eu-funding-tenders,1408,1312,1312,0,630,,LIVE
+incentivi-gov,5844,5844,827,5017,204,,LIVE
 Erasmus+ INDIRE,10,10,1,9,0,,LIVE
 aig-opportunities,2,2,1,15,1,,LIVE
 interreg-italy-croatia,1,1,1,0,0,,LIVE
-"Regione Veneto — Bandi, Avvisi e Concorsi",809,809,41,774,8,,LIVE
-Dipartimento per le politiche della famiglia,21,21,20,1,20,,LIVE
-Dipartimento per le politiche in favore delle persone con disabilità,2,2,1,1,1,,LIVE
+"Regione Veneto — Bandi, Avvisi e Concorsi",808,808,34,784,9,,LIVE
+Dipartimento per le politiche della famiglia,21,21,19,2,19,,LIVE
+Dipartimento per le politiche in favore delle persone con disabilità,0,0,1,1,1,"dipartimento-disabilita: connection failed for Dipartimento per le politiche in favore delle persone con disabilità: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.disabilita.governo.it'. (_ssl.c:1010); preserved 2 previous records",STALE
 Fondazione Cariparo,5,5,4,1,4,,LIVE
 Fondazione Cariverona,6,6,6,0,6,all deadlines are missing,LIVE
-Con i Bambini,32,32,3,30,3,,LIVE
-Fondo per la Repubblica Digitale,7,7,6,1,6,,LIVE
-Dipartimento per le pari opportunità,5,5,4,1,3,,LIVE
+Con i Bambini,32,32,3,30,1,,LIVE
+Fondo per la Repubblica Digitale,7,7,3,4,2,,LIVE
+Dipartimento per le pari opportunità,5,5,4,1,2,,LIVE
 Dipartimento per le politiche antidroga,0,0,0,0,0,dipendenze: HTTP 503 from Dipartimento per le politiche antidroga; preserved 0 previous records,ERROR
 Programma Nazionale FAMI 2021-2027,19,19,3,16,0,,LIVE
 Programma Nazionale Scuola e Competenze 2021-2027,12,12,2,10,2,,LIVE
@@ -32,12 +32,12 @@ Erasmus+ INAPP,5,5,2,3,0,,LIVE
 Fondazione Cariparma,11,11,4,7,0,,LIVE
 Fondazione di Modena,10,10,2,8,0,,LIVE
 Fondazione Carisbo,22,22,3,19,0,,LIVE
-Ministero della Salute – Ricerca Finalizzata,0,0,0,0,0,,LIVE
+Ministero della Salute – Ricerca Finalizzata,0,0,0,0,0,"ministero_salute_ricerca_finalizzata: Ministero Salute: pagina vuota o verifica automatica, elenco non acquisito; preserved 0 previous records",ERROR
 MUR – PRIN,9,9,2,7,2,,LIVE
-INAIL – Bandi BRIC,8,8,0,8,0,,LIVE
+INAIL – Bandi BRIC,8,8,4,4,4,,LIVE
 Fondazione del Monte di Bologna e Ravenna,12,12,2,10,0,,LIVE
 Fondazione Cassa di Risparmio di Lucca,99,99,2,97,0,,LIVE
 Fondazione Carispezia,73,73,0,73,0,all deadlines are missing,LIVE
-Fondazione MPS,21,21,2,19,1,,LIVE
+Fondazione MPS,0,0,1,20,0,fondazione_mps: IncompleteRead(0 bytes read); preserved 21 previous records,STALE
 Veneto FSE+,2,2,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY
 Veneto FESR+,1,1,0,0,0,Fixture verificata; non pubblicata finché il contratto live non è stabile.,FIXTURE_ONLY

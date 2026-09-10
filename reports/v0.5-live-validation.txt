@@ -2,15 +2,15 @@
 
 [ministero_salute_ricerca_finalizzata]
 Source: Ministero della Salute – Ricerca Finalizzata
-HTTP: OK
+HTTP: ERROR
 Raw: 0
 Parsed: 0
 Current: 0
 Archive: 0
 Unique: 0
 Duplicates: 0
-Readiness: PARTIAL
-Warnings: —
+Readiness: NOT READY
+Warnings: ministero_salute_ricerca_finalizzata: Ministero Salute: pagina vuota o verifica automatica, elenco non acquisito; preserved 0 previous records
 
 [mur_prin]
 Source: MUR – PRIN
@@ -29,8 +29,8 @@ Source: INAIL – Bandi BRIC
 HTTP: OK
 Raw: 8
 Parsed: 8
-Current: 0
-Archive: 8
+Current: 4
+Archive: 4
 Unique: 8
 Duplicates: 0
 Readiness: READY
@@ -74,12 +74,12 @@ Warnings: all deadlines are missing
 
 [fondazione_mps]
 Source: Fondazione MPS
-HTTP: OK
-Raw: 21
-Parsed: 21
-Current: 2
-Archive: 19
+HTTP: STALE
+Raw: 0
+Parsed: 0
+Current: 1
+Archive: 20
 Unique: 21
 Duplicates: 0
-Readiness: READY
-Warnings: —
+Readiness: NOT READY
+Warnings: fondazione_mps: IncompleteRead(0 bytes read); preserved 21 previous records

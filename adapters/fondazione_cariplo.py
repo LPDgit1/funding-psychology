@@ -12,6 +12,7 @@ import funding_core.adapters as _core_adapters
 from funding_core.adapters import AdapterError, FetchPolicy, _AnchorTextParser, _detail_fields
 from funding_core.dates import parse_date
 from funding_core.models import SourceRecord
+from ._v04_common import page_text
 
 from ._common import (
     DedicatedHtmlAdapter,
@@ -174,6 +175,11 @@ class FondazioneCariploAdapter(DedicatedHtmlAdapter):
                 detail_payload = self._fetch_detail(record.official_url, policy)
                 detail_text = decode_html(detail_payload)
                 fields = _detail_fields(detail_payload)
+                # Cariplo's structured budget header can sit outside the
+                # article body; never replace it with the minimum grant.
+                budget_header = re.search(r"SOSTEGNO\s+FORNITO\s*[:\-]?\s*(.{0,70})", page_text(detail_payload), re.IGNORECASE)
+                if budget_header:
+                    fields["total_budget"] = extract_money(budget_header.group(1))
                 deadlines = self._detail_deadlines(detail_text)
                 if deadlines:
                     future = [value for value in deadlines if value >= today]

@@ -1,10 +1,11 @@
 {
-  "startedAt": "2026-09-06T08:13:27.937489Z",
-  "completedAt": "2026-09-06T08:26:00.352812Z",
-  "snapshotGeneratedAt": "2026-09-06T08:13:28.050707Z",
+  "startedAt": "2026-09-07T20:51:23.860959Z",
+  "completedAt": "2026-09-07T21:00:18.464154Z",
+  "snapshotGeneratedAt": "2026-09-07T20:51:23.976537Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
+    "aig-opportunities",
     "compagnia_san_paolo",
     "con-i-bambini",
     "dipartimento-famiglia",
@@ -26,28 +27,27 @@
     "fondazione_del_monte",
     "fondazione_friuli",
     "fondazione_modena",
-    "fondazione_mps",
     "fondazione_sardegna",
     "fondazione_venezia",
     "fondo-repubblica-digitale",
     "inail_bric",
+    "incentivi-gov",
     "interreg-italy-croatia",
     "intesa_beneficenza",
     "ministero_lavoro_terzo_settore",
-    "ministero_salute_ricerca_finalizzata",
     "mur_prin",
     "pari_opportunita",
+    "pn_scuola",
     "veneto-bandi"
   ],
   "STALE": [
-    "aig-opportunities",
     "dipartimento-disabilita",
     "european_youth_foundation",
-    "incentivi-gov",
-    "pn_scuola"
+    "fondazione_mps"
   ],
   "ERROR": [
-    "dipendenze"
+    "dipendenze",
+    "ministero_salute_ricerca_finalizzata"
   ],
   "FIXTURE_ONLY": [
     "veneto-fesr-calendar",
@@ -56,20 +56,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 34,
-    "staleSourceCount": 5,
-    "errorSourceCount": 1,
+    "successfulSourceCount": 35,
+    "staleSourceCount": 3,
+    "errorSourceCount": 2,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 2290,
-  "archiveRecords": 6218,
+  "currentRecords": 2279,
+  "archiveRecords": 6254,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 2293,
-    "candidateCurrentRecords": 2290
+    "previousCurrentRecords": 2290,
+    "candidateCurrentRecords": 2279
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"

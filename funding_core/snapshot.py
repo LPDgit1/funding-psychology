@@ -248,7 +248,7 @@ def _previous_source_items(*snapshots: dict[str, Any] | None) -> dict[str, list[
     return grouped
 
 
-def _revalidate_previous_item(item: dict[str, Any]) -> dict[str, Any] | None:
+def _revalidate_previous_item(item: dict[str, Any], today: date | None = None) -> dict[str, Any] | None:
     """Apply current type/classification rules to a stale fallback record."""
     title = str(item.get("title") or "")
     summary = str(item.get("summary") or "")
@@ -256,6 +256,13 @@ def _revalidate_previous_item(item: dict[str, Any]) -> dict[str, Any] | None:
         return None
     classification = classify_with_relevance(" ".join((title, summary)))
     updated = dict(item)
+    reference = today or date.today()
+    try:
+        deadline = date.fromisoformat(str(item.get("deadline") or ""))
+    except ValueError:
+        deadline = None
+    if deadline and deadline < reference and item.get("status") in {"OPEN", "UPCOMING"}:
+        updated["status"] = "CLOSED"
     updated["macroAreas"] = list(classification.macro_areas)
     updated["relevance"] = classification.label
     updated["relevanceScore"] = classification.score
@@ -271,8 +278,8 @@ def _revalidate_previous_item(item: dict[str, Any]) -> dict[str, Any] | None:
     return updated
 
 
-def _revalidated_previous_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [updated for item in items if (updated := _revalidate_previous_item(item)) is not None]
+def _revalidated_previous_items(items: list[dict[str, Any]], today: date | None = None) -> list[dict[str, Any]]:
+    return [updated for item in items if (updated := _revalidate_previous_item(item, today)) is not None]
 
 
 def _sort_public(items: list[dict[str, Any]]) -> None:
@@ -362,7 +369,7 @@ def build_snapshot_set(
                 warning = f"{spec.source_id}: parser anomaly; preserved {previous_count} previous records"
                 warnings = [*warnings, warning]
                 warnings_all.append(warning)
-                previous_valid = _revalidated_previous_items(previous_items)
+                previous_valid = _revalidated_previous_items(previous_items, today)
                 current_opportunities.extend(item for item in previous_valid if item.get("status") != "CLOSED")
                 archive_opportunities.extend(item for item in previous_valid if item.get("status") == "CLOSED")
                 source_status = "STALE"
@@ -389,7 +396,7 @@ def build_snapshot_set(
                     refreshed
                     for item in previous_items
                     if item.get("status") == "CLOSED" and _record_id(item) not in mapped_ids
-                    if (refreshed := _revalidate_previous_item(item)) is not None
+                    if (refreshed := _revalidate_previous_item(item, today)) is not None
                 ]
                 current_opportunities.extend(item for item in mapped if item.get("status") != "CLOSED")
                 archive_opportunities.extend(item for item in mapped if item.get("status") == "CLOSED")
@@ -431,7 +438,7 @@ def build_snapshot_set(
             message = str(exc)
             warning = f"{spec.source_id}: {message}; preserved {previous_count} previous records"
             warnings_all.append(warning)
-            previous_valid = _revalidated_previous_items(previous_items)
+            previous_valid = _revalidated_previous_items(previous_items, today)
             current_opportunities.extend(item for item in previous_valid if item.get("status") != "CLOSED")
             archive_opportunities.extend(item for item in previous_valid if item.get("status") == "CLOSED")
             source_results.append({

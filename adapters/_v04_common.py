@@ -11,6 +11,7 @@ from urllib.request import Request
 import funding_core.adapters as _core_adapters
 from funding_core.adapters import AdapterError, FetchPolicy
 from funding_core.dates import parse_date
+from funding_core.money import extract_money
 
 
 class _PageTextParser(HTMLParser):
@@ -100,15 +101,7 @@ def dates_in(value: str, *, default_year: int | None = None) -> list[date]:
 
 
 def amount(value: str) -> int | None:
-    # Supports both Italian grouping (1.250.000) and an explicit euro symbol.
-    for match in re.finditer(r"(?:€|EUR|euro|stanziamento|dotazione|budget|importo|risorse)[^€$0-9]{0,40}(?:€|EUR|euro)?\s*([0-9][0-9. ,]{2,})", value, re.IGNORECASE):
-        token = match.group(1).strip()
-        # Italian amounts often carry decimal cents (``300.000,00``).
-        token = re.sub(r",\s*\d{2}\b", "", token)
-        digits = re.sub(r"[^0-9]", "", token)
-        if digits:
-            return int(digits)
-    return None
+    return extract_money(value)
 
 
 def fetch_bytes(url: str, policy: FetchPolicy, *, label: str, accept: str = "text/html,application/xhtml+xml", content_types: set[str] | None = None) -> bytes:

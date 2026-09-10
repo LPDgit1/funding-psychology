@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DEMO_OPPORTUNITIES } from "./demo-data";
 import {
   USER_FACING_THEMES,
   filterOpportunities,
@@ -44,7 +43,7 @@ export function FundingExplorer() {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem("fip-favorites") ?? "[]"); } catch { return []; }
   });
-  const [currentOpportunities, setCurrentOpportunities] = useState<Opportunity[]>(DEMO_OPPORTUNITIES);
+  const [currentOpportunities, setCurrentOpportunities] = useState<Opportunity[]>([]);
   const [snapshot, setSnapshot] = useState<SnapshotEnvelope | null>(null);
   const [archive, setArchive] = useState<SnapshotEnvelope | null>(null);
   const [viewMode, setViewMode] = useState<"current" | "archive">("current");
@@ -122,6 +121,7 @@ export function FundingExplorer() {
     setIncludeLowRelevance(viewMode === "archive");
   }
   function activateNew() {
+    setViewMode("current");
     setNewOnly(true);
     setFavoritesOnly(false);
     setStatus("current");
@@ -129,6 +129,7 @@ export function FundingExplorer() {
     document.getElementById("bandi")?.scrollIntoView({ behavior: "smooth" });
   }
   function activateUpcoming() {
+    setViewMode("current");
     setNewOnly(false);
     setFavoritesOnly(false);
     setStatus("UPCOMING");
@@ -136,6 +137,7 @@ export function FundingExplorer() {
     document.getElementById("bandi")?.scrollIntoView({ behavior: "smooth" });
   }
   function activateDeadline() {
+    setViewMode("current");
     setNewOnly(false);
     setStatus("OPEN");
     setDeadline("30");
@@ -147,6 +149,7 @@ export function FundingExplorer() {
       void loadExpired();
       return;
     }
+    setViewMode("current");
     setStatus(value === "open" ? "OPEN" : value === "upcoming" ? "UPCOMING" : "current");
     setIncludeLowRelevance(false);
   }
@@ -154,7 +157,7 @@ export function FundingExplorer() {
   const warning = snapshotError || freshnessWarning(snapshot);
 
   return <main>
-    <header className="topbar"><a href="#top" className="brand"><span>FIP</span><strong>Funding Intelligence<br />for Psychology</strong></a><nav><a href="#bandi">Bandi</a><button onClick={activateNew}>Nuovi</button><button onClick={activateUpcoming}>In arrivo</button><button onClick={() => { setFavoritesOnly((value) => !value); setStatus("current"); }}>{favoritesOnly ? "Tutti" : "Preferiti"} <small>{favorites.length}</small></button><a href="#info">Informazioni</a></nav></header>
+    <header className="topbar"><a href="#top" className="brand"><span>FIP</span><strong>Funding Intelligence<br />for Psychology</strong></a><nav><a href="#bandi">Bandi</a><button onClick={activateNew}>Nuovi</button><button onClick={activateUpcoming}>In arrivo</button><button onClick={() => { setFavoritesOnly((value) => !value); returnToCurrent(); }}>{favoritesOnly ? "Tutti" : "Preferiti"} <small>{favorites.length}</small></button><a href="#info">Informazioni</a></nav></header>
 
     <section className="hero" id="top">
       <p className="eyebrow">Finanziamenti, spiegati con parole semplici</p>
@@ -168,6 +171,7 @@ export function FundingExplorer() {
 
     <section className="results" id="bandi"><div className="results-heading"><div><p className="eyebrow">{viewMode === "archive" ? "Scaduti" : "Opportunità"}</p><h2>{results.length} {results.length === 1 ? "risultato" : "risultati"} {snapshot && <small className="result-updated">· {updatedLabel(snapshot)}</small>}</h2>{snapshot && <p className="source-summary">{sourceSummary(snapshot)}</p>}{viewMode === "archive" && <p className="expired-note">Questi bandi non sono più aperti, ma possono essere utili per individuare programmi ricorrenti e opportunità future.</p>}</div><div><button className="filter-toggle" aria-expanded={showFilters} aria-controls="results-filters" onClick={() => setShowFilters((value) => !value)}>Filtri {activeCount > 0 && <span>{activeCount}</span>}</button>{viewMode === "archive" && <button className="filter-toggle" onClick={returnToCurrent}>Torna agli aperti</button>}</div></div>
       {warning && <div className="update-row warning" role="status">{warning}</div>}
+      {!snapshot && !snapshotError && <p role="status">Caricamento delle opportunità…</p>}
       <div id="results-filters" className={`filter-panel ${showFilters ? "open" : ""}`}>
         <label className="theme-filter"><span>Tema</span><select value={theme} onChange={(event) => setTheme(event.target.value)}><option value="">Tutti i temi</option>{USER_FACING_THEMES.map((candidate) => <option key={candidate} value={candidate}>{candidate}</option>)}</select></label>
         <label><span>Territorio</span><select value={territory} onChange={(event) => setTerritory(event.target.value)}><option value="all">Tutti</option><option value="Veneto">Veneto</option><option value="Italia">Italia / nazionale</option><option value="Europa">Europa</option><option value="Altre regioni">Altre regioni</option></select></label>
@@ -179,7 +183,7 @@ export function FundingExplorer() {
       {activeCount > 0 && <div className="active-chips">{query.trim() && <button onClick={() => setQuery("")}>“{query}” ×</button>}{newOnly && <button onClick={() => setNewOnly(false)}>Nuovi ×</button>}{favoritesOnly && <button onClick={() => setFavoritesOnly(false)}>Preferiti ×</button>}{theme && <button onClick={() => setTheme("")}>{theme} ×</button>}{territory !== "all" && <button onClick={() => setTerritory("all")}>{territory} ×</button>}{viewMode === "archive" ? <button onClick={returnToCurrent}>Scaduti ×</button> : status !== "current" && <button onClick={() => setStatus("current")}>{statusLabel(status as Opportunity["status"])} ×</button>}{deadline !== "all" && <button onClick={() => setDeadline("all")}>Entro {deadline} giorni ×</button>}{applicant !== "all" && <button onClick={() => setApplicant("all")}>{applicant} ×</button>}{viewMode !== "archive" && includeLowRelevance && <button onClick={() => setIncludeLowRelevance(false)}>Meno pertinenti ×</button>}</div>}
       <div className="cards">{visibleResults.map((item) => { const itemThemes = userFacingThemes(item); return <article className={`card ${item.status === "UPCOMING" ? "upcoming" : ""}`} key={item.id}><div className="card-head"><span className={`status ${item.status.toLowerCase()}`}>{statusLabel(item.status)}</span><div>{isNewOpportunity(item) && <span className="new-badge">Nuovo</span>}<button className="favorite" onClick={() => toggleFavorite(item.id)} aria-label={favorites.includes(item.id) ? "Rimuovi dai preferiti" : "Salva nei preferiti"}>{favorites.includes(item.id) ? "★" : "☆"}</button></div></div><h3>{item.title}</h3><p className="funder">{item.funder} · {item.territory}</p><div className="facts"><span><small>{item.status === "UPCOMING" ? "Apertura prevista" : item.status === "OPEN" ? "Scadenza" : "Stato"}</small>{item.status === "UPCOMING" ? item.openingDate ?? "Da definire" : item.status === "OPEN" ? item.deadline ?? "Da verificare" : statusLabel(item.status)}</span><span><small>Quanto</small>{item.amount ?? "Non indicato"}</span></div><div className="tags">{itemThemes.slice(0, 2).map((theme) => <span key={theme}>{theme}</span>)}{itemThemes.length > 2 && <span>+{itemThemes.length - 2}</span>}</div><div className="card-footer"><span>Rilevanza psicologica: <strong>{item.relevance}</strong></span><button onClick={() => setActive(item)}>Dettagli</button></div>{item.status === "UPCOMING" && <p className="caution">Le condizioni definitive potranno cambiare.</p>}</article>; })}</div>
       {visibleResults.length < results.length && <div className="results-more"><p>Mostrate {visibleResults.length} schede per mantenere la consultazione rapida.</p><button className="filter-toggle" onClick={() => setVisibleCount((count) => count + 60)}>Mostra altre</button></div>}
-      {results.length === 0 && <div className="empty"><strong>Non abbiamo trovato opportunità con questi criteri.</strong><p>Prova ad ampliare il territorio, rimuovere un filtro o includere anche i bandi in arrivo.</p><button onClick={reset}>Azzera filtri</button></div>}
+      {snapshot && results.length === 0 && <div className="empty"><strong>Non abbiamo trovato opportunità con questi criteri.</strong><p>Prova ad ampliare il territorio, rimuovere un filtro o includere anche i bandi in arrivo.</p><button onClick={reset}>Azzera filtri</button></div>}
     </section>
 
     <section className="info" id="info"><p className="eyebrow">Trasparenza</p><h2>La fonte ufficiale viene prima di tutto.</h2>{snapshot ? <p>{updatedLabel(snapshot)} · {sourceSummary(snapshot)}. La rilevanza psicologica è una classificazione testuale, non un giudizio di ammissibilità: per requisiti, scadenze e importi vale sempre il testo ufficiale.</p> : <p>La consultazione separa la rilevanza psicologica dalla possibilità di partecipare. Per requisiti, scadenze e importi vale sempre il testo ufficiale della fonte.</p>}</section>

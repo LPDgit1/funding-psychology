@@ -49,8 +49,9 @@ def test_salute_finalizzata_is_one_canonical_call_with_ssn_entities():
 
 
 def test_salute_challenge_page_yields_no_false_opportunities():
-    records = MinisteroSaluteRicercaFinalizzataAdapter().parse(b"<title>Site verification - Please enable JavaScript</title>")
-    assert records == []
+    from funding_core.adapters import AdapterError
+    with __import__("unittest").TestCase().assertRaises(AdapterError):
+        MinisteroSaluteRicercaFinalizzataAdapter().parse(b"<title>Site verification - Please enable JavaScript</title>")
 
 
 def test_mur_prin_keeps_detail_initiatives_and_separate_windows():

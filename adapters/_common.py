@@ -12,6 +12,7 @@ from funding_core.adapters import (
     is_funding_opportunity,
 )
 from funding_core.dates import parse_date
+from funding_core.money import extract_money as _extract_money
 from funding_core.models import SourceRecord
 from funding_core.territories import normalize_territory, split_regions
 
@@ -148,7 +149,7 @@ def infer_status(value: str, default: str = "UNKNOWN") -> str:
 
 
 def _date_after_label(context: str, labels: tuple[str, ...]) -> date | None:
-    pattern = r"(?:" + "|".join(labels) + r")[^.;\n]{0,100}"
+    pattern = r"(?:" + "|".join(labels) + r")[^;\n]{0,100}"
     match = re.search(pattern, context, re.IGNORECASE)
     if not match:
         return None
@@ -165,11 +166,7 @@ def extract_opening(context: str) -> date | None:
 
 
 def extract_money(context: str) -> int | None:
-    for match in _MONEY_RE.finditer(context):
-        digits = re.sub(r"[^0-9]", "", match.group(1))
-        if digits:
-            return int(digits)
-    return None
+    return _extract_money(context)
 
 
 def extract_entities(context: str) -> tuple[str, ...]:

@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
-  "newCurrent": 1,
+  "newCurrent": 0,
   "newArchive": 0,
   "duplicatesCollapsed": 0,
   "sources": [
@@ -15,7 +15,7 @@
       "unique": 5,
       "duplicates": 0,
       "archive": 1,
-      "newCurrent": 1,
+      "newCurrent": 0,
       "newArchive": 0,
       "warnings": []
     },

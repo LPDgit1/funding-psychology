@@ -14,6 +14,8 @@ test("home presents the simplified public vocabulary", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   const html = await response.text();
+  assert.match(html, /Caricamento delle opportunità/);
+  assert.doesNotMatch(html, /class="card /);
   assert.match(html, /Trova finanziamenti per progetti psicologici/);
   assert.match(html, /Che progetto hai in mente/);
   assert.doesNotMatch(html, /snapshot|macroarea|Archivio CLOSED|\bOPEN\b|\bUPCOMING\b|\bCLOSED\b/);

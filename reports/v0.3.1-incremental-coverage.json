@@ -15,7 +15,7 @@
     "partial": 1,
     "notReady": 1
   },
-  "newCurrent": 1,
+  "newCurrent": 0,
   "newArchive": 0,
   "duplicatesCollapsed": 0,
   "sources": [
@@ -31,7 +31,7 @@
       "archive": 1,
       "unique": 5,
       "duplicates": 0,
-      "newCurrent": 1,
+      "newCurrent": 0,
       "newArchive": 0,
       "warnings": [],
       "note": ""
