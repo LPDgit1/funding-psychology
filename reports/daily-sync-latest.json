@@ -1,13 +1,13 @@
 {
-  "startedAt": "2026-09-07T20:51:23.860959Z",
-  "completedAt": "2026-09-07T21:00:18.464154Z",
-  "snapshotGeneratedAt": "2026-09-07T20:51:23.976537Z",
+  "startedAt": "2026-09-11T08:25:23.982656Z",
+  "completedAt": "2026-09-11T08:39:52.129981Z",
+  "snapshotGeneratedAt": "2026-09-11T08:25:24.069592Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
-    "aig-opportunities",
     "compagnia_san_paolo",
     "con-i-bambini",
+    "dipartimento-disabilita",
     "dipartimento-famiglia",
     "erasmus-indire",
     "erasmus_inapp",
@@ -27,27 +27,27 @@
     "fondazione_del_monte",
     "fondazione_friuli",
     "fondazione_modena",
+    "fondazione_mps",
     "fondazione_sardegna",
     "fondazione_venezia",
     "fondo-repubblica-digitale",
     "inail_bric",
-    "incentivi-gov",
     "interreg-italy-croatia",
     "intesa_beneficenza",
     "ministero_lavoro_terzo_settore",
+    "ministero_salute_ricerca_finalizzata",
     "mur_prin",
-    "pari_opportunita",
-    "pn_scuola",
     "veneto-bandi"
   ],
   "STALE": [
-    "dipartimento-disabilita",
+    "aig-opportunities",
     "european_youth_foundation",
-    "fondazione_mps"
+    "incentivi-gov",
+    "pari_opportunita",
+    "pn_scuola"
   ],
   "ERROR": [
-    "dipendenze",
-    "ministero_salute_ricerca_finalizzata"
+    "dipendenze"
   ],
   "FIXTURE_ONLY": [
     "veneto-fesr-calendar",
@@ -56,20 +56,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 35,
-    "staleSourceCount": 3,
-    "errorSourceCount": 2,
+    "successfulSourceCount": 34,
+    "staleSourceCount": 5,
+    "errorSourceCount": 1,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 2279,
-  "archiveRecords": 6254,
+  "currentRecords": 2188,
+  "archiveRecords": 6266,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 2290,
-    "candidateCurrentRecords": 2279
+    "previousCurrentRecords": 2279,
+    "candidateCurrentRecords": 2188
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
