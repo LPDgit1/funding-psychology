@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-10-26T09:30:31.446062Z",
-  "completedAt": "2026-10-26T09:45:26.443510Z",
-  "snapshotGeneratedAt": "2026-10-26T09:30:31.553707Z",
+  "startedAt": "2026-10-27T09:27:28.125870Z",
+  "completedAt": "2026-10-27T09:42:13.037684Z",
+  "snapshotGeneratedAt": "2026-10-27T09:27:28.219646Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
@@ -9,6 +9,7 @@
     "compagnia_san_paolo",
     "dipartimento-disabilita",
     "dipartimento-famiglia",
+    "dipendenze",
     "eu-funding-tenders",
     "fami",
     "fondazione-cariparo",
@@ -46,9 +47,7 @@
     "incentivi-gov",
     "pn_scuola"
   ],
-  "ERROR": [
-    "dipendenze"
-  ],
+  "ERROR": [],
   "FIXTURE_ONLY": [
     "veneto-fesr-calendar",
     "veneto-fse-calendar"
@@ -56,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 33,
+    "successfulSourceCount": 34,
     "staleSourceCount": 6,
-    "errorSourceCount": 1,
+    "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1835,
-  "archiveRecords": 6440,
+  "currentRecords": 1805,
+  "archiveRecords": 6443,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1779,
-    "candidateCurrentRecords": 1835
+    "previousCurrentRecords": 1835,
+    "candidateCurrentRecords": 1805
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
