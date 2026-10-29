@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-10-28T10:10:34.330460Z",
-  "completedAt": "2026-10-28T10:26:12.555420Z",
-  "snapshotGeneratedAt": "2026-10-28T10:10:34.445360Z",
+  "startedAt": "2026-10-29T10:34:57.492236Z",
+  "completedAt": "2026-10-29T10:48:27.612717Z",
+  "snapshotGeneratedAt": "2026-10-29T10:34:57.622223Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
@@ -10,6 +10,7 @@
     "dipartimento-disabilita",
     "dipartimento-famiglia",
     "dipendenze",
+    "eu-funding-tenders",
     "fami",
     "fondazione-cariparo",
     "fondazione-cariverona",
@@ -25,7 +26,6 @@
     "fondazione_del_monte",
     "fondazione_friuli",
     "fondazione_modena",
-    "fondazione_mps",
     "fondazione_sardegna",
     "fondazione_venezia",
     "fondo-repubblica-digitale",
@@ -42,8 +42,8 @@
     "con-i-bambini",
     "erasmus-indire",
     "erasmus_inapp",
-    "eu-funding-tenders",
     "european_youth_foundation",
+    "fondazione_mps",
     "incentivi-gov",
     "pn_scuola"
   ],
@@ -60,15 +60,15 @@
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1804,
+  "currentRecords": 1842,
   "archiveRecords": 6444,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1805,
-    "candidateCurrentRecords": 1804
+    "previousCurrentRecords": 1804,
+    "candidateCurrentRecords": 1842
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
