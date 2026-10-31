@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-10-30T10:36:00.147082Z",
-  "completedAt": "2026-10-30T10:49:09.476803Z",
-  "snapshotGeneratedAt": "2026-10-30T10:36:00.231255Z",
+  "startedAt": "2026-10-31T10:03:23.836760Z",
+  "completedAt": "2026-10-31T10:16:38.123856Z",
+  "snapshotGeneratedAt": "2026-10-31T10:03:23.914595Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
@@ -60,15 +60,15 @@
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1805,
-  "archiveRecords": 6447,
+  "currentRecords": 1763,
+  "archiveRecords": 6465,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1842,
-    "candidateCurrentRecords": 1805
+    "previousCurrentRecords": 1805,
+    "candidateCurrentRecords": 1763
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
