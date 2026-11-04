@@ -1,12 +1,13 @@
 {
-  "startedAt": "2026-11-03T11:29:06.026092Z",
-  "completedAt": "2026-11-03T11:42:35.189089Z",
-  "snapshotGeneratedAt": "2026-11-03T11:29:06.103516Z",
+  "startedAt": "2026-11-04T11:45:19.338426Z",
+  "completedAt": "2026-11-04T11:59:15.928062Z",
+  "snapshotGeneratedAt": "2026-11-04T11:45:19.469880Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
     "aig-opportunities",
     "compagnia_san_paolo",
+    "con-i-bambini",
     "dipartimento-disabilita",
     "dipartimento-famiglia",
     "dipendenze",
@@ -40,7 +41,6 @@
     "veneto-bandi"
   ],
   "STALE": [
-    "con-i-bambini",
     "erasmus-indire",
     "erasmus_inapp",
     "european_youth_foundation",
@@ -55,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 34,
-    "staleSourceCount": 6,
+    "successfulSourceCount": 35,
+    "staleSourceCount": 5,
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1828,
-  "archiveRecords": 6474,
+  "currentRecords": 1756,
+  "archiveRecords": 6476,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1819,
-    "candidateCurrentRecords": 1828
+    "previousCurrentRecords": 1828,
+    "candidateCurrentRecords": 1756
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
