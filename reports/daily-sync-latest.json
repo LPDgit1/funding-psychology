@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-11-05T11:43:38.330408Z",
-  "completedAt": "2026-11-05T11:56:57.632717Z",
-  "snapshotGeneratedAt": "2026-11-05T11:43:38.412407Z",
+  "startedAt": "2026-11-06T11:42:12.789486Z",
+  "completedAt": "2026-11-06T11:55:49.174027Z",
+  "snapshotGeneratedAt": "2026-11-06T11:42:12.874312Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
@@ -18,7 +18,6 @@
     "fondazione_cariparma",
     "fondazione_cariplo",
     "fondazione_carisbo",
-    "fondazione_carispezia",
     "fondazione_con_il_sud",
     "fondazione_cr_firenze",
     "fondazione_cr_lucca",
@@ -44,6 +43,7 @@
     "erasmus-indire",
     "erasmus_inapp",
     "european_youth_foundation",
+    "fondazione_carispezia",
     "incentivi-gov",
     "pn_scuola"
   ],
@@ -55,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 35,
-    "staleSourceCount": 5,
+    "successfulSourceCount": 34,
+    "staleSourceCount": 6,
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1812,
-  "archiveRecords": 6478,
+  "currentRecords": 1731,
+  "archiveRecords": 6425,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1756,
-    "candidateCurrentRecords": 1812
+    "previousCurrentRecords": 1812,
+    "candidateCurrentRecords": 1731
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
