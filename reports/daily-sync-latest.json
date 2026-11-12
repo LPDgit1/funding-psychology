@@ -1,16 +1,15 @@
 {
-  "startedAt": "2026-11-11T11:35:43.913907Z",
-  "completedAt": "2026-11-11T11:49:38.664918Z",
-  "snapshotGeneratedAt": "2026-11-11T11:35:44.021471Z",
+  "startedAt": "2026-11-12T11:59:13.126915Z",
+  "completedAt": "2026-11-12T12:14:47.710844Z",
+  "snapshotGeneratedAt": "2026-11-12T11:59:13.222338Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
     "aig-opportunities",
     "compagnia_san_paolo",
     "con-i-bambini",
-    "dipartimento-disabilita",
-    "dipartimento-famiglia",
-    "dipendenze",
+    "erasmus-indire",
+    "erasmus_inapp",
     "eu-funding-tenders",
     "fami",
     "fondazione-cariparo",
@@ -37,14 +36,15 @@
     "ministero_lavoro_terzo_settore",
     "ministero_salute_ricerca_finalizzata",
     "mur_prin",
-    "pari_opportunita",
     "veneto-bandi"
   ],
   "STALE": [
-    "erasmus-indire",
-    "erasmus_inapp",
+    "dipartimento-disabilita",
+    "dipartimento-famiglia",
+    "dipendenze",
     "european_youth_foundation",
     "incentivi-gov",
+    "pari_opportunita",
     "pn_scuola"
   ],
   "ERROR": [],
@@ -55,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 35,
-    "staleSourceCount": 5,
+    "successfulSourceCount": 33,
+    "staleSourceCount": 7,
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1724,
+  "currentRecords": 1747,
   "archiveRecords": 6495,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1796,
-    "candidateCurrentRecords": 1724
+    "previousCurrentRecords": 1724,
+    "candidateCurrentRecords": 1747
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
