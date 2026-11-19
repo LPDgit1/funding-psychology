@@ -1,13 +1,16 @@
 {
-  "startedAt": "2026-11-18T12:29:42.106961Z",
-  "completedAt": "2026-11-18T12:46:45.218646Z",
-  "snapshotGeneratedAt": "2026-11-18T12:29:42.204712Z",
+  "startedAt": "2026-11-19T12:19:49.095474Z",
+  "completedAt": "2026-11-19T12:30:17.830074Z",
+  "snapshotGeneratedAt": "2026-11-19T12:19:49.225788Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
     "aig-opportunities",
     "compagnia_san_paolo",
     "con-i-bambini",
+    "dipartimento-disabilita",
+    "dipartimento-famiglia",
+    "dipendenze",
     "erasmus-indire",
     "erasmus_inapp",
     "eu-funding-tenders",
@@ -34,21 +37,17 @@
     "interreg-italy-croatia",
     "intesa_beneficenza",
     "ministero_lavoro_terzo_settore",
+    "ministero_salute_ricerca_finalizzata",
     "mur_prin",
+    "pari_opportunita",
     "veneto-bandi"
   ],
   "STALE": [
-    "dipartimento-disabilita",
-    "dipartimento-famiglia",
-    "dipendenze",
     "european_youth_foundation",
     "incentivi-gov",
-    "pari_opportunita",
     "pn_scuola"
   ],
-  "ERROR": [
-    "ministero_salute_ricerca_finalizzata"
-  ],
+  "ERROR": [],
   "FIXTURE_ONLY": [
     "veneto-fesr-calendar",
     "veneto-fse-calendar"
@@ -56,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 32,
-    "staleSourceCount": 7,
-    "errorSourceCount": 1,
+    "successfulSourceCount": 37,
+    "staleSourceCount": 3,
+    "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1874,
-  "archiveRecords": 6503,
+  "currentRecords": 1847,
+  "archiveRecords": 6505,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1703,
-    "candidateCurrentRecords": 1874
+    "previousCurrentRecords": 1874,
+    "candidateCurrentRecords": 1847
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
