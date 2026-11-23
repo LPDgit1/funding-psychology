@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-11-22T12:09:01.124559Z",
-  "completedAt": "2026-11-22T12:19:13.696836Z",
-  "snapshotGeneratedAt": "2026-11-22T12:09:01.238607Z",
+  "startedAt": "2026-11-23T13:52:39.475406Z",
+  "completedAt": "2026-11-23T14:05:14.030644Z",
+  "snapshotGeneratedAt": "2026-11-23T13:52:39.588457Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
@@ -39,13 +39,13 @@
     "ministero_lavoro_terzo_settore",
     "ministero_salute_ricerca_finalizzata",
     "mur_prin",
-    "pari_opportunita",
-    "veneto-bandi"
+    "pari_opportunita"
   ],
   "STALE": [
     "european_youth_foundation",
     "incentivi-gov",
-    "pn_scuola"
+    "pn_scuola",
+    "veneto-bandi"
   ],
   "ERROR": [],
   "FIXTURE_ONLY": [
@@ -55,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 37,
-    "staleSourceCount": 3,
+    "successfulSourceCount": 36,
+    "staleSourceCount": 4,
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1797,
-  "archiveRecords": 6509,
+  "currentRecords": 1719,
+  "archiveRecords": 6505,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1844,
-    "candidateCurrentRecords": 1797
+    "previousCurrentRecords": 1797,
+    "candidateCurrentRecords": 1719
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
