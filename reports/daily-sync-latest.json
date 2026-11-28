@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-11-27T13:20:10.013689Z",
-  "completedAt": "2026-11-27T13:32:48.337107Z",
-  "snapshotGeneratedAt": "2026-11-27T13:20:10.106717Z",
+  "startedAt": "2026-11-28T12:35:01.464954Z",
+  "completedAt": "2026-11-28T12:47:17.534590Z",
+  "snapshotGeneratedAt": "2026-11-28T12:35:01.583026Z",
   "sourcesAttempted": 40,
   "LIVE": [
     "aics",
@@ -20,6 +20,7 @@
     "fondazione_cariparma",
     "fondazione_cariplo",
     "fondazione_carisbo",
+    "fondazione_carispezia",
     "fondazione_con_il_sud",
     "fondazione_cr_firenze",
     "fondazione_cr_lucca",
@@ -38,14 +39,13 @@
     "ministero_lavoro_terzo_settore",
     "ministero_salute_ricerca_finalizzata",
     "mur_prin",
-    "pari_opportunita"
+    "pari_opportunita",
+    "veneto-bandi"
   ],
   "STALE": [
     "european_youth_foundation",
-    "fondazione_carispezia",
     "incentivi-gov",
-    "pn_scuola",
-    "veneto-bandi"
+    "pn_scuola"
   ],
   "ERROR": [],
   "FIXTURE_ONLY": [
@@ -55,20 +55,20 @@
   "sourceCounts": {
     "totalSourceCount": 42,
     "liveConfiguredSourceCount": 40,
-    "successfulSourceCount": 35,
-    "staleSourceCount": 5,
+    "successfulSourceCount": 37,
+    "staleSourceCount": 3,
     "errorSourceCount": 0,
     "fixtureOnlySourceCount": 2
   },
-  "currentRecords": 1761,
-  "archiveRecords": 6451,
+  "currentRecords": 1784,
+  "archiveRecords": 6514,
   "snapshotValid": true,
   "anomaly": {
     "status": "PASS",
     "reasons": [],
     "comparedToPrevious": true,
-    "previousCurrentRecords": 1764,
-    "candidateCurrentRecords": 1761
+    "previousCurrentRecords": 1761,
+    "candidateCurrentRecords": 1784
   },
   "syncStatus": "DATA_SYNC_OK",
   "deploymentStatus": "NOT_ATTEMPTED"
